@@ -18,27 +18,16 @@ export async function loginAction(_prev: unknown, formData: FormData) {
 
   const { email, password } = parsed.data;
 
-  let user;
-  try {
-    user = await prisma.tenantUser.findFirst({
-      where: { email },
-      include: { tenant: true },
-    });
-  } catch (err) {
-    return { error: `DB error: ${String(err)}` };
-  }
+  const user = await prisma.tenantUser.findFirst({
+    where: { email },
+    include: { tenant: true },
+  });
 
   if (!user) {
     return { error: 'Credenciales inválidas' };
   }
 
-  let valid;
-  try {
-    valid = await bcrypt.compare(password, user.passwordHash);
-  } catch (err) {
-    return { error: `Bcrypt error: ${String(err)}` };
-  }
-
+  const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
     return { error: 'Credenciales inválidas' };
   }
@@ -47,16 +36,12 @@ export async function loginAction(_prev: unknown, formData: FormData) {
     return { error: 'Tu cuenta está pausada. Contactá al administrador.' };
   }
 
-  try {
-    await createSession({
-      userId: user.id,
-      tenantId: user.tenantId,
-      email: user.email,
-      role: user.role,
-    });
-  } catch (err) {
-    return { error: `Session error: ${String(err)}` };
-  }
+  await createSession({
+    userId: user.id,
+    tenantId: user.tenantId,
+    email: user.email,
+    role: user.role,
+  });
 
   redirect('/dashboard');
 }
