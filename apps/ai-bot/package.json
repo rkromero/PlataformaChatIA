@@ -1,0 +1,26 @@
+{
+  "name": "@chat-platform/ai-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "prisma generate && tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@chat-platform/shared": "workspace:*",
+    "@prisma/client": "^6.3.0",
+    "fastify": "^5.2.0",
+    "openai": "^4.80.0",
+    "pino": "^9.6.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "prisma": "^6.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}

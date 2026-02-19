@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantStatus {
+  active
+  paused
+}
+
+enum TenantPlan {
+  starter
+  pro
+  enterprise
+}
+
+enum UserRole {
+  owner
+  admin
+  agent
+}
+
+enum ChannelType {
+  whatsapp
+  webchat
+}
+
+model Tenant {
+  id               String       @id @default(uuid()) @db.Uuid
+  name             String
+  status           TenantStatus @default(active)
+  plan             TenantPlan   @default(starter)
+  chatwootAccountId Int         @unique @map("chatwoot_account_id")
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  users            TenantUser[]
+  aiSettings       AiSettings?
+  channels         TenantChannel[]
+  conversationLinks ConversationLink[]
+
+  @@map("tenants")
+}
+
+model TenantUser {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  email        String
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(agent)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, email])
+  @@map("tenant_users")
+}
+
+model AiSettings {
+  tenantId          String   @id @map("tenant_id") @db.Uuid
+  enabled           Boolean  @default(true)
+  model             String   @default("gpt-4.1-mini")
+  systemPrompt      String   @default("Eres un asistente de atención al cliente. Responde de forma breve y útil en español.") @map("system_prompt") @db.Text
+  handoffRulesJson  Json     @default("{\"keywords\":[\"humano\",\"asesor\",\"agente\",\"persona\"],\"handoffTag\":\"human_handoff\"}") @map("handoff_rules_json") @db.JsonB
+  businessHoursJson Json?    @map("business_hours_json") @db.JsonB
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("ai_settings")
+}
+
+model TenantChannel {
+  id                  String      @id @default(uuid()) @db.Uuid
+  tenantId            String      @map("tenant_id") @db.Uuid
+  type                ChannelType @default(whatsapp)
+  chatwootInboxId     Int         @map("chatwoot_inbox_id")
+  configEncryptedJson String      @map("config_encrypted_json") @db.Text
+  createdAt           DateTime    @default(now()) @map("created_at")
+
+  tenant              Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_channels")
+}
+
+model ConversationLink {
+  id                     String   @id @default(uuid()) @db.Uuid
+  tenantId               String   @map("tenant_id") @db.Uuid
+  chatwootConversationId Int      @map("chatwoot_conversation_id")
+  chatwootContactId      Int?     @map("chatwoot_contact_id")
+  phone                  String?
+  crmLeadId              String?  @map("crm_lead_id")
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  tenant                 Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, chatwootConversationId])
+  @@map("conversation_links")
+}

@@ -1,0 +1,22 @@
+{
+  "name": "chat-platform",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "start": "echo 'Use pnpm --filter <app> start'",
+    "dev:control-plane": "pnpm --filter @chat-platform/control-plane dev",
+    "dev:ai-bot": "pnpm --filter @chat-platform/ai-bot dev",
+    "build:control-plane": "pnpm --filter @chat-platform/control-plane build",
+    "build:ai-bot": "pnpm --filter @chat-platform/ai-bot build",
+    "db:migrate": "pnpm --filter @chat-platform/control-plane db:migrate",
+    "db:seed": "pnpm --filter @chat-platform/control-plane db:seed",
+    "db:push": "pnpm --filter @chat-platform/control-plane db:push",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  }
+}

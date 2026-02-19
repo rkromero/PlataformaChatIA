@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/ai-bot-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("CONTROL_PLANE_DB_URL")
+}
+
+enum TenantStatus {
+  active
+  paused
+}
+
+enum TenantPlan {
+  starter
+  pro
+  enterprise
+}
+
+enum ChannelType {
+  whatsapp
+  webchat
+}
+
+model Tenant {
+  id                String       @id @db.Uuid
+  name              String
+  status            TenantStatus
+  plan              TenantPlan
+  chatwootAccountId Int          @unique @map("chatwoot_account_id")
+  createdAt         DateTime     @map("created_at")
+
+  aiSettings        AiSettings?
+  channels          TenantChannel[]
+  conversationLinks ConversationLink[]
+
+  @@map("tenants")
+}
+
+model AiSettings {
+  tenantId          String  @id @map("tenant_id") @db.Uuid
+  enabled           Boolean
+  model             String
+  systemPrompt      String  @map("system_prompt") @db.Text
+  handoffRulesJson  Json    @map("handoff_rules_json") @db.JsonB
+  businessHoursJson Json?   @map("business_hours_json") @db.JsonB
+  updatedAt         DateTime @map("updated_at")
+
+  tenant            Tenant  @relation(fields: [tenantId], references: [id])
+
+  @@map("ai_settings")
+}
+
+model TenantChannel {
+  id                  String      @id @db.Uuid
+  tenantId            String      @map("tenant_id") @db.Uuid
+  type                ChannelType
+  chatwootInboxId     Int         @map("chatwoot_inbox_id")
+  configEncryptedJson String      @map("config_encrypted_json") @db.Text
+  createdAt           DateTime    @map("created_at")
+
+  tenant              Tenant      @relation(fields: [tenantId], references: [id])
+
+  @@map("tenant_channels")
+}
+
+model ConversationLink {
+  id                     String   @id @default(uuid()) @db.Uuid
+  tenantId               String   @map("tenant_id") @db.Uuid
+  chatwootConversationId Int      @map("chatwoot_conversation_id")
+  chatwootContactId      Int?     @map("chatwoot_contact_id")
+  phone                  String?
+  crmLeadId              String?  @map("crm_lead_id")
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  tenant                 Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, chatwootConversationId])
+  @@map("conversation_links")
+}
