@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const PUBLIC_PATHS = ['/login', '/api/health', '/api/seed'];
+const PUBLIC_PATHS = ['/login', '/api/health'];
 
 function getSecret() {
   const secret = process.env.AUTH_SECRET;
