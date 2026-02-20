@@ -1,8 +1,12 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { requireSession } from '@/lib/auth';
 import { TenantForm } from '../tenant-form';
 import { createTenantAction } from '../actions';
 
-export default function NewTenantPage() {
+export default async function NewTenantPage() {
+  const session = await requireSession();
+  if (session.role !== 'super_admin') redirect('/dashboard');
   return (
     <div>
       <div className="mb-6">

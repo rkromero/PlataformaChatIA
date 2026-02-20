@@ -1,9 +1,14 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { EmptyState } from '@/components/empty-state';
 import { DeleteTenantButton } from './delete-button';
 
 export default async function TenantsPage() {
+  const session = await requireSession();
+  if (session.role !== 'super_admin') redirect('/dashboard');
+
   const tenants = await prisma.tenant.findMany({
     orderBy: { createdAt: 'desc' },
     include: { _count: { select: { channels: true, conversationLinks: true } } },

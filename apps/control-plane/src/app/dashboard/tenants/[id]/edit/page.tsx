@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { TenantForm } from '../../tenant-form';
 import { updateTenantAction } from '../../actions';
@@ -9,6 +10,9 @@ export default async function EditTenantPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await requireSession();
+  if (session.role !== 'super_admin') redirect('/dashboard');
+
   const { id } = await params;
   const tenant = await prisma.tenant.findUnique({ where: { id } });
   if (!tenant) notFound();

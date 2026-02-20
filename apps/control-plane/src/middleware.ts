@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const PUBLIC_PATHS = ['/login', '/register', '/api/health'];
+const PUBLIC_PATHS = ['/login', '/register', '/api/health', '/api/bootstrap-admin'];
 const PUBLIC_EXACT = ['/'];
 
 function getSecret() {
