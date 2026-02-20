@@ -25,13 +25,14 @@ enum ChannelType {
 }
 
 model Tenant {
-  id                String       @id @db.Uuid
-  name              String
-  slug              String?      @unique
-  status            TenantStatus
-  plan              TenantPlan
-  chatwootAccountId Int?         @unique @map("chatwoot_account_id")
-  createdAt         DateTime     @map("created_at")
+  id                    String       @id @db.Uuid
+  name                  String
+  slug                  String?      @unique
+  status                TenantStatus
+  plan                  TenantPlan
+  chatwootAccountId     Int?         @unique @map("chatwoot_account_id")
+  onboardingCompleted   Boolean      @default(false) @map("onboarding_completed")
+  createdAt             DateTime     @map("created_at")
 
   aiSettings        AiSettings?
   channels          TenantChannel[]

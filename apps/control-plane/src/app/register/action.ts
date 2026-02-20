@@ -104,5 +104,5 @@ export async function registerAction(_prev: unknown, formData: FormData) {
     role: user.role,
   });
 
-  redirect('/dashboard');
+  redirect('/dashboard/onboarding');
 }

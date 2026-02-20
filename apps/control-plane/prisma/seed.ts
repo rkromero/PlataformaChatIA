@@ -12,6 +12,7 @@ async function main() {
       status: 'active',
       plan: 'pro',
       chatwootAccountId: 1,
+      onboardingCompleted: true,
     },
   });
 

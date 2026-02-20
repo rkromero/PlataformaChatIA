@@ -1,9 +1,20 @@
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 
 export default async function DashboardPage() {
   const session = await requireSession();
   const isSuperAdmin = session.role === 'super_admin';
+
+  if (!isSuperAdmin) {
+    const tenantCheck = await prisma.tenant.findUnique({
+      where: { id: session.tenantId },
+      select: { onboardingCompleted: true },
+    });
+    if (tenantCheck && !tenantCheck.onboardingCompleted) {
+      redirect('/dashboard/onboarding');
+    }
+  }
 
   if (isSuperAdmin) {
     const [tenantCount, userCount, channelCount, conversationCount] = await Promise.all([

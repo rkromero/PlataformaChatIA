@@ -31,13 +31,14 @@ enum ChannelType {
 }
 
 model Tenant {
-  id                String       @id @default(uuid()) @db.Uuid
-  name              String
-  slug              String?      @unique
-  status            TenantStatus @default(active)
-  plan              TenantPlan   @default(starter)
-  chatwootAccountId Int?         @unique @map("chatwoot_account_id")
-  createdAt         DateTime     @default(now()) @map("created_at")
+  id                    String       @id @default(uuid()) @db.Uuid
+  name                  String
+  slug                  String?      @unique
+  status                TenantStatus @default(active)
+  plan                  TenantPlan   @default(starter)
+  chatwootAccountId     Int?         @unique @map("chatwoot_account_id")
+  onboardingCompleted   Boolean      @default(false) @map("onboarding_completed")
+  createdAt             DateTime     @default(now()) @map("created_at")
 
   users             TenantUser[]
   aiSettings        AiSettings?
