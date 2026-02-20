@@ -49,16 +49,29 @@ export function TenantForm({
       </div>
 
       <div>
+        <label htmlFor="slug" className="label">Slug (URL amigable)</label>
+        <input
+          id="slug"
+          name="slug"
+          type="text"
+          defaultValue={tenant?.slug ?? ''}
+          className="input"
+          placeholder="mi-negocio"
+        />
+        <p className="mt-1 text-xs text-gray-500">Opcional. Solo letras minúsculas, números y guiones.</p>
+      </div>
+
+      <div>
         <label htmlFor="chatwootAccountId" className="label">Chatwoot Account ID</label>
         <input
           id="chatwootAccountId"
           name="chatwootAccountId"
           type="number"
-          required
-          defaultValue={tenant?.chatwootAccountId}
+          defaultValue={tenant?.chatwootAccountId ?? ''}
           className="input"
-          placeholder="1"
+          placeholder="Se asigna automáticamente o ingresá uno"
         />
+        <p className="mt-1 text-xs text-gray-500">Opcional. Se crea automáticamente al registrarse.</p>
       </div>
 
       {state?.error && (

@@ -68,7 +68,7 @@ export default async function TenantsPage() {
                     <span className="badge-blue">{t.plan}</span>
                   </td>
                   <td className="px-6 py-4 tabular-nums text-gray-500 dark:text-gray-400">
-                    {t.chatwootAccountId}
+                    {t.chatwootAccountId ?? <span className="text-gray-400 dark:text-gray-600">—</span>}
                   </td>
                   <td className="px-6 py-4 tabular-nums">{t._count.channels}</td>
                   <td className="px-6 py-4 tabular-nums">{t._count.conversationLinks}</td>

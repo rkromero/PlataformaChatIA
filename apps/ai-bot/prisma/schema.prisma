@@ -27,9 +27,10 @@ enum ChannelType {
 model Tenant {
   id                String       @id @db.Uuid
   name              String
+  slug              String?      @unique
   status            TenantStatus
   plan              TenantPlan
-  chatwootAccountId Int          @unique @map("chatwoot_account_id")
+  chatwootAccountId Int?         @unique @map("chatwoot_account_id")
   createdAt         DateTime     @map("created_at")
 
   aiSettings        AiSettings?

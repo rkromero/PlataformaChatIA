@@ -4,7 +4,7 @@ import { tenantLogger } from '../lib/logger.js';
 interface TenantWithSettings {
   id: string;
   name: string;
-  chatwootAccountId: number;
+  chatwootAccountId: number | null;
   aiSettings: {
     enabled: boolean;
     model: string;

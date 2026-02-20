@@ -46,7 +46,7 @@ async function main() {
       tenantId: tenant.id,
       email: 'admin@demo.com',
       passwordHash,
-      role: 'owner',
+      role: 'super_admin',
     },
   });
 
