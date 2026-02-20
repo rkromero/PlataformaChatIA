@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { env } from '../lib/env.js';
 import { logger, tenantLogger } from '../lib/logger.js';
 import { resolveTenant } from '../services/tenant-resolver.js';
-import { sendMessage, addLabel } from '../services/chatwoot.js';
+import { sendMessage, addLabel, getConversationMessages } from '../services/chatwoot.js';
 import { generateReply } from '../services/openai.js';
 import { syncLeadToCrm } from '../services/crm.js';
 import {
@@ -119,7 +119,8 @@ async function handleWebhook(body: Record<string, unknown>) {
     return;
   }
 
-  const aiReply = await generateReply(settings.model, settings.systemPrompt, content);
+  const history = await getConversationMessages(account.id, conversation.id, 10);
+  const aiReply = await generateReply(settings.model, settings.systemPrompt, content, history);
   await sendMessage(account.id, conversation.id, aiReply);
 
   // CRM sync (async, non-blocking)

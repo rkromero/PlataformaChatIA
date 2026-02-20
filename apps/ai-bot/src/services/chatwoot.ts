@@ -32,6 +32,43 @@ export async function sendMessage(
   log.info({ conversationId }, 'Message sent to Chatwoot');
 }
 
+interface ChatwootMessage {
+  id: number;
+  content: string | null;
+  message_type: number; // 0=incoming, 1=outgoing
+  content_type: string;
+  created_at: number;
+}
+
+export async function getConversationMessages(
+  accountId: number,
+  conversationId: number,
+  limit = 10,
+): Promise<Array<{ role: 'user' | 'assistant'; content: string }>> {
+  const url = `${env.CHATWOOT_BASE_URL}/api/v1/accounts/${accountId}/conversations/${conversationId}/messages`;
+
+  try {
+    const res = await fetch(url, {
+      headers: { api_access_token: env.CHATWOOT_API_TOKEN },
+    });
+
+    if (!res.ok) return [];
+
+    const data = (await res.json()) as { payload: ChatwootMessage[] };
+    const messages = (data.payload ?? [])
+      .filter((m) => m.content && m.content_type === 'text')
+      .slice(-limit)
+      .map((m) => ({
+        role: (m.message_type === 0 ? 'user' : 'assistant') as 'user' | 'assistant',
+        content: m.content!,
+      }));
+
+    return messages;
+  } catch {
+    return [];
+  }
+}
+
 export async function addLabel(
   accountId: number,
   conversationId: number,
