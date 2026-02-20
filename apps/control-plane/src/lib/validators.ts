@@ -29,7 +29,18 @@ export const channelSchema = z.object({
   accessToken: z.string().min(1, 'Requerido'),
 });
 
+export const registerSchema = z.object({
+  businessName: z.string().min(2, 'Mínimo 2 caracteres').max(100),
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'Mínimo 6 caracteres'),
+  confirmPassword: z.string().min(6, 'Mínimo 6 caracteres'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Las contraseñas no coinciden',
+  path: ['confirmPassword'],
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type TenantInput = z.infer<typeof tenantSchema>;
 export type AiSettingsInput = z.infer<typeof aiSettingsSchema>;
 export type ChannelInput = z.infer<typeof channelSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
