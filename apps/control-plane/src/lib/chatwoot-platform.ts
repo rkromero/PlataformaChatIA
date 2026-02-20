@@ -1,6 +1,3 @@
-const PLATFORM_URL = process.env.CHATWOOT_PLATFORM_URL ?? process.env.CHATWOOT_BASE_URL ?? '';
-const PLATFORM_TOKEN = process.env.CHATWOOT_PLATFORM_TOKEN ?? '';
-
 interface ChatwootAccount {
   id: number;
   name: string;
@@ -11,16 +8,23 @@ interface ChatwootUser {
   email: string;
 }
 
+function getConfig() {
+  const url = process.env.CHATWOOT_PLATFORM_URL ?? process.env.CHATWOOT_BASE_URL ?? '';
+  const token = process.env.CHATWOOT_PLATFORM_TOKEN ?? '';
+  return { url, token };
+}
+
 async function platformFetch<T>(path: string, body: Record<string, unknown>): Promise<T> {
-  if (!PLATFORM_URL || !PLATFORM_TOKEN) {
+  const { url, token } = getConfig();
+  if (!url || !token) {
     throw new Error('CHATWOOT_PLATFORM_URL and CHATWOOT_PLATFORM_TOKEN are required');
   }
 
-  const res = await fetch(`${PLATFORM_URL}/platform/api/v1${path}`, {
+  const res = await fetch(`${url}/platform/api/v1${path}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      api_access_token: PLATFORM_TOKEN,
+      api_access_token: token,
     },
     body: JSON.stringify(body),
   });
