@@ -8,9 +8,13 @@ interface ChatwootUser {
   email: string;
 }
 
+function getEnv(name: string): string {
+  return process.env[name] ?? '';
+}
+
 function getConfig() {
-  const url = process.env.CHATWOOT_PLATFORM_URL ?? process.env.CHATWOOT_BASE_URL ?? '';
-  const token = process.env.CHATWOOT_PLATFORM_TOKEN ?? '';
+  const url = getEnv('CHATWOOT_PLATFORM_URL') || getEnv('CHATWOOT_BASE_URL');
+  const token = getEnv('CHATWOOT_PLATFORM_TOKEN');
   return { url, token };
 }
 
