@@ -13,15 +13,15 @@ function getEnv(name: string): string {
 }
 
 function getConfig() {
-  const url = getEnv('CHATWOOT_PLATFORM_URL') || getEnv('CHATWOOT_BASE_URL');
-  const token = getEnv('CHATWOOT_PLATFORM_TOKEN');
+  const url = getEnv('CW_PLATFORM_URL') || getEnv('CHATWOOT_BASE_URL');
+  const token = getEnv('CW_PLATFORM_KEY');
   return { url, token };
 }
 
 async function platformFetch<T>(path: string, body: Record<string, unknown>): Promise<T> {
   const { url, token } = getConfig();
   if (!url || !token) {
-    throw new Error('CHATWOOT_PLATFORM_URL and CHATWOOT_PLATFORM_TOKEN are required');
+    throw new Error('CW_PLATFORM_URL and CW_PLATFORM_KEY are required');
   }
 
   const res = await fetch(`${url}/platform/api/v1${path}`, {
