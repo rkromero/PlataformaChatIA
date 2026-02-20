@@ -10,7 +10,7 @@ export const controlPlaneEnvSchema = z.object({
 
 export const aiBotEnvSchema = z.object({
   PORT: z.coerce.number().default(3001),
-  CHATWOOT_WEBHOOK_SECRET: z.string().min(1),
+  CHATWOOT_WEBHOOK_SECRET: z.string().optional().default(''),
   CHATWOOT_BASE_URL: z.string().url(),
   CHATWOOT_API_TOKEN: z.string().min(1),
   OPENAI_API_KEY: z.string().min(1),

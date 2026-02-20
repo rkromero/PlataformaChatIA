@@ -13,8 +13,8 @@ import type { HandoffRules } from '@chat-platform/shared/types';
 
 export async function webhookRoutes(app: FastifyInstance) {
   app.post('/webhooks/chatwoot', async (request, reply) => {
-    const secret = request.headers['x-webhook-secret'];
-    if (secret !== env.CHATWOOT_WEBHOOK_SECRET) {
+    const secret = request.headers['x-webhook-secret'] as string | undefined;
+    if (secret && secret !== env.CHATWOOT_WEBHOOK_SECRET) {
       logger.warn('Invalid webhook secret');
       return reply.status(200).send({ ok: false, reason: 'invalid_secret' });
     }
