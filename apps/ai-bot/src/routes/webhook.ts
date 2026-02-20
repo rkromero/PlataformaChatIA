@@ -26,16 +26,16 @@ export async function webhookRoutes(app: FastifyInstance) {
     try {
       await handleWebhook(body);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      const stack = err instanceof Error ? err.stack : '';
-      logger.error({ error: msg, stack }, 'Unhandled error in webhook handler');
+      console.error('=== WEBHOOK ERROR ===');
+      console.error(err);
+      console.error('=== END ERROR ===');
     }
   });
 }
 
 async function handleWebhook(body: Record<string, unknown>) {
   const event = body.event as string;
-  logger.info({ event, messageType: body.message_type, hasAccount: !!body.account }, 'Webhook received');
+  console.log('=== WEBHOOK EVENT:', event, 'type:', body.message_type, 'account:', JSON.stringify(body.account), '===');
 
   if (event !== 'message_created') return;
 
