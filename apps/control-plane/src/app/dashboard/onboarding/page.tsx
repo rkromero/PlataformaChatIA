@@ -2,6 +2,7 @@
 
 import { useState, useActionState } from 'react';
 import { saveOnboardingBotAction, completeOnboardingAction } from './actions';
+import { connectWhatsAppAction } from '../channels/connect-whatsapp/actions';
 
 const BUSINESS_TYPES = [
   {
@@ -43,6 +44,8 @@ export default function OnboardingPage() {
   const [selectedType, setSelectedType] = useState<number | null>(null);
   const [prompt, setPrompt] = useState('');
   const [botState, botAction, botPending] = useActionState(saveOnboardingBotAction, null);
+  const [waState, waAction, waPending] = useActionState(connectWhatsAppAction, null);
+  const [waSubStep, setWaSubStep] = useState(0);
 
   function selectBusinessType(index: number) {
     setSelectedType(index);
@@ -163,56 +166,130 @@ export default function OnboardingPage() {
             Para que el bot atienda por WhatsApp, necesitás conectar tu número.
           </p>
 
-          <div className="mt-6 space-y-4">
-            <div className="rounded-xl border border-brand-200 bg-brand-50 p-5 dark:border-brand-500/20 dark:bg-brand-500/10">
-              <h3 className="font-medium text-brand-900 dark:text-brand-300">Opción recomendada: Te lo configuramos</h3>
-              <p className="mt-2 text-sm text-brand-700 dark:text-brand-400">
-                Escribinos por WhatsApp o email y te ayudamos a conectar tu número en minutos. Es gratis y está incluido en tu plan.
-              </p>
-              <a
-                href="mailto:soporte@chatplatform.com?subject=Conectar WhatsApp&body=Hola, quiero conectar mi WhatsApp al chatbot."
-                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-500"
+          {/* Sub-step: Choose method */}
+          {waSubStep === 0 && !waState?.success && (
+            <div className="mt-6 space-y-4">
+              <button
+                onClick={() => setWaSubStep(1)}
+                className="w-full rounded-xl border-2 border-brand-200 bg-brand-50 p-5 text-left transition-all hover:border-brand-400 dark:border-brand-500/20 dark:bg-brand-500/10 dark:hover:border-brand-500/40"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                </svg>
-                Contactar soporte
-              </a>
-            </div>
+                <h3 className="font-medium text-brand-900 dark:text-brand-300">Configurar ahora (guiado)</h3>
+                <p className="mt-1 text-sm text-brand-700 dark:text-brand-400">
+                  Te guiamos paso a paso para conectar tu WhatsApp Business API. Necesitás Phone Number ID, WABA ID y Access Token de Meta.
+                </p>
+              </button>
 
-            <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-700">
-              <h3 className="font-medium">Configuración manual (avanzado)</h3>
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Si ya tenés un número de WhatsApp Business API con Meta, podés configurarlo vos mismo desde la sección Canales del dashboard.
+              <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-700">
+                <h3 className="font-medium">¿Preferís que te lo configuremos?</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Escribinos y te ayudamos a conectar tu número en minutos. Es gratis con tu plan.
+                </p>
+                <a
+                  href="mailto:soporte@chatplatform.com?subject=Conectar WhatsApp&body=Hola, quiero conectar mi WhatsApp al chatbot."
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400"
+                >
+                  Contactar soporte →
+                </a>
+              </div>
+
+              <div className="mt-4 flex gap-3">
+                <button onClick={() => setStep(0)} className="btn-secondary">← Volver</button>
+                <button onClick={() => setStep(2)} className="btn-secondary">Omitir por ahora →</button>
+              </div>
+            </div>
+          )}
+
+          {/* Sub-step: Instructions */}
+          {waSubStep === 1 && !waState?.success && (
+            <div className="mt-6">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Abrí <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener noreferrer" className="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400">developers.facebook.com/apps</a> y buscá estos datos en WhatsApp &gt; API Setup:
               </p>
-              <h4 className="mt-3 text-sm font-medium">Requisitos:</h4>
-              <ul className="mt-2 space-y-1.5 text-sm text-gray-500 dark:text-gray-400">
-                <li className="flex items-start gap-2">
-                  <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  Cuenta de Meta Business verificada
-                </li>
-                <li className="flex items-start gap-2">
-                  <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  Número de WhatsApp Business API
-                </li>
-                <li className="flex items-start gap-2">
-                  <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  Phone Number ID, WABA ID y Access Token de Meta
-                </li>
-              </ul>
-            </div>
-          </div>
 
-          <div className="mt-6 flex gap-3">
-            <button onClick={() => setStep(0)} className="btn-secondary">← Volver</button>
-            <button onClick={() => setStep(2)} className="btn-primary">Siguiente →</button>
-          </div>
+              <div className="space-y-2 text-sm mb-4">
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-[10px] font-semibold dark:bg-gray-800">1</span>
+                  <span><strong>Phone Number ID</strong> — debajo del número seleccionado</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-[10px] font-semibold dark:bg-gray-800">2</span>
+                  <span><strong>WABA ID</strong> — en WhatsApp Business Account ID</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-[10px] font-semibold dark:bg-gray-800">3</span>
+                  <span><strong>Access Token</strong> — hacé clic en &quot;Generate&quot; (dura 24h) o creá uno permanente</span>
+                </div>
+              </div>
+
+              <form action={waAction} className="space-y-3">
+                <div>
+                  <label htmlFor="ob-phone" className="label">Número de teléfono</label>
+                  <input id="ob-phone" name="phoneNumber" type="tel" required className="input" placeholder="+5491112345678" />
+                </div>
+                <div>
+                  <label htmlFor="ob-pnid" className="label">Phone Number ID</label>
+                  <input id="ob-pnid" name="phoneNumberId" type="text" required className="input font-mono" placeholder="123456789012345" />
+                </div>
+                <div>
+                  <label htmlFor="ob-waba" className="label">WABA ID</label>
+                  <input id="ob-waba" name="wabaId" type="text" required className="input font-mono" placeholder="987654321098765" />
+                </div>
+                <div>
+                  <label htmlFor="ob-token" className="label">Access Token</label>
+                  <input id="ob-token" name="accessToken" type="password" required className="input font-mono" placeholder="EAAx..." />
+                </div>
+
+                {waState?.error && (
+                  <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">
+                    {waState.error}
+                  </p>
+                )}
+
+                <div className="flex gap-3 pt-1">
+                  <button type="button" onClick={() => setWaSubStep(0)} className="btn-secondary">← Volver</button>
+                  <button type="submit" disabled={waPending} className="btn-primary">
+                    {waPending ? (
+                      <>
+                        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        Conectando...
+                      </>
+                    ) : (
+                      'Conectar WhatsApp'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Sub-step: Success */}
+          {waState?.success && (
+            <div className="mt-6">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-500/20 dark:bg-emerald-500/10">
+                <p className="font-medium text-emerald-900 dark:text-emerald-300">WhatsApp conectado correctamente</p>
+                <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-400">Inbox ID: {waState.inboxId}</p>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/20 dark:bg-amber-500/10">
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Configurá el webhook en Meta:</p>
+                <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">En tu app de Meta &gt; WhatsApp &gt; Configuration &gt; Webhook, pegá esta URL:</p>
+                <code className="mt-2 block break-all rounded bg-white p-2 text-xs font-mono dark:bg-gray-900">
+                  {waState.webhookUrl}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard.writeText(waState.webhookUrl || '')}
+                  className="mt-2 text-xs font-medium text-amber-700 underline dark:text-amber-400"
+                >
+                  Copiar URL
+                </button>
+              </div>
+
+              <div className="mt-4 flex gap-3">
+                <button onClick={() => setStep(2)} className="btn-primary">Siguiente →</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

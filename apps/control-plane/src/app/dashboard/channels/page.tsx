@@ -21,11 +21,11 @@ export default async function ChannelsPage() {
             Canales de comunicación conectados
           </p>
         </div>
-        <Link href="/dashboard/channels/new" className="btn-primary">
+        <Link href="/dashboard/channels/connect-whatsapp" className="btn-primary">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          Nuevo channel
+          Conectar WhatsApp
         </Link>
       </div>
 
@@ -39,8 +39,8 @@ export default async function ChannelsPage() {
             </svg>
           }
           action={
-            <Link href="/dashboard/channels/new" className="btn-primary">
-              Crear channel
+            <Link href="/dashboard/channels/connect-whatsapp" className="btn-primary">
+              Conectar WhatsApp
             </Link>
           }
         />
