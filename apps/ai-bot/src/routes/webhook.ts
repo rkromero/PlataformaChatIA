@@ -10,6 +10,7 @@ import {
   existsLeadForPhone,
 } from '../services/conversation-link.js';
 import { checkAndIncrementUsage } from '../services/usage.js';
+import { getKnowledgeContext } from '../services/knowledge.js';
 import type { HandoffRules } from '@chat-platform/shared/types';
 
 export async function webhookRoutes(app: FastifyInstance) {
@@ -131,8 +132,13 @@ async function handleWebhook(body: Record<string, unknown>) {
     return;
   }
 
-  const history = await getConversationMessages(account.id, conversation.id, 10);
-  const aiReply = await generateReply(settings.model, settings.systemPrompt, content, history);
+  const [history, knowledgeContext] = await Promise.all([
+    getConversationMessages(account.id, conversation.id, 10),
+    getKnowledgeContext(tenant.id, content),
+  ]);
+
+  const enrichedPrompt = settings.systemPrompt + knowledgeContext;
+  const aiReply = await generateReply(settings.model, enrichedPrompt, content, history);
   await sendMessage(account.id, conversation.id, aiReply);
 
   // CRM sync (async, non-blocking)

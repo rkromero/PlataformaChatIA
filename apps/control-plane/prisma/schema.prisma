@@ -45,6 +45,7 @@ model Tenant {
   channels          TenantChannel[]
   conversationLinks ConversationLink[]
   usageRecords      UsageRecord[]
+  knowledgeEntries  KnowledgeEntry[]
 
   @@map("tenants")
 }
@@ -116,4 +117,20 @@ model UsageRecord {
 
   @@unique([tenantId, period])
   @@map("usage_records")
+}
+
+model KnowledgeEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  category  String   @default("general")
+  title     String
+  content   String   @db.Text
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, enabled])
+  @@map("knowledge_entries")
 }
