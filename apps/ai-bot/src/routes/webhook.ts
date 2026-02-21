@@ -11,6 +11,14 @@ import {
 } from '../services/conversation-link.js';
 import { checkAndIncrementUsage } from '../services/usage.js';
 import { getKnowledgeContext } from '../services/knowledge.js';
+import {
+  extractAttachments,
+  getAudioAttachment,
+  getImageAttachments,
+  downloadMedia,
+  mediaToBase64Url,
+} from '../services/media.js';
+import { transcribeAudio } from '../services/transcription.js';
 import type { HandoffRules } from '@chat-platform/shared/types';
 
 export async function webhookRoutes(app: FastifyInstance) {
@@ -105,7 +113,57 @@ async function handleWebhook(body: Record<string, unknown>) {
     conversation.meta?.sender?.id ??
     null;
 
-  const contentLower = content.toLowerCase();
+  // --- Process media attachments ---
+  const attachments = extractAttachments(body);
+  const audioAttachment = getAudioAttachment(attachments);
+  const imageAttachments = getImageAttachments(attachments);
+
+  let effectiveContent = content;
+  let imageBase64Urls: string[] = [];
+
+  if (audioAttachment) {
+    log.info({ attachmentId: audioAttachment.id }, 'Processing audio attachment');
+    const transcription = await transcribeAudio(audioAttachment.data_url);
+
+    if (transcription) {
+      effectiveContent = transcription;
+      log.info('Audio transcribed, using transcription as message');
+    } else {
+      await sendMessage(
+        account.id,
+        conversation.id,
+        'Recibí tu audio pero no pude entenderlo. ¿Podrías escribirme el mensaje?',
+      );
+      return;
+    }
+  }
+
+  if (imageAttachments.length > 0) {
+    log.info({ count: imageAttachments.length }, 'Processing image attachments');
+
+    const downloadResults = await Promise.allSettled(
+      imageAttachments.slice(0, 3).map(async (att) => {
+        const { buffer, contentType } = await downloadMedia(att.data_url);
+        return mediaToBase64Url(buffer, contentType);
+      }),
+    );
+
+    imageBase64Urls = downloadResults
+      .filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled')
+      .map((r) => r.value);
+
+    if (imageBase64Urls.length === 0) {
+      log.warn('Failed to download all images');
+    }
+  }
+
+  if (!effectiveContent && imageBase64Urls.length === 0) {
+    log.info('No text, audio, or images to process, skipping');
+    return;
+  }
+
+  // --- Handoff check (on effective content after transcription) ---
+  const contentLower = effectiveContent.toLowerCase();
   const isHandoffRequest = handoffRules.keywords.some((kw: string) =>
     contentLower.includes(kw.toLowerCase()),
   );
@@ -121,6 +179,7 @@ async function handleWebhook(body: Record<string, unknown>) {
     return;
   }
 
+  // --- Usage check ---
   const usage = await checkAndIncrementUsage(tenant.id, tenant.plan);
   if (!usage.allowed) {
     log.info({ current: usage.current, limit: usage.limit }, 'Monthly message limit reached');
@@ -132,13 +191,22 @@ async function handleWebhook(body: Record<string, unknown>) {
     return;
   }
 
+  // --- Generate AI reply ---
   const [history, knowledgeContext] = await Promise.all([
     getConversationMessages(account.id, conversation.id, 10),
-    getKnowledgeContext(tenant.id, content),
+    getKnowledgeContext(tenant.id, effectiveContent),
   ]);
 
   const enrichedPrompt = settings.systemPrompt + knowledgeContext;
-  const aiReply = await generateReply(settings.model, enrichedPrompt, content, history);
+
+  const aiReply = await generateReply(
+    settings.model,
+    enrichedPrompt,
+    effectiveContent,
+    history,
+    imageBase64Urls,
+  );
+
   await sendMessage(account.id, conversation.id, aiReply);
 
   // CRM sync (async, non-blocking)
@@ -149,7 +217,7 @@ async function handleWebhook(body: Record<string, unknown>) {
     contactPhone,
     contactName,
     inboxId: inbox?.id ?? null,
-    lastMessage: content,
+    lastMessage: effectiveContent,
   }).catch((err) => log.error({ err }, 'Background CRM sync failed'));
 }
 
