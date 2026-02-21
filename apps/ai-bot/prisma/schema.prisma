@@ -39,6 +39,7 @@ model Tenant {
   conversationLinks ConversationLink[]
   usageRecords      UsageRecord[]
   knowledgeEntries  KnowledgeEntry[]
+  dailyUsage        DailyUsage[]
 
   @@map("tenants")
 }
@@ -112,4 +113,17 @@ model KnowledgeEntry {
 
   @@index([tenantId, enabled])
   @@map("knowledge_entries")
+}
+
+model DailyUsage {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  date      String
+  messages  Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, date])
+  @@map("daily_usage")
 }

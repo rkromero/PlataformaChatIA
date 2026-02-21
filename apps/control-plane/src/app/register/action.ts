@@ -10,6 +10,8 @@ import {
   createChatwootUser,
   linkUserToAccount,
 } from '@/lib/chatwoot-platform';
+import { createToken } from '@/lib/tokens';
+import { sendVerificationEmail } from '@/lib/email';
 
 function generateSlug(name: string): string {
   return name
@@ -96,6 +98,9 @@ export async function registerAction(_prev: unknown, formData: FormData) {
       },
     },
   });
+
+  const verifyToken = await createToken(email, 'email_verification', 24);
+  sendVerificationEmail(email, verifyToken).catch(() => {});
 
   await createSession({
     userId: user.id,

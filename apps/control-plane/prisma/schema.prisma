@@ -46,22 +46,56 @@ model Tenant {
   conversationLinks ConversationLink[]
   usageRecords      UsageRecord[]
   knowledgeEntries  KnowledgeEntry[]
+  dailyUsage        DailyUsage[]
 
   @@map("tenants")
 }
 
 model TenantUser {
-  id           String   @id @default(uuid()) @db.Uuid
-  tenantId     String   @map("tenant_id") @db.Uuid
-  email        String
-  passwordHash String   @map("password_hash")
-  role         UserRole @default(agent)
-  createdAt    DateTime @default(now()) @map("created_at")
+  id            String   @id @default(uuid()) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  email         String
+  passwordHash  String   @map("password_hash")
+  role          UserRole @default(agent)
+  emailVerified Boolean  @default(false) @map("email_verified")
+  createdAt     DateTime @default(now()) @map("created_at")
 
-  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, email])
   @@map("tenant_users")
+}
+
+enum TokenType {
+  password_reset
+  email_verification
+  team_invite
+}
+
+model Token {
+  id        String    @id @default(uuid()) @db.Uuid
+  email     String
+  type      TokenType
+  token     String    @unique
+  payload   String?   @db.Text
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([token])
+  @@map("tokens")
+}
+
+model DailyUsage {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  date      String
+  messages  Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, date])
+  @@map("daily_usage")
 }
 
 model AiSettings {
