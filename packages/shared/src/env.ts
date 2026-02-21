@@ -17,8 +17,8 @@ export const aiBotEnvSchema = z.object({
   CRM_BASE_URL: z.string().url().optional(),
   CRM_API_KEY: z.string().optional(),
   CONTROL_PLANE_DB_URL: z.string().url(),
-  CONTROL_PLANE_URL: z.string().url().optional().default(''),
-  INTERNAL_SECRET: z.string().optional().default(''),
+  CONTROL_PLANE_URL: z.string().url().optional(),
+  INTERNAL_SECRET: z.string().optional(),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 
