@@ -1,5 +1,15 @@
 import { z } from 'zod';
 
+const optionalUrl = z.preprocess(
+  (val) => (typeof val === 'string' && val.trim() === '' ? undefined : val),
+  z.string().url().optional(),
+);
+
+const optionalString = z.preprocess(
+  (val) => (typeof val === 'string' && val.trim() === '' ? undefined : val),
+  z.string().optional(),
+);
+
 export const controlPlaneEnvSchema = z.object({
   DATABASE_URL: z.string().url(),
   ENCRYPTION_KEY: z.string().min(1),
@@ -14,11 +24,11 @@ export const aiBotEnvSchema = z.object({
   CHATWOOT_BASE_URL: z.string().url(),
   CHATWOOT_API_TOKEN: z.string().min(1),
   OPENAI_API_KEY: z.string().min(1),
-  CRM_BASE_URL: z.string().url().optional(),
-  CRM_API_KEY: z.string().optional(),
+  CRM_BASE_URL: optionalUrl,
+  CRM_API_KEY: optionalString,
   CONTROL_PLANE_DB_URL: z.string().url(),
-  CONTROL_PLANE_URL: z.string().url().optional(),
-  INTERNAL_SECRET: z.string().optional(),
+  CONTROL_PLANE_URL: optionalUrl,
+  INTERNAL_SECRET: optionalString,
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 
