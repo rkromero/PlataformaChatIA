@@ -37,6 +37,7 @@ model Tenant {
   aiSettings        AiSettings?
   channels          TenantChannel[]
   conversationLinks ConversationLink[]
+  usageRecords      UsageRecord[]
 
   @@map("tenants")
 }
@@ -81,4 +82,17 @@ model ConversationLink {
 
   @@unique([tenantId, chatwootConversationId])
   @@map("conversation_links")
+}
+
+model UsageRecord {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  period    String
+  messages  Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, period])
+  @@map("usage_records")
 }

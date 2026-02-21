@@ -9,7 +9,8 @@
     ".": "./dist/index.js",
     "./crypto": "./dist/crypto.js",
     "./env": "./dist/env.js",
-    "./types": "./dist/types.js"
+    "./types": "./dist/types.js",
+    "./plans": "./dist/plans.js"
   },
   "scripts": {
     "build": "tsc",

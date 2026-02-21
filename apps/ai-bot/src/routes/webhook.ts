@@ -9,6 +9,7 @@ import {
   upsertConversationLink,
   existsLeadForPhone,
 } from '../services/conversation-link.js';
+import { checkAndIncrementUsage } from '../services/usage.js';
 import type { HandoffRules } from '@chat-platform/shared/types';
 
 export async function webhookRoutes(app: FastifyInstance) {
@@ -115,6 +116,17 @@ async function handleWebhook(body: Record<string, unknown>) {
       account.id,
       conversation.id,
       'Te estoy transfiriendo con un asesor. Un momento por favor.',
+    );
+    return;
+  }
+
+  const usage = await checkAndIncrementUsage(tenant.id, tenant.plan);
+  if (!usage.allowed) {
+    log.info({ current: usage.current, limit: usage.limit }, 'Monthly message limit reached');
+    await sendMessage(
+      account.id,
+      conversation.id,
+      'Nuestro servicio de atención automática alcanzó el límite mensual. Por favor contactanos directamente para continuar la conversación.',
     );
     return;
   }
