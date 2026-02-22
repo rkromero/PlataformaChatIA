@@ -132,10 +132,20 @@ async function handleCreate(tenantId: string) {
       },
     });
 
+    let qrBase64 = result.qrcode?.base64 ?? null;
+
+    if (!qrBase64) {
+      await new Promise((r) => setTimeout(r, 2000));
+      try {
+        const qr = await getQrCode(instanceName);
+        qrBase64 = qr.base64 ?? null;
+      } catch {}
+    }
+
     return NextResponse.json({
       instanceName,
       channelId: channel.id,
-      qrBase64: result.qrcode?.base64 ?? null,
+      qrBase64,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Error al crear instancia';

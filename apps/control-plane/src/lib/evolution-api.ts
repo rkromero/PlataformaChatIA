@@ -69,12 +69,19 @@ export async function createInstance(instanceName: string, chatwootConfig?: {
 }
 
 export async function getQrCode(instanceName: string) {
-  return evoFetch<{
-    base64?: string;
-    pairingCode?: string;
-  }>(`/instance/connect/${instanceName}`, {
+  const data = await evoFetch<Record<string, unknown>>(`/instance/connect/${instanceName}`, {
     method: 'GET',
   });
+
+  const base64 =
+    (data.base64 as string) ??
+    (data.qrcode as Record<string, unknown>)?.base64 ??
+    (data.code as string) ??
+    null;
+
+  const pairingCode = (data.pairingCode as string) ?? null;
+
+  return { base64, pairingCode };
 }
 
 export async function getInstanceStatus(instanceName: string) {

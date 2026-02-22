@@ -40,11 +40,18 @@ export default function ConnectQrPage() {
 
   async function refreshQr() {
     if (!instanceName) return;
-    try {
-      const res = await fetch(`/api/evolution?action=qr&instance=${instanceName}`);
-      const data = await res.json();
-      if (data.base64) setQrBase64(data.base64);
-    } catch {}
+    setQrBase64('');
+    for (let i = 0; i < 3; i++) {
+      await new Promise((r) => setTimeout(r, 2000));
+      try {
+        const res = await fetch(`/api/evolution?action=qr&instance=${instanceName}`);
+        const data = await res.json();
+        if (data.base64) {
+          setQrBase64(data.base64);
+          return;
+        }
+      } catch {}
+    }
   }
 
   async function handleStart() {
@@ -70,6 +77,20 @@ export default function ConnectQrPage() {
       setChannelId(data.channelId);
       if (data.qrBase64) setQrBase64(data.qrBase64);
       setStep('scanning');
+
+      if (!data.qrBase64) {
+        for (let i = 0; i < 5; i++) {
+          await new Promise((r) => setTimeout(r, 3000));
+          try {
+            const qrRes = await fetch(`/api/evolution?action=qr&instance=${data.instanceName}`);
+            const qrData = await qrRes.json();
+            if (qrData.base64) {
+              setQrBase64(qrData.base64);
+              break;
+            }
+          } catch {}
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error de conexión');
       setStep('error');
