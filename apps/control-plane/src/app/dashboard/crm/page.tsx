@@ -1,6 +1,7 @@
 import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { KanbanBoard } from './kanban-board';
+import { NewLeadButton } from './new-lead-button';
 
 const STAGES = [
   { key: 'new', label: 'Nuevos', color: 'bg-blue-500' },
@@ -51,6 +52,7 @@ export default async function CrmPage() {
             {totalLeads} lead{totalLeads !== 1 ? 's' : ''} — {wonLeads} ganado{wonLeads !== 1 ? 's' : ''}
           </p>
         </div>
+        <NewLeadButton />
       </div>
 
       <KanbanBoard
