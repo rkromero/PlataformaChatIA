@@ -47,25 +47,42 @@ interface WahaSession {
   config?: Record<string, unknown>;
 }
 
-export async function createSession(
+export async function ensureSession(
   sessionName: string,
   webhookUrl: string,
 ): Promise<WahaSession> {
-  return wahaFetch<WahaSession>('/api/sessions', {
-    method: 'POST',
-    body: JSON.stringify({
-      name: sessionName,
-      start: true,
-      config: {
-        webhooks: [
-          {
-            url: webhookUrl,
-            events: ['message', 'session.status'],
-          },
-        ],
-      },
-    }),
-  });
+  const webhookConfig = {
+    webhooks: webhookUrl
+      ? [{ url: webhookUrl, events: ['message', 'session.status'] }]
+      : [],
+  };
+
+  try {
+    const existing = await getSession(sessionName);
+    if (existing.status === 'WORKING' || existing.status === 'SCAN_QR_CODE') {
+      return existing;
+    }
+
+    if (existing.status === 'STOPPED' || existing.status === 'FAILED') {
+      await wahaFetch(`/api/sessions/${sessionName}`, {
+        method: 'PUT',
+        body: JSON.stringify({ config: webhookConfig }),
+      });
+      await wahaFetch(`/api/sessions/${sessionName}/start`, { method: 'POST' });
+      return getSession(sessionName);
+    }
+
+    return existing;
+  } catch {
+    return wahaFetch<WahaSession>('/api/sessions', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: sessionName,
+        start: true,
+        config: webhookConfig,
+      }),
+    });
+  }
 }
 
 export async function getSession(sessionName: string): Promise<WahaSession> {

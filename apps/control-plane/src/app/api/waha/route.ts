@@ -3,12 +3,14 @@ import { getSession as getAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import {
   isWahaConfigured,
-  createSession,
+  ensureSession,
   getQrCode,
   getSessionStatus,
-  deleteSession,
+  stopSession,
 } from '@/lib/waha-api';
 import { getPlanLimits } from '@chat-platform/shared/plans';
+
+const SESSION_NAME = 'default';
 
 function safeEncrypt(data: Record<string, string>): string {
   try {
@@ -28,15 +30,14 @@ export async function GET(request: NextRequest) {
   }
 
   const action = request.nextUrl.searchParams.get('action');
-  const sessionName = request.nextUrl.searchParams.get('session');
 
-  if (action === 'status' && sessionName) {
-    const status = await getSessionStatus(sessionName);
+  if (action === 'status') {
+    const status = await getSessionStatus(SESSION_NAME);
     return NextResponse.json({ status });
   }
 
-  if (action === 'qr' && sessionName) {
-    const qr = await getQrCode(sessionName);
+  if (action === 'qr') {
+    const qr = await getQrCode(SESSION_NAME);
     return NextResponse.json({ qr });
   }
 
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
   const { action } = body as { action: string };
 
   if (action === 'create') return handleCreate(session.tenantId);
-  if (action === 'delete') return handleDelete(session.tenantId, body.sessionName, body.channelId);
+  if (action === 'delete') return handleDelete(session.tenantId, body.channelId);
 
   return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
 }
@@ -82,52 +83,59 @@ async function handleCreate(tenantId: string) {
     }
   }
 
-  const slug = tenant.slug || tenantId.slice(0, 8);
-  const sessionName = `wa-${slug}-${Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
-
   try {
-    const aiBotUrl = process.env['AI_BOT_URL'] || process.env['CONTROL_PLANE_URL'] || '';
+    const aiBotUrl = process.env['AI_BOT_URL'] || '';
     const webhookUrl = aiBotUrl
       ? `${aiBotUrl.replace(/\/$/, '')}/webhooks/waha`
       : '';
 
-    const wahaSession = await createSession(sessionName, webhookUrl);
+    const wahaSession = await ensureSession(SESSION_NAME, webhookUrl);
 
-    const configEncryptedJson = safeEncrypt({
-      sessionName,
-      connectionType: 'qr',
+    const existing = await prisma.tenantChannel.findFirst({
+      where: { tenantId, evolutionInstance: SESSION_NAME, type: 'whatsapp_qr' },
     });
 
-    const channel = await prisma.tenantChannel.create({
-      data: {
-        tenantId,
-        type: 'whatsapp_qr',
-        chatwootInboxId: 0,
-        configEncryptedJson,
-        evolutionInstance: sessionName,
-      },
-    });
+    let channelId = existing?.id;
+
+    if (!existing) {
+      const configEncryptedJson = safeEncrypt({
+        sessionName: SESSION_NAME,
+        connectionType: 'qr',
+      });
+
+      const channel = await prisma.tenantChannel.create({
+        data: {
+          tenantId,
+          type: 'whatsapp_qr',
+          chatwootInboxId: 0,
+          configEncryptedJson,
+          evolutionInstance: SESSION_NAME,
+        },
+      });
+      channelId = channel.id;
+    }
 
     let qr: string | null = null;
 
     if (wahaSession.status === 'SCAN_QR_CODE') {
-      qr = await getQrCode(sessionName);
+      qr = await getQrCode(SESSION_NAME);
     }
 
     if (!qr) {
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 5; i++) {
         await new Promise((r) => setTimeout(r, 2000));
-        const status = await getSessionStatus(sessionName);
-        if (status === 'SCAN_QR_CODE' || status === 'STARTING') {
-          qr = await getQrCode(sessionName);
+        const status = await getSessionStatus(SESSION_NAME);
+        if (status === 'SCAN_QR_CODE') {
+          qr = await getQrCode(SESSION_NAME);
           if (qr) break;
         }
+        if (status === 'WORKING') break;
       }
     }
 
     return NextResponse.json({
-      sessionName,
-      channelId: channel.id,
+      sessionName: SESSION_NAME,
+      channelId,
       qr,
       status: wahaSession.status,
     });
@@ -137,10 +145,8 @@ async function handleCreate(tenantId: string) {
   }
 }
 
-async function handleDelete(tenantId: string, sessionName?: string, channelId?: string) {
-  if (sessionName) {
-    try { await deleteSession(sessionName); } catch {}
-  }
+async function handleDelete(tenantId: string, channelId?: string) {
+  try { await stopSession(SESSION_NAME); } catch {}
 
   if (channelId) {
     await prisma.tenantChannel.deleteMany({

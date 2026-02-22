@@ -15,9 +15,9 @@ export default function ConnectQrPage() {
   const [statusText, setStatusText] = useState('');
 
   const checkStatus = useCallback(async () => {
-    if (!sessionName || step !== 'scanning') return;
+    if (step !== 'scanning') return;
     try {
-      const res = await fetch(`/api/waha?action=status&session=${sessionName}`);
+      const res = await fetch('/api/waha?action=status');
       const data = await res.json();
       const status = data.status ?? 'STOPPED';
       setStatusText(status);
@@ -25,12 +25,12 @@ export default function ConnectQrPage() {
       if (status === 'WORKING') {
         setStep('connected');
       } else if (status === 'SCAN_QR_CODE') {
-        const qrRes = await fetch(`/api/waha?action=qr&session=${sessionName}`);
+        const qrRes = await fetch('/api/waha?action=qr');
         const qrData = await qrRes.json();
         if (qrData.qr) setQrImage(qrData.qr);
       }
     } catch {}
-  }, [sessionName, step]);
+  }, [step]);
 
   useEffect(() => {
     if (step !== 'scanning') return;
@@ -66,7 +66,7 @@ export default function ConnectQrPage() {
         for (let i = 0; i < 6; i++) {
           await new Promise((r) => setTimeout(r, 3000));
           try {
-            const qrRes = await fetch(`/api/waha?action=qr&session=${data.sessionName}`);
+            const qrRes = await fetch('/api/waha?action=qr');
             const qrData = await qrRes.json();
             if (qrData.qr) {
               setQrImage(qrData.qr);
@@ -84,12 +84,11 @@ export default function ConnectQrPage() {
   }
 
   async function refreshQr() {
-    if (!sessionName) return;
     setQrImage('');
     for (let i = 0; i < 3; i++) {
       await new Promise((r) => setTimeout(r, 2000));
       try {
-        const res = await fetch(`/api/waha?action=qr&session=${sessionName}`);
+        const res = await fetch('/api/waha?action=qr');
         const data = await res.json();
         if (data.qr) {
           setQrImage(data.qr);
