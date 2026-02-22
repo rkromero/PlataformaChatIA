@@ -1,10 +1,5 @@
 import { z } from 'zod';
 
-const optionalUrl = z.preprocess(
-  (val) => (typeof val === 'string' && val.trim() === '' ? undefined : val),
-  z.string().url().optional(),
-);
-
 const optionalString = z.preprocess(
   (val) => (typeof val === 'string' && val.trim() === '' ? undefined : val),
   z.string().optional(),
@@ -24,10 +19,10 @@ export const aiBotEnvSchema = z.object({
   CHATWOOT_BASE_URL: z.string().url(),
   CHATWOOT_API_TOKEN: z.string().min(1),
   OPENAI_API_KEY: z.string().min(1),
-  CRM_BASE_URL: optionalUrl,
+  CRM_BASE_URL: optionalString,
   CRM_API_KEY: optionalString,
   CONTROL_PLANE_DB_URL: z.string().url(),
-  CONTROL_PLANE_URL: optionalUrl,
+  CONTROL_PLANE_URL: optionalString,
   INTERNAL_SECRET: optionalString,
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
