@@ -21,6 +21,7 @@ enum TenantPlan {
 
 enum ChannelType {
   whatsapp
+  whatsapp_qr
   webchat
 }
 
@@ -64,6 +65,7 @@ model TenantChannel {
   type                ChannelType
   chatwootInboxId     Int         @map("chatwoot_inbox_id")
   configEncryptedJson String      @map("config_encrypted_json") @db.Text
+  evolutionInstance   String?     @map("evolution_instance")
   createdAt           DateTime    @map("created_at")
 
   tenant              Tenant      @relation(fields: [tenantId], references: [id])
