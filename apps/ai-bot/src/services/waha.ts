@@ -1,11 +1,10 @@
-import { env } from '../lib/env.js';
 import { withRetry } from '../lib/retry.js';
 import { tenantLogger } from '../lib/logger.js';
 
 function getConfig() {
   return {
-    url: (env.WAHA_API_URL || '').replace(/\/$/, ''),
-    key: env.WAHA_API_KEY || '',
+    url: (process.env['WAHA_API_URL'] || '').replace(/\/$/, ''),
+    key: process.env['WAHA_API_KEY'] || '',
   };
 }
 
