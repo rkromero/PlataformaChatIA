@@ -7,59 +7,43 @@ type Step = 'intro' | 'scanning' | 'connected' | 'error';
 
 export default function ConnectQrPage() {
   const [step, setStep] = useState<Step>('intro');
-  const [instanceName, setInstanceName] = useState('');
+  const [sessionName, setSessionName] = useState('');
   const [channelId, setChannelId] = useState('');
-  const [qrBase64, setQrBase64] = useState('');
+  const [qrImage, setQrImage] = useState('');
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
-  const [status, setStatus] = useState('');
+  const [statusText, setStatusText] = useState('');
 
   const checkStatus = useCallback(async () => {
-    if (!instanceName || step !== 'scanning') return;
+    if (!sessionName || step !== 'scanning') return;
     try {
-      const res = await fetch(`/api/evolution?action=status&instance=${instanceName}`);
+      const res = await fetch(`/api/waha?action=status&session=${sessionName}`);
       const data = await res.json();
-      setStatus(data.state ?? 'unknown');
+      const status = data.status ?? 'STOPPED';
+      setStatusText(status);
 
-      if (data.state === 'open') {
-        await fetch('/api/evolution', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'confirm', instanceName, channelId }),
-        });
+      if (status === 'WORKING') {
         setStep('connected');
+      } else if (status === 'SCAN_QR_CODE') {
+        const qrRes = await fetch(`/api/waha?action=qr&session=${sessionName}`);
+        const qrData = await qrRes.json();
+        if (qrData.qr) setQrImage(qrData.qr);
       }
     } catch {}
-  }, [instanceName, channelId, step]);
+  }, [sessionName, step]);
 
   useEffect(() => {
     if (step !== 'scanning') return;
-    const interval = setInterval(checkStatus, 4000);
+    const interval = setInterval(checkStatus, 5000);
     return () => clearInterval(interval);
   }, [checkStatus, step]);
-
-  async function refreshQr() {
-    if (!instanceName) return;
-    setQrBase64('');
-    for (let i = 0; i < 3; i++) {
-      await new Promise((r) => setTimeout(r, 2000));
-      try {
-        const res = await fetch(`/api/evolution?action=qr&instance=${instanceName}`);
-        const data = await res.json();
-        if (data.base64) {
-          setQrBase64(data.base64);
-          return;
-        }
-      } catch {}
-    }
-  }
 
   async function handleStart() {
     setCreating(true);
     setError('');
 
     try {
-      const res = await fetch('/api/evolution', {
+      const res = await fetch('/api/waha', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'create' }),
@@ -68,24 +52,24 @@ export default function ConnectQrPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Error al crear instancia');
+        setError(data.error || 'Error al crear sesión');
         setStep('error');
         return;
       }
 
-      setInstanceName(data.instanceName);
+      setSessionName(data.sessionName);
       setChannelId(data.channelId);
-      if (data.qrBase64) setQrBase64(data.qrBase64);
+      if (data.qr) setQrImage(data.qr);
       setStep('scanning');
 
-      if (!data.qrBase64) {
-        for (let i = 0; i < 5; i++) {
+      if (!data.qr) {
+        for (let i = 0; i < 6; i++) {
           await new Promise((r) => setTimeout(r, 3000));
           try {
-            const qrRes = await fetch(`/api/evolution?action=qr&instance=${data.instanceName}`);
+            const qrRes = await fetch(`/api/waha?action=qr&session=${data.sessionName}`);
             const qrData = await qrRes.json();
-            if (qrData.base64) {
-              setQrBase64(qrData.base64);
+            if (qrData.qr) {
+              setQrImage(qrData.qr);
               break;
             }
           } catch {}
@@ -99,20 +83,36 @@ export default function ConnectQrPage() {
     }
   }
 
-  async function handleCancel() {
-    if (instanceName) {
+  async function refreshQr() {
+    if (!sessionName) return;
+    setQrImage('');
+    for (let i = 0; i < 3; i++) {
+      await new Promise((r) => setTimeout(r, 2000));
       try {
-        await fetch('/api/evolution', {
+        const res = await fetch(`/api/waha?action=qr&session=${sessionName}`);
+        const data = await res.json();
+        if (data.qr) {
+          setQrImage(data.qr);
+          return;
+        }
+      } catch {}
+    }
+  }
+
+  async function handleCancel() {
+    if (sessionName) {
+      try {
+        await fetch('/api/waha', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'delete', instanceName, channelId }),
+          body: JSON.stringify({ action: 'delete', sessionName, channelId }),
         });
       } catch {}
     }
     setStep('intro');
-    setInstanceName('');
+    setSessionName('');
     setChannelId('');
-    setQrBase64('');
+    setQrImage('');
     setError('');
   }
 
@@ -133,7 +133,6 @@ export default function ConnectQrPage() {
         Escaneá el código QR con tu teléfono para conectar tu WhatsApp
       </p>
 
-      {/* Intro */}
       {step === 'intro' && (
         <div>
           <div className="card space-y-4">
@@ -156,7 +155,7 @@ export default function ConnectQrPage() {
               <ol className="mt-2 space-y-1.5 text-xs text-gray-500 dark:text-gray-400">
                 <li className="flex items-start gap-2">
                   <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-[10px] font-bold text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">1</span>
-                  Hacé clic en "Generar QR"
+                  Hacé clic en &quot;Generar QR&quot;
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-[10px] font-bold text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">2</span>
@@ -195,7 +194,6 @@ export default function ConnectQrPage() {
         </div>
       )}
 
-      {/* Scanning */}
       {step === 'scanning' && (
         <div className="text-center">
           <div className="card">
@@ -203,10 +201,10 @@ export default function ConnectQrPage() {
               Escaneá este código con tu WhatsApp
             </p>
 
-            {qrBase64 ? (
+            {qrImage ? (
               <div className="mx-auto flex h-64 w-64 items-center justify-center overflow-hidden rounded-xl border-2 border-gray-200 bg-white p-2 dark:border-gray-700">
                 <img
-                  src={qrBase64.startsWith('data:') ? qrBase64 : `data:image/png;base64,${qrBase64}`}
+                  src={qrImage.startsWith('data:') ? qrImage : `data:image/png;base64,${qrImage}`}
                   alt="QR Code"
                   className="h-full w-full object-contain"
                 />
@@ -219,10 +217,14 @@ export default function ConnectQrPage() {
 
             <div className="mt-4 flex items-center justify-center gap-2">
               <span className={`h-2 w-2 rounded-full ${
-                status === 'open' ? 'bg-emerald-500' : 'animate-pulse bg-amber-500'
+                statusText === 'WORKING' ? 'bg-emerald-500' : 'animate-pulse bg-amber-500'
               }`} />
               <span className="text-xs text-gray-500">
-                {status === 'open' ? 'Conectado' : 'Esperando escaneo...'}
+                {statusText === 'WORKING'
+                  ? 'Conectado'
+                  : statusText === 'SCAN_QR_CODE'
+                    ? 'Esperando escaneo...'
+                    : 'Iniciando sesión...'}
               </span>
             </div>
 
@@ -242,7 +244,6 @@ export default function ConnectQrPage() {
         </div>
       )}
 
-      {/* Connected */}
       {step === 'connected' && (
         <div>
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center dark:border-emerald-500/20 dark:bg-emerald-500/10">
@@ -274,7 +275,6 @@ export default function ConnectQrPage() {
         </div>
       )}
 
-      {/* Error */}
       {step === 'error' && (
         <div>
           <div className="rounded-xl border border-red-200 bg-red-50 p-5 dark:border-red-500/20 dark:bg-red-500/10">

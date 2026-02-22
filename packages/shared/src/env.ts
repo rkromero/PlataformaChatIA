@@ -24,6 +24,8 @@ export const aiBotEnvSchema = z.object({
   CONTROL_PLANE_DB_URL: z.string().url(),
   CONTROL_PLANE_URL: optionalString,
   INTERNAL_SECRET: optionalString,
+  WAHA_API_URL: optionalString,
+  WAHA_API_KEY: optionalString,
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 

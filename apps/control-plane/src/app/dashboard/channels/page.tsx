@@ -63,7 +63,7 @@ export default async function ChannelsPage() {
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {isQr && ch.evolutionInstance
-                          ? ch.evolutionInstance
+                          ? `Sesión: ${ch.evolutionInstance}`
                           : `Inbox #${ch.chatwootInboxId}`}
                       </p>
                     </div>
