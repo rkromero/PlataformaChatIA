@@ -89,18 +89,21 @@ export async function getSession(sessionName: string): Promise<WahaSession> {
   return wahaFetch<WahaSession>(`/api/sessions/${sessionName}`);
 }
 
-interface WahaQr {
-  value: string;
-  mimetype?: string;
-}
-
 export async function getQrCode(sessionName: string): Promise<string | null> {
+  const { url, key } = getConfig();
+  if (!url || !key) return null;
+
   try {
-    const data = await wahaFetch<WahaQr>(`/api/${sessionName}/auth/qr`, {
-      method: 'POST',
-      body: JSON.stringify({ format: 'image' }),
-    });
-    return data.value ?? null;
+    const res = await fetch(
+      `${url}/api/screenshot?session=${sessionName}`,
+      { headers: { 'X-Api-Key': key } },
+    );
+
+    if (!res.ok) return null;
+
+    const buffer = await res.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    return `data:image/jpeg;base64,${base64}`;
   } catch {
     return null;
   }
