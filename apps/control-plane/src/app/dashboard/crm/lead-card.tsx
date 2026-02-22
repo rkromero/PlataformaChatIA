@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { updateLeadNotesAction, deleteLeadAction } from './actions';
+import { SendTemplateButton } from './send-template';
 import type { Lead } from './kanban-board';
 
 interface LeadCardProps {
@@ -123,6 +124,7 @@ export function LeadCard({
                 WhatsApp
               </a>
             )}
+            <SendTemplateButton leadId={lead.id} hasPhone={!!lead.phone} />
             <button
               onClick={handleDelete}
               className="ml-auto rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"

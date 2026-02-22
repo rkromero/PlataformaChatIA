@@ -44,9 +44,10 @@ model Tenant {
   aiSettings        AiSettings?
   channels          TenantChannel[]
   conversationLinks ConversationLink[]
-  usageRecords      UsageRecord[]
-  knowledgeEntries  KnowledgeEntry[]
-  dailyUsage        DailyUsage[]
+  usageRecords       UsageRecord[]
+  knowledgeEntries   KnowledgeEntry[]
+  dailyUsage         DailyUsage[]
+  whatsappTemplates  WhatsAppTemplate[]
 
   @@map("tenants")
 }
@@ -182,4 +183,22 @@ model KnowledgeEntry {
 
   @@index([tenantId, enabled])
   @@map("knowledge_entries")
+}
+
+model WhatsAppTemplate {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  metaId     String?  @map("meta_id")
+  name       String
+  language   String   @default("es")
+  category   String
+  status     String   @default("PENDING")
+  components Json     @db.JsonB
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name, language])
+  @@map("whatsapp_templates")
 }
