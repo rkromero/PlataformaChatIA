@@ -47,6 +47,34 @@ export async function upsertConversationLink({
     return existing;
   }
 
+  // Check if a manual lead exists with the same phone → merge instead of creating duplicate
+  if (phone) {
+    const manualLead = await prisma.conversationLink.findFirst({
+      where: {
+        tenantId,
+        phone: normalizePhone(phone),
+        chatwootConversationId: { lt: 0 },
+      },
+    });
+
+    if (!manualLead) {
+      // Also try exact match
+      const exactMatch = await prisma.conversationLink.findFirst({
+        where: {
+          tenantId,
+          phone,
+          chatwootConversationId: { lt: 0 },
+        },
+      });
+
+      if (exactMatch) {
+        return mergeManualLead(exactMatch.id, conversationId, contactId, contactName, lastMessage, crmLeadId, log);
+      }
+    } else {
+      return mergeManualLead(manualLead.id, conversationId, contactId, contactName, lastMessage, crmLeadId, log);
+    }
+  }
+
   const link = await prisma.conversationLink.create({
     data: {
       tenantId,
@@ -61,6 +89,34 @@ export async function upsertConversationLink({
 
   log.info({ conversationId, linkId: link.id }, 'Created conversation link');
   return link;
+}
+
+async function mergeManualLead(
+  manualLeadId: string,
+  conversationId: number,
+  contactId: number | null | undefined,
+  contactName: string | null | undefined,
+  lastMessage: string | null | undefined,
+  crmLeadId: string | null | undefined,
+  log: ReturnType<typeof tenantLogger>,
+) {
+  const updated = await prisma.conversationLink.update({
+    where: { id: manualLeadId },
+    data: {
+      chatwootConversationId: conversationId,
+      chatwootContactId: contactId ?? undefined,
+      contactName: contactName ?? undefined,
+      lastMessage: lastMessage?.slice(0, 500) ?? undefined,
+      crmLeadId: crmLeadId ?? undefined,
+    },
+  });
+
+  log.info({ conversationId, mergedFrom: manualLeadId }, 'Merged manual lead with real conversation');
+  return updated;
+}
+
+function normalizePhone(phone: string): string {
+  return phone.replace(/[^0-9+]/g, '');
 }
 
 export async function existsLeadForPhone(tenantId: string, phone: string): Promise<boolean> {

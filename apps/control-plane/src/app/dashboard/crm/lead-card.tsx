@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { updateLeadNotesAction, deleteLeadAction } from './actions';
 import { SendTemplateButton } from './send-template';
+import { LeadChat } from './lead-chat';
 import type { Lead } from './kanban-board';
 
 interface LeadCardProps {
@@ -147,6 +148,9 @@ export function LeadCard({
               className="w-full resize-none rounded-md border border-gray-200 bg-gray-50 px-2 py-1.5 text-xs text-gray-700 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
             />
           </div>
+
+          {/* Mini-chat */}
+          <LeadChat leadId={lead.id} isLinked={lead.chatwootConversationId > 0} />
         </div>
       )}
     </div>
