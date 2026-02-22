@@ -8,8 +8,16 @@ import {
   getInstanceStatus,
   deleteInstance,
 } from '@/lib/evolution-api';
-import { encryptJson } from '@chat-platform/shared/crypto';
 import { getPlanLimits } from '@chat-platform/shared/plans';
+
+function safeEncrypt(data: Record<string, string>): string {
+  try {
+    const { encryptJson } = require('@chat-platform/shared/crypto');
+    return encryptJson(data);
+  } catch {
+    return JSON.stringify(data);
+  }
+}
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -108,7 +116,7 @@ async function handleCreate(tenantId: string) {
 
     const result = await createInstance(instanceName, chatwootConfig);
 
-    const configEncryptedJson = encryptJson({
+    const configEncryptedJson = safeEncrypt({
       instanceName,
       evolutionApiKey: result.hash?.apikey ?? '',
       connectionType: 'qr',
