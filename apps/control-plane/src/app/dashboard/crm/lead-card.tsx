@@ -30,7 +30,7 @@ export function LeadCard({
   const initial = (lead.contactName?.[0] || lead.phone?.[0] || '#').toUpperCase();
 
   const chatwootUrl =
-    chatwootBaseUrl && chatwootAccountId
+    chatwootBaseUrl && chatwootAccountId && lead.chatwootConversationId > 0
       ? `${chatwootBaseUrl}/app/accounts/${chatwootAccountId}/conversations/${lead.chatwootConversationId}`
       : null;
 

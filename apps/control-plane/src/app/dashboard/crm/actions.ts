@@ -23,10 +23,12 @@ export async function createLeadAction(_prev: unknown, formData: FormData) {
 
   if (!parsed.success) return { error: parsed.error.errors[0].message };
 
+  const manualId = -Math.floor(Math.random() * 2_000_000_000);
+
   await prisma.conversationLink.create({
     data: {
       tenantId: session.tenantId,
-      chatwootConversationId: 0,
+      chatwootConversationId: manualId,
       contactName: parsed.data.contactName,
       phone: parsed.data.phone || null,
       notes: parsed.data.notes || null,
