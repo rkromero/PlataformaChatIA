@@ -125,18 +125,33 @@ model TenantChannel {
   @@map("tenant_channels")
 }
 
+enum LeadStage {
+  new
+  contacted
+  qualified
+  proposal
+  won
+  lost
+}
+
 model ConversationLink {
-  id                     String   @id @default(uuid()) @db.Uuid
-  tenantId               String   @map("tenant_id") @db.Uuid
-  chatwootConversationId Int      @map("chatwoot_conversation_id")
-  chatwootContactId      Int?     @map("chatwoot_contact_id")
+  id                     String    @id @default(uuid()) @db.Uuid
+  tenantId               String    @map("tenant_id") @db.Uuid
+  chatwootConversationId Int       @map("chatwoot_conversation_id")
+  chatwootContactId      Int?      @map("chatwoot_contact_id")
   phone                  String?
-  crmLeadId              String?  @map("crm_lead_id")
-  createdAt              DateTime @default(now()) @map("created_at")
+  contactName            String?   @map("contact_name")
+  lastMessage            String?   @map("last_message") @db.Text
+  stage                  LeadStage @default(new)
+  notes                  String?   @db.Text
+  crmLeadId              String?   @map("crm_lead_id")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
 
   tenant                 Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, chatwootConversationId])
+  @@index([tenantId, stage])
   @@map("conversation_links")
 }
 

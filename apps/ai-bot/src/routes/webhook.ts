@@ -241,6 +241,8 @@ async function syncLeadInBackground(params: {
       conversationId,
       contactId,
       phone: contactPhone,
+      contactName,
+      lastMessage,
     });
     return;
   }
@@ -260,6 +262,8 @@ async function syncLeadInBackground(params: {
     conversationId,
     contactId,
     phone: contactPhone,
+    contactName,
+    lastMessage,
     crmLeadId,
   });
 }

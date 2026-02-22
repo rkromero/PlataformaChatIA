@@ -6,6 +6,8 @@ interface UpsertParams {
   conversationId: number;
   contactId?: number | null;
   phone?: string | null;
+  contactName?: string | null;
+  lastMessage?: string | null;
   crmLeadId?: string | null;
 }
 
@@ -14,6 +16,8 @@ export async function upsertConversationLink({
   conversationId,
   contactId,
   phone,
+  contactName,
+  lastMessage,
   crmLeadId,
 }: UpsertParams) {
   const log = tenantLogger(tenantId);
@@ -28,12 +32,17 @@ export async function upsertConversationLink({
   });
 
   if (existing) {
-    if (crmLeadId && !existing.crmLeadId) {
+    const updateData: Record<string, unknown> = {};
+    if (crmLeadId && !existing.crmLeadId) updateData.crmLeadId = crmLeadId;
+    if (contactName && !existing.contactName) updateData.contactName = contactName;
+    if (lastMessage) updateData.lastMessage = lastMessage.slice(0, 500);
+
+    if (Object.keys(updateData).length > 0) {
       await prisma.conversationLink.update({
         where: { id: existing.id },
-        data: { crmLeadId },
+        data: updateData,
       });
-      log.info({ conversationId, crmLeadId }, 'Updated conversation link with CRM lead');
+      log.info({ conversationId }, 'Updated conversation link');
     }
     return existing;
   }
@@ -44,6 +53,8 @@ export async function upsertConversationLink({
       chatwootConversationId: conversationId,
       chatwootContactId: contactId ?? null,
       phone: phone ?? null,
+      contactName: contactName ?? null,
+      lastMessage: lastMessage?.slice(0, 500) ?? null,
       crmLeadId: crmLeadId ?? null,
     },
   });
