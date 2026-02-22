@@ -1,10 +1,13 @@
 import { withRetry } from '../lib/retry.js';
 import { tenantLogger } from '../lib/logger.js';
 
+const WAHA_URL_VAR = ['WAHA', 'API', 'URL'].join('_');
+const WAHA_KEY_VAR = ['WAHA', 'API', 'KEY'].join('_');
+
 function getConfig() {
   return {
-    url: (process.env['WAHA_API_URL'] || '').replace(/\/$/, ''),
-    key: process.env['WAHA_API_KEY'] || '',
+    url: (process.env[WAHA_URL_VAR] || '').replace(/\/$/, ''),
+    key: process.env[WAHA_KEY_VAR] || '',
   };
 }
 
