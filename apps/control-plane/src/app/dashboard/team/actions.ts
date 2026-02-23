@@ -64,8 +64,9 @@ export async function removeTeamMemberAction(userId: string) {
   if (session.role !== 'owner' && session.role !== 'super_admin') return;
   if (userId === session.userId) return;
 
-  await prisma.tenantUser.deleteMany({
+  await prisma.tenantUser.updateMany({
     where: { id: userId, tenantId: session.tenantId },
+    data: { deletedAt: new Date() },
   });
 
   revalidatePath('/dashboard/team');

@@ -17,10 +17,10 @@ export async function GET(request: NextRequest) {
 
   const lead = await prisma.conversationLink.findFirst({
     where: { id: leadId, tenantId: session.tenantId },
-    select: { chatwootConversationId: true, tenant: { select: { chatwootAccountId: true } } },
+    select: { chatwootConversationId: true, source: true, tenant: { select: { chatwootAccountId: true } } },
   });
 
-  if (!lead || !lead.tenant.chatwootAccountId || lead.chatwootConversationId <= 0) {
+  if (!lead || !lead.tenant.chatwootAccountId || lead.source !== 'chatwoot') {
     return NextResponse.json({ messages: [], linked: false });
   }
 
@@ -72,10 +72,10 @@ export async function POST(request: NextRequest) {
 
   const lead = await prisma.conversationLink.findFirst({
     where: { id: leadId, tenantId: session.tenantId },
-    select: { chatwootConversationId: true, tenant: { select: { chatwootAccountId: true } } },
+    select: { chatwootConversationId: true, source: true, tenant: { select: { chatwootAccountId: true } } },
   });
 
-  if (!lead || !lead.tenant.chatwootAccountId || lead.chatwootConversationId <= 0) {
+  if (!lead || !lead.tenant.chatwootAccountId || lead.source !== 'chatwoot') {
     return NextResponse.json({ error: 'Lead no vinculado a conversación' }, { status: 400 });
   }
 

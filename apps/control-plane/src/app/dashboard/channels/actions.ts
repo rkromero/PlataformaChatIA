@@ -42,8 +42,9 @@ export async function createChannelAction(_prev: unknown, formData: FormData) {
 export async function deleteChannelAction(channelId: string) {
   const session = await requireSession();
 
-  await prisma.tenantChannel.deleteMany({
+  await prisma.tenantChannel.updateMany({
     where: { id: channelId, tenantId: session.tenantId },
+    data: { deletedAt: new Date() },
   });
 
   revalidatePath('/dashboard/channels');

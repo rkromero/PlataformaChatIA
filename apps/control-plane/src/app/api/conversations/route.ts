@@ -40,11 +40,11 @@ export async function GET(req: NextRequest) {
 
   const enriched = await Promise.all(
     conversations.map(async (conv) => {
-      const isWaha = conv.chatwootConversationId <= 0;
+      const isLocal = conv.source !== 'chatwoot';
       let labels: string[] = [];
       let status: 'bot' | 'human' = 'bot';
 
-      if (isWaha) {
+      if (isLocal) {
         status = conv.handoffActive ? 'human' : 'bot';
         labels = conv.handoffActive ? ['human_handoff'] : [];
       } else if (url && token && accountId) {
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
         updatedAt: conv.updatedAt.toISOString(),
         labels,
         status,
-        isWaha,
+        source: conv.source,
       };
     }),
   );

@@ -12,6 +12,7 @@ export interface Lead {
   stage: string;
   notes: string | null;
   chatwootConversationId: number;
+  source: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -53,17 +53,16 @@ export async function upsertConversationLink({
       where: {
         tenantId,
         phone: normalizePhone(phone),
-        chatwootConversationId: { lt: 0 },
+        source: { not: 'chatwoot' },
       },
     });
 
     if (!manualLead) {
-      // Also try exact match
       const exactMatch = await prisma.conversationLink.findFirst({
         where: {
           tenantId,
           phone,
-          chatwootConversationId: { lt: 0 },
+          source: { not: 'chatwoot' },
         },
       });
 
@@ -108,6 +107,7 @@ async function mergeManualLead(
       contactName: contactName ?? undefined,
       lastMessage: lastMessage?.slice(0, 500) ?? undefined,
       crmLeadId: crmLeadId ?? undefined,
+      source: 'chatwoot',
     },
   });
 

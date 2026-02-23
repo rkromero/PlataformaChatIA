@@ -33,7 +33,8 @@ export async function checkAndIncrementUsage(
     return { allowed: false, current: record.messages - 1, limit: limits.messagesPerMonth };
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
   prisma.dailyUsage.upsert({
     where: { tenantId_date: { tenantId, date: today } },
     create: { tenantId, date: today, messages: 1 },

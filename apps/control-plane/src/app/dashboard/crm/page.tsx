@@ -26,6 +26,7 @@ export default async function CrmPage() {
       stage: true,
       notes: true,
       chatwootConversationId: true,
+      source: true,
       createdAt: true,
       updatedAt: true,
     },

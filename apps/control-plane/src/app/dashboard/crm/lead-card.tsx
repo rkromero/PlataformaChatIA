@@ -27,11 +27,12 @@ export function LeadCard({
   const [notes, setNotes] = useState(lead.notes ?? '');
   const [, startTransition] = useTransition();
 
-  const displayName = lead.contactName || lead.phone || `Conv #${lead.chatwootConversationId}`;
+  const displayName = lead.contactName || lead.phone ||
+    (lead.source === 'chatwoot' ? `Conv #${lead.chatwootConversationId}` : 'Contacto');
   const initial = (lead.contactName?.[0] || lead.phone?.[0] || '#').toUpperCase();
 
   const chatwootUrl =
-    chatwootBaseUrl && chatwootAccountId && lead.chatwootConversationId > 0
+    chatwootBaseUrl && chatwootAccountId && lead.source === 'chatwoot'
       ? `${chatwootBaseUrl}/app/accounts/${chatwootAccountId}/conversations/${lead.chatwootConversationId}`
       : null;
 
@@ -150,7 +151,7 @@ export function LeadCard({
           </div>
 
           {/* Mini-chat */}
-          <LeadChat leadId={lead.id} isLinked={lead.chatwootConversationId > 0} />
+          <LeadChat leadId={lead.id} isLinked={lead.source === 'chatwoot'} />
         </div>
       )}
     </div>

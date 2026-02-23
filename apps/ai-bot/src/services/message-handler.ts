@@ -37,13 +37,7 @@ export async function handleIncomingMessage(params: IncomingMessageParams) {
     contactName,
   );
 
-  await saveMessage(
-    tenantId,
-    convLink.id,
-    'incoming',
-    messageText,
-    contactName || phone,
-  );
+  await saveMessage(tenantId, convLink.id, 'incoming', messageText, contactName || phone);
 
   if (convLink.handoffActive) {
     log.info({ chatId }, 'Handoff active, skipping AI reply');
@@ -164,6 +158,7 @@ async function ensureConversationLink(
       phone: phone || null,
       contactName: contactName || null,
       wahaChatId: chatId,
+      source: 'whatsapp_qr',
     },
   });
 }
@@ -171,7 +166,7 @@ async function ensureConversationLink(
 async function saveMessage(
   tenantId: string,
   conversationLinkId: string,
-  direction: string,
+  direction: 'incoming' | 'outgoing',
   content: string,
   senderName: string | null,
 ) {

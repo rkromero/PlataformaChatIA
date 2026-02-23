@@ -79,8 +79,9 @@ export async function toggleKnowledgeEntryAction(id: string) {
 export async function deleteKnowledgeEntryAction(id: string) {
   const session = await requireSession();
 
-  await prisma.knowledgeEntry.deleteMany({
+  await prisma.knowledgeEntry.updateMany({
     where: { id, tenantId: session.tenantId },
+    data: { deletedAt: new Date() },
   });
 
   revalidatePath('/dashboard/knowledge');

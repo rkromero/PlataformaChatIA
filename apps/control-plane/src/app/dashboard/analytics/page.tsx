@@ -9,12 +9,12 @@ export default async function AnalyticsPage() {
   const today = new Date();
   const thirtyDaysAgo = new Date(today);
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const startDate = thirtyDaysAgo.toISOString().slice(0, 10);
+  thirtyDaysAgo.setUTCHours(0, 0, 0, 0);
 
   const dailyData = await prisma.dailyUsage.findMany({
     where: {
       tenantId: session.tenantId,
-      date: { gte: startDate },
+      date: { gte: thirtyDaysAgo },
     },
     orderBy: { date: 'asc' },
     select: { date: true, messages: true },
@@ -25,7 +25,9 @@ export default async function AnalyticsPage() {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().slice(0, 10);
-    const found = dailyData.find((r) => r.date === dateStr);
+    const found = dailyData.find(
+      (r) => (r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date)) === dateStr,
+    );
     days.push({ date: dateStr, messages: found?.messages ?? 0 });
   }
 

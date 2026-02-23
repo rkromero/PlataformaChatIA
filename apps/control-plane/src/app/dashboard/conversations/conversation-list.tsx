@@ -63,7 +63,7 @@ export function ConversationList({
         ) : (
           conversations.map((conv) => {
             const isSelected = conv.id === selectedId;
-            const displayName = conv.contactName || conv.phone || `#${conv.chatwootConversationId}`;
+            const displayName = conv.contactName || conv.phone || (conv.source !== 'chatwoot' ? 'WhatsApp' : `#${conv.chatwootConversationId}`);
             const initial = (conv.contactName?.[0] || conv.phone?.[0] || '#').toUpperCase();
             const isHuman = conv.status === 'human';
 
@@ -112,9 +112,9 @@ export function ConversationList({
                     }`}>
                       {isHuman ? 'Agente' : 'Bot'}
                     </span>
-                    {conv.isWaha && (
+                    {conv.source !== 'chatwoot' && (
                       <span className="inline-flex items-center rounded-full bg-green-100 px-1.5 py-0.5 text-[9px] font-semibold text-green-700 dark:bg-green-500/10 dark:text-green-400">
-                        WhatsApp
+                        {conv.source === 'whatsapp_qr' ? 'WhatsApp' : 'Manual'}
                       </span>
                     )}
                     {conv.phone && conv.contactName && (

@@ -112,6 +112,14 @@ export async function updateTenantAction(tenantId: string, _prev: unknown, formD
 }
 
 export async function deleteTenantAction(tenantId: string) {
-  await prisma.tenant.delete({ where: { id: tenantId } });
+  const now = new Date();
+  await prisma.$transaction([
+    prisma.tenantUser.updateMany({ where: { tenantId }, data: { deletedAt: now } }),
+    prisma.conversationLink.updateMany({ where: { tenantId }, data: { deletedAt: now } }),
+    prisma.tenantChannel.updateMany({ where: { tenantId }, data: { deletedAt: now } }),
+    prisma.knowledgeEntry.updateMany({ where: { tenantId }, data: { deletedAt: now } }),
+    prisma.whatsAppTemplate.updateMany({ where: { tenantId }, data: { deletedAt: now } }),
+    prisma.tenant.update({ where: { id: tenantId }, data: { deletedAt: now } }),
+  ]);
   revalidatePath('/dashboard/tenants');
 }

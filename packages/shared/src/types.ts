@@ -62,6 +62,7 @@ export interface ConversationLink {
   chatwootContactId: number | null;
   phone: string | null;
   crmLeadId: string | null;
+  source: 'chatwoot' | 'whatsapp_qr' | 'manual';
   createdAt: Date;
 }
 

@@ -33,6 +33,7 @@ export async function createLeadAction(_prev: unknown, formData: FormData) {
       phone: parsed.data.phone || null,
       notes: parsed.data.notes || null,
       stage: 'new',
+      source: 'manual',
     },
   });
 
@@ -76,8 +77,9 @@ export async function updateLeadNameAction(leadId: string, contactName: string) 
 export async function deleteLeadAction(leadId: string) {
   const session = await requireSession();
 
-  await prisma.conversationLink.deleteMany({
+  await prisma.conversationLink.updateMany({
     where: { id: leadId, tenantId: session.tenantId },
+    data: { deletedAt: new Date() },
   });
 
   revalidatePath('/dashboard/crm');

@@ -25,16 +25,14 @@ export async function GET(
 
   if (!conv) return NextResponse.json({ messages: [], labels: [] });
 
-  const isWaha = conv.chatwootConversationId <= 0;
-
-  if (isWaha) {
-    return getWahaMessages(conv);
+  if (conv.source !== 'chatwoot') {
+    return getLocalMessages(conv);
   }
 
   return getChatwootMessages(conv);
 }
 
-async function getWahaMessages(conv: { id: string; handoffActive: boolean }) {
+async function getLocalMessages(conv: { id: string; handoffActive: boolean }) {
   const dbMessages = await prisma.message.findMany({
     where: { conversationLinkId: conv.id },
     orderBy: { timestamp: 'asc' },
@@ -56,9 +54,10 @@ async function getWahaMessages(conv: { id: string; handoffActive: boolean }) {
 
 async function getChatwootMessages(conv: {
   chatwootConversationId: number;
+  source: string;
   tenant: { chatwootAccountId: number | null };
 }) {
-  if (!conv.tenant.chatwootAccountId || conv.chatwootConversationId <= 0) {
+  if (!conv.tenant.chatwootAccountId || conv.source !== 'chatwoot') {
     return NextResponse.json({ messages: [], labels: [] });
   }
 
@@ -142,16 +141,14 @@ export async function POST(
     return NextResponse.json({ error: 'Conversación no encontrada' }, { status: 404 });
   }
 
-  const isWaha = conv.chatwootConversationId <= 0;
-
-  if (isWaha) {
-    return handleWahaAction(conv, action, message, session.tenantId);
+  if (conv.source !== 'chatwoot') {
+    return handleLocalAction(conv, action, message, session.tenantId);
   }
 
   return handleChatwootAction(conv, action, message);
 }
 
-async function handleWahaAction(
+async function handleLocalAction(
   conv: { id: string; wahaChatId: string | null; handoffActive: boolean },
   action: string | undefined,
   message: string | undefined,
@@ -202,12 +199,13 @@ async function handleWahaAction(
 async function handleChatwootAction(
   conv: {
     chatwootConversationId: number;
+    source: string;
     tenant: { chatwootAccountId: number | null };
   },
   action: string | undefined,
   message: string | undefined,
 ) {
-  if (!conv.tenant.chatwootAccountId || conv.chatwootConversationId <= 0) {
+  if (!conv.tenant.chatwootAccountId || conv.source !== 'chatwoot') {
     return NextResponse.json({ error: 'Conversación no encontrada' }, { status: 404 });
   }
 

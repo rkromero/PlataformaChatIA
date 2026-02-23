@@ -109,8 +109,9 @@ export async function sendTemplateAction(
 export async function deleteTemplateAction(templateId: string) {
   const session = await requireSession();
 
-  await prisma.whatsAppTemplate.deleteMany({
+  await prisma.whatsAppTemplate.updateMany({
     where: { id: templateId, tenantId: session.tenantId },
+    data: { deletedAt: new Date() },
   });
 
   revalidatePath('/dashboard/templates');

@@ -157,8 +157,9 @@ async function handleDelete(tenantId: string, channelId?: string) {
   await deleteSessionAndCleanup(tenantId);
 
   if (channelId) {
-    await prisma.tenantChannel.deleteMany({
+    await prisma.tenantChannel.updateMany({
       where: { id: channelId, tenantId },
+      data: { deletedAt: new Date() },
     });
   }
 

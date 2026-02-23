@@ -1,5 +1,35 @@
 import { PrismaClient } from '../../node_modules/.prisma/ai-bot-client/index.js';
 
-type AiBotPrismaClient = InstanceType<typeof PrismaClient>;
+const SOFT_DELETE_MODELS = new Set([
+  'Tenant', 'TenantUser', 'ConversationLink', 'TenantChannel',
+  'KnowledgeEntry', 'WhatsAppTemplate',
+]);
 
-export const prisma: AiBotPrismaClient = new PrismaClient();
+function createClient() {
+  return new PrismaClient().$extends({
+    query: {
+      $allModels: {
+        async findMany({ model, args, query }) {
+          if (SOFT_DELETE_MODELS.has(model)) {
+            args.where = { deletedAt: null, ...args.where };
+          }
+          return query(args);
+        },
+        async findFirst({ model, args, query }) {
+          if (SOFT_DELETE_MODELS.has(model)) {
+            args.where = { deletedAt: null, ...args.where };
+          }
+          return query(args);
+        },
+        async count({ model, args, query }) {
+          if (SOFT_DELETE_MODELS.has(model)) {
+            args.where = { deletedAt: null, ...args.where };
+          }
+          return query(args);
+        },
+      },
+    },
+  });
+}
+
+export const prisma = createClient();

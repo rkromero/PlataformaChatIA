@@ -28,8 +28,7 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const isHuman = labels.includes('human_handoff');
-  const isWaha = conversation.isWaha ?? false;
-  const displayName = conversation.contactName || conversation.phone || `#${conversation.chatwootConversationId}`;
+  const displayName = conversation.contactName || conversation.phone || (conversation.source !== 'chatwoot' ? 'WhatsApp' : `#${conversation.chatwootConversationId}`);
 
   const fetchMessages = useCallback(async () => {
     try {

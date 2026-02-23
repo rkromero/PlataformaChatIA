@@ -2,6 +2,18 @@ import crypto from 'crypto';
 import { prisma } from '@/lib/db';
 import type { TokenType } from '@prisma/client';
 
+let lastCleanup = 0;
+const CLEANUP_INTERVAL = 60 * 60 * 1000;
+
+async function cleanExpiredTokens() {
+  const now = Date.now();
+  if (now - lastCleanup < CLEANUP_INTERVAL) return;
+  lastCleanup = now;
+  await prisma.token
+    .deleteMany({ where: { expiresAt: { lt: new Date() } } })
+    .catch(() => {});
+}
+
 export function generateToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
@@ -12,6 +24,8 @@ export async function createToken(
   expiresInHours: number,
   payload?: Record<string, unknown>,
 ): Promise<string> {
+  cleanExpiredTokens().catch(() => {});
+
   await prisma.token.deleteMany({ where: { email, type } });
 
   const token = generateToken();

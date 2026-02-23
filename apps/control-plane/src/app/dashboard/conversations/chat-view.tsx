@@ -14,7 +14,7 @@ export interface ConversationItem {
   updatedAt: string;
   labels: string[];
   status: 'bot' | 'human';
-  isWaha?: boolean;
+  source: string;
 }
 
 export function ChatView() {
