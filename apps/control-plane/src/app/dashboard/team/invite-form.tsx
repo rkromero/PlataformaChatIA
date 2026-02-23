@@ -10,7 +10,14 @@ export function InviteForm() {
   return (
     <form action={action} className="card">
       <h2 className="mb-3 text-sm font-semibold">Agregar miembro</h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <input
+          name="name"
+          type="text"
+          required
+          placeholder="Nombre completo"
+          className="input"
+        />
         <input
           name="email"
           type="email"

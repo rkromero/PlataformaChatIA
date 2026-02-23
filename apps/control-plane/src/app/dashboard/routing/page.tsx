@@ -12,11 +12,11 @@ export default async function RoutingPage() {
     prisma.routingRule.findMany({
       where: { tenantId: session.tenantId },
       orderBy: { priority: 'asc' },
-      include: { assignedAgent: { select: { id: true, email: true } } },
+      include: { assignedAgent: { select: { id: true, name: true, email: true } } },
     }),
     prisma.tenantUser.findMany({
       where: { tenantId: session.tenantId, deletedAt: null },
-      select: { id: true, email: true, role: true },
+        select: { id: true, name: true, email: true, role: true },
       orderBy: { email: 'asc' },
     }),
   ]);
@@ -37,7 +37,7 @@ export default async function RoutingPage() {
           type: r.type,
           conditionsJson: r.conditionsJson as Record<string, unknown>,
           assignedAgentId: r.assignedAgentId,
-          assignedAgentEmail: r.assignedAgent?.email ?? null,
+          assignedAgentName: r.assignedAgent?.name || r.assignedAgent?.email || null,
           priority: r.priority,
           isActive: r.isActive,
         }))}

@@ -10,13 +10,14 @@ interface Rule {
   type: string;
   conditionsJson: Record<string, unknown>;
   assignedAgentId: string | null;
-  assignedAgentEmail: string | null;
+  assignedAgentName: string | null;
   priority: number;
   isActive: boolean;
 }
 
 interface Agent {
   id: string;
+  name: string;
   email: string;
   role: string;
 }
@@ -98,8 +99,8 @@ export function RuleList({ rules, agents }: { rules: Rule[]; agents: Agent[] }) 
                 <p className="mt-0.5 text-xs text-gray-500">
                   {rule.type === 'round_robin'
                     ? `Rota entre ${((rule.conditionsJson.agent_ids as string[]) ?? []).length} agentes`
-                    : rule.assignedAgentEmail
-                      ? `Asigna a ${rule.assignedAgentEmail}`
+                    : rule.assignedAgentName
+                      ? `Asigna a ${rule.assignedAgentName}`
                       : 'Sin agente asignado'}
                   {rule.type === 'geo' && rule.conditionsJson.phone_prefixes
                     ? ` — Prefijos: ${(rule.conditionsJson.phone_prefixes as string[]).join(', ')}`

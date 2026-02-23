@@ -17,7 +17,7 @@ export default async function TeamPage() {
   const members = await prisma.tenantUser.findMany({
     where: { tenantId: session.tenantId },
     orderBy: { createdAt: 'asc' },
-    select: { id: true, email: true, role: true, createdAt: true },
+    select: { id: true, name: true, email: true, role: true, createdAt: true },
   });
 
   const tenant = await prisma.tenant.findUnique({
@@ -46,11 +46,14 @@ export default async function TeamPage() {
           <div key={m.id} className="card flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
-                {m.email[0].toUpperCase()}
+                {(m.name || m.email)[0].toUpperCase()}
               </div>
               <div>
-                <p className="text-sm font-medium">{m.email}</p>
-                <span className="text-xs text-gray-500">{ROLE_LABELS[m.role] ?? m.role}</span>
+                <p className="text-sm font-medium">{m.name || m.email}</p>
+                <div className="flex items-center gap-2">
+                  {m.name && <span className="text-xs text-gray-500">{m.email}</span>}
+                  <span className="text-xs text-gray-400">{ROLE_LABELS[m.role] ?? m.role}</span>
+                </div>
               </div>
             </div>
             {isOwner && m.id !== session.userId && m.role !== 'owner' && (

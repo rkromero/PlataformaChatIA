@@ -38,7 +38,7 @@ export default async function CrmPage() {
       assignedAgentId: true,
       createdAt: true,
       updatedAt: true,
-      assignedAgent: { select: { id: true, email: true } },
+      assignedAgent: { select: { id: true, name: true, email: true } },
     },
   });
 
@@ -50,7 +50,7 @@ export default async function CrmPage() {
   const agents = isAdmin(session)
     ? await prisma.tenantUser.findMany({
         where: { tenantId: session.tenantId, deletedAt: null },
-        select: { id: true, email: true, role: true },
+        select: { id: true, name: true, email: true, role: true },
         orderBy: { email: 'asc' },
       })
     : [];
@@ -86,7 +86,7 @@ export default async function CrmPage() {
           chatwootConversationId: l.chatwootConversationId,
           source: l.source,
           assignedAgentId: l.assignedAgentId,
-          assignedAgentEmail: l.assignedAgent?.email ?? null,
+          assignedAgentName: l.assignedAgent?.name || l.assignedAgent?.email || null,
           createdAt: l.createdAt.toISOString(),
           updatedAt: l.updatedAt.toISOString(),
         }))}

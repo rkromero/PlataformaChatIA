@@ -8,6 +8,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
 const createAgentSchema = z.object({
+  name: z.string().min(1, 'Nombre requerido'),
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Mínimo 6 caracteres'),
   role: z.enum(['admin', 'agent']),
@@ -21,6 +22,7 @@ export async function createAgentAction(_prev: unknown, formData: FormData) {
   }
 
   const parsed = createAgentSchema.safeParse({
+    name: formData.get('name'),
     email: formData.get('email'),
     password: formData.get('password'),
     role: formData.get('role'),
@@ -28,7 +30,7 @@ export async function createAgentAction(_prev: unknown, formData: FormData) {
 
   if (!parsed.success) return { error: parsed.error.errors[0].message };
 
-  const { email, password, role } = parsed.data;
+  const { name, email, password, role } = parsed.data;
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.tenantId },
@@ -54,6 +56,7 @@ export async function createAgentAction(_prev: unknown, formData: FormData) {
   await prisma.tenantUser.create({
     data: {
       tenantId: session.tenantId,
+      name,
       email,
       passwordHash,
       role,
@@ -62,7 +65,7 @@ export async function createAgentAction(_prev: unknown, formData: FormData) {
   });
 
   revalidatePath('/dashboard/team');
-  return { success: true, message: `${role === 'agent' ? 'Agente' : 'Admin'} ${email} creado` };
+  return { success: true, message: `${role === 'agent' ? 'Agente' : 'Admin'} ${name} creado` };
 }
 
 export async function removeTeamMemberAction(userId: string) {

@@ -97,12 +97,12 @@ export function LeadCard({
       </div>
 
       {/* Agent badge */}
-      {lead.assignedAgentEmail && (
+      {lead.assignedAgentName && (
         <div className="mt-1.5 flex items-center gap-1">
           <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
           </svg>
-          <span className="truncate text-[10px] text-gray-500">{lead.assignedAgentEmail}</span>
+          <span className="truncate text-[10px] text-gray-500">{lead.assignedAgentName}</span>
         </div>
       )}
 
@@ -127,7 +127,7 @@ export function LeadCard({
               >
                 <option value="">Sin asignar</option>
                 {agents.map((a) => (
-                  <option key={a.id} value={a.id}>{a.email}</option>
+                  <option key={a.id} value={a.id}>{a.name || a.email}</option>
                 ))}
               </select>
             </div>

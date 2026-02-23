@@ -5,6 +5,7 @@ import { createRuleAction, updateRuleAction } from './actions';
 
 interface Agent {
   id: string;
+  name: string;
   email: string;
   role: string;
 }
@@ -163,7 +164,7 @@ export function RuleForm({
             >
               <option value="">Seleccionar agente...</option>
               {agents.map((a) => (
-                <option key={a.id} value={a.id}>{a.email} ({a.role})</option>
+                <option key={a.id} value={a.id}>{a.name || a.email} ({a.role})</option>
               ))}
             </select>
           </div>
@@ -194,7 +195,7 @@ export function RuleForm({
             >
               <option value="">Seleccionar agente...</option>
               {agents.map((a) => (
-                <option key={a.id} value={a.id}>{a.email} ({a.role})</option>
+                <option key={a.id} value={a.id}>{a.name || a.email} ({a.role})</option>
               ))}
             </select>
           </div>
@@ -226,7 +227,7 @@ export function RuleForm({
                   onChange={() => toggleRoundRobinAgent(a.id)}
                   className="h-4 w-4 rounded border-gray-300"
                 />
-                {a.email}
+                {a.name || a.email}
                 <span className="text-xs text-gray-400">({a.role})</span>
               </label>
             ))}

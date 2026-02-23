@@ -75,6 +75,7 @@ model TenantUser {
   id            String   @id @default(uuid()) @db.Uuid
   tenantId      String   @map("tenant_id") @db.Uuid
   email         String
+  name          String   @default("")
   passwordHash  String   @map("password_hash")
   role          UserRole @default(agent)
   emailVerified Boolean  @default(false) @map("email_verified")

@@ -14,13 +14,14 @@ export interface Lead {
   chatwootConversationId: number;
   source: string;
   assignedAgentId: string | null;
-  assignedAgentEmail: string | null;
+  assignedAgentName: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface Agent {
   id: string;
+  name: string;
   email: string;
   role: string;
 }
