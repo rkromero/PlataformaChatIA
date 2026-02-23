@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useActionState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { connectWhatsAppAction } from './actions';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 
@@ -14,10 +15,82 @@ const WIZARD_STEPS = [
 
 export default function ConnectWhatsAppPage() {
   const [step, setStep] = useState(0);
+  const [showManual, setShowManual] = useState(false);
+  const [launchingEmbedded, setLaunchingEmbedded] = useState(false);
   const [state, formAction, pending] = useActionState(connectWhatsAppAction, null);
+  const searchParams = useSearchParams();
+  const embeddedStatus = searchParams.get('embedded');
+  const embeddedMessage = searchParams.get('message');
 
   const showWebhookStep = state?.success;
   const activeStep = showWebhookStep ? 3 : step;
+
+  async function launchEmbeddedSignup() {
+    setLaunchingEmbedded(true);
+    try {
+      const res = await fetch('/api/channels/meta/embedded/start');
+      const data = await res.json();
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.error || 'No se pudo iniciar Embedded Signup');
+      }
+      window.location.href = data.url;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se pudo iniciar Embedded Signup';
+      window.alert(message);
+    } finally {
+      setLaunchingEmbedded(false);
+    }
+  }
+
+  if (!showManual) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <Breadcrumbs items={[
+          { label: 'Canales', href: '/dashboard/channels' },
+          { label: 'Conectar WhatsApp API' },
+        ]} />
+        <h1 className="mb-2 text-2xl font-semibold tracking-tight">Conectar WhatsApp</h1>
+        <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+          Conexión rápida con Embedded Signup de Meta (recomendada)
+        </p>
+
+        {embeddedStatus === 'success' && (
+          <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+            Conexión por Embedded Signup completada correctamente.
+          </div>
+        )}
+        {embeddedStatus === 'error' && (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+            Error al conectar por Embedded Signup: {embeddedMessage || 'revisá configuración de Meta y volvé a intentar.'}
+          </div>
+        )}
+
+        <div className="card">
+          <h2 className="text-lg font-semibold">Conectar en 1 flujo guiado</h2>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Meta te guía paso a paso para elegir tu portafolio, cuenta de WhatsApp y número. Al terminar, volvés acá con el canal conectado.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={launchEmbeddedSignup}
+              disabled={launchingEmbedded}
+              className="btn-primary"
+            >
+              {launchingEmbedded ? 'Abriendo...' : 'Conectar con Meta (rápido)'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowManual(true)}
+              className="btn-secondary"
+            >
+              Usar modo manual (avanzado)
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -29,6 +102,17 @@ export default function ConnectWhatsAppPage() {
       <p className="mb-8 text-sm text-gray-500 dark:text-gray-400">
         Seguí estos pasos para conectar tu número de WhatsApp Business
       </p>
+
+      {embeddedStatus === 'success' && (
+        <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+          Conexión por Embedded Signup completada correctamente.
+        </div>
+      )}
+      {embeddedStatus === 'error' && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+          Error al conectar por Embedded Signup: {embeddedMessage || 'revisá configuración de Meta y volvé a intentar.'}
+        </div>
+      )}
 
       {/* Progress */}
       <div className="mb-10">
@@ -94,6 +178,23 @@ export default function ConnectWhatsAppPage() {
             <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
               Escribinos a soporte@chatplatform.com y te lo configuramos gratis.
             </p>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-500/20 dark:bg-brand-500/10">
+            <p className="text-sm font-medium text-brand-800 dark:text-brand-300">
+              Conexión rápida recomendada
+            </p>
+            <p className="mt-1 text-sm text-brand-700 dark:text-brand-400">
+              Iniciá el Embedded Signup de Meta para conectar tu WhatsApp en menos pasos.
+            </p>
+            <button
+              type="button"
+              onClick={launchEmbeddedSignup}
+              disabled={launchingEmbedded}
+              className="btn-primary mt-3"
+            >
+              {launchingEmbedded ? 'Abriendo...' : 'Conectar con Meta (rápido)'}
+            </button>
           </div>
 
           <div className="mt-6 flex justify-end">
