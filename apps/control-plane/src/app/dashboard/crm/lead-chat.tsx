@@ -113,8 +113,12 @@ export function LeadChat({ leadId, isLinked }: { leadId: string; isLinked: boole
           {/* Messages */}
           <div className="max-h-48 overflow-y-auto bg-white p-2 dark:bg-gray-900">
             {loading && messages.length === 0 ? (
-              <div className="flex justify-center py-4">
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-brand-600/30 border-t-brand-600" />
+              <div className="space-y-2 py-2">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
+                    <div className={`h-6 animate-pulse rounded-lg ${i % 2 === 0 ? 'w-3/4 bg-gray-200 dark:bg-gray-800' : 'w-2/3 bg-brand-600/10 dark:bg-brand-500/10'}`} />
+                  </div>
+                ))}
               </div>
             ) : messages.length === 0 ? (
               <p className="py-3 text-center text-[11px] text-gray-400">Sin mensajes aún</p>

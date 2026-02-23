@@ -196,8 +196,22 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto bg-gray-50 p-4 dark:bg-gray-950">
         {loading ? (
-          <div className="flex h-full items-center justify-center">
-            <span className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-brand-600/30 border-t-brand-600" />
+          <div className="mx-auto max-w-2xl space-y-3 pt-4">
+            {[65, 45, 70, 50, 60].map((w, i) => (
+              <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
+                <div
+                  className={`animate-pulse rounded-2xl px-4 py-3 ${
+                    i % 2 === 0
+                      ? 'rounded-bl-md bg-gray-200 dark:bg-gray-800'
+                      : 'rounded-br-md bg-brand-600/20 dark:bg-brand-500/10'
+                  }`}
+                  style={{ width: `${w}%` }}
+                >
+                  <div className="h-3 rounded bg-gray-300/60 dark:bg-gray-700" />
+                  <div className="mt-1.5 h-3 w-3/4 rounded bg-gray-300/40 dark:bg-gray-700/60" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : messages.length === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">

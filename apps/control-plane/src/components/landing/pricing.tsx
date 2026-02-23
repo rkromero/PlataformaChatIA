@@ -55,16 +55,16 @@ const PLANS = [
 
 export function Pricing() {
   return (
-    <section id="precios" className="bg-white py-24 sm:py-32">
+    <section id="precios" className="bg-white py-24 dark:bg-gray-950 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">
+          <p className="text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">
             Precios transparentes
           </p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
             Elegí el plan que se adapte a tu negocio
           </h2>
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
             Empezá gratis y escalá cuando lo necesites. Sin sorpresas.
           </p>
         </div>
@@ -75,8 +75,8 @@ export function Pricing() {
               key={plan.name}
               className={`relative flex flex-col rounded-2xl border p-8 ${
                 plan.popular
-                  ? 'border-brand-600 shadow-xl shadow-brand-600/10'
-                  : 'border-gray-200'
+                  ? 'border-brand-600 shadow-xl shadow-brand-600/10 dark:border-brand-500 dark:shadow-brand-500/10'
+                  : 'border-gray-200 dark:border-gray-800'
               }`}
             >
               {plan.popular && (
@@ -86,20 +86,20 @@ export function Pricing() {
               )}
 
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
-                <p className="mt-1 text-sm text-gray-500">{plan.description}</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{plan.name}</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{plan.description}</p>
                 <div className="mt-6 flex items-baseline">
-                  <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-white">{plan.price}</span>
                   {plan.period && (
-                    <span className="ml-1 text-sm text-gray-500">{plan.period}</span>
+                    <span className="ml-1 text-sm text-gray-500 dark:text-gray-400">{plan.period}</span>
                   )}
                 </div>
               </div>
 
               <ul className="mt-8 flex-1 space-y-3">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3 text-sm text-gray-600">
-                    <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <li key={feature} className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300">
+                    <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                     </svg>
                     {feature}
@@ -109,10 +109,10 @@ export function Pricing() {
 
               <Link
                 href={plan.href}
-                className={`mt-8 block rounded-lg px-4 py-3 text-center text-sm font-semibold transition-colors ${
+                className={`mt-8 block rounded-lg px-4 py-3 text-center text-sm font-semibold transition-colors duration-150 ${
                   plan.popular
                     ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/25 hover:bg-brand-500'
-                    : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    : 'border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800'
                 }`}
               >
                 {plan.cta}

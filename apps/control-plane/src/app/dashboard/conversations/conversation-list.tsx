@@ -41,8 +41,20 @@ export function ConversationList({
       {/* List */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-brand-600/30 border-t-brand-600" />
+          <div className="space-y-0">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-start gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800/50">
+                <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-full bg-gray-200 dark:bg-gray-800" />
+                <div className="flex-1 space-y-2 pt-0.5">
+                  <div className="flex items-center justify-between">
+                    <div className="h-3.5 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                    <div className="h-2.5 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                  </div>
+                  <div className="h-3 w-44 animate-pulse rounded bg-gray-100 dark:bg-gray-800/60" />
+                  <div className="h-3 w-12 animate-pulse rounded bg-gray-100 dark:bg-gray-800/60" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : conversations.length === 0 ? (
           <div className="px-4 py-16 text-center text-sm text-gray-400">

@@ -4,8 +4,8 @@ import { ThemeProvider } from '@/components/theme-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Chat Platform — Control Plane',
-  description: 'Multi-tenant AI chat management platform',
+  title: 'ChatPlatform — Panel de Control',
+  description: 'Plataforma de atención al cliente por WhatsApp con IA',
 };
 
 export default function RootLayout({
