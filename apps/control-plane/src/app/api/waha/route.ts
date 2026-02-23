@@ -7,10 +7,21 @@ import {
   getQrCode,
   getSessionStatus,
   stopSession,
+  deleteSession,
 } from '@/lib/waha-api';
 import { getPlanLimits } from '@chat-platform/shared/plans';
 
-const SESSION_NAME = 'default';
+function buildSessionName(tenantId: string): string {
+  return `qr-${tenantId.slice(0, 8)}`;
+}
+
+async function getTenantSessionName(tenantId: string): Promise<string | null> {
+  const channel = await prisma.tenantChannel.findFirst({
+    where: { tenantId, type: 'whatsapp_qr' },
+    select: { evolutionInstance: true },
+  });
+  return channel?.evolutionInstance || null;
+}
 
 function safeEncrypt(data: Record<string, string>): string {
   try {
@@ -30,14 +41,17 @@ export async function GET(request: NextRequest) {
   }
 
   const action = request.nextUrl.searchParams.get('action');
+  const sessionName = await getTenantSessionName(session.tenantId);
 
   if (action === 'status') {
-    const status = await getSessionStatus(SESSION_NAME);
+    if (!sessionName) return NextResponse.json({ status: 'STOPPED' });
+    const status = await getSessionStatus(sessionName);
     return NextResponse.json({ status });
   }
 
   if (action === 'qr') {
-    const qr = await getQrCode(SESSION_NAME);
+    if (!sessionName) return NextResponse.json({ qr: null });
+    const qr = await getQrCode(sessionName);
     return NextResponse.json({ qr });
   }
 
@@ -83,23 +97,25 @@ async function handleCreate(tenantId: string) {
     }
   }
 
+  const sessionName = buildSessionName(tenantId);
+
   try {
     const aiBotUrl = process.env['AI_BOT_URL'] || '';
     const webhookUrl = aiBotUrl
       ? `${aiBotUrl.replace(/\/$/, '')}/webhooks/waha`
       : '';
 
-    const wahaSession = await ensureSession(SESSION_NAME, webhookUrl);
+    const wahaSession = await ensureSession(sessionName, webhookUrl);
 
     const existing = await prisma.tenantChannel.findFirst({
-      where: { tenantId, evolutionInstance: SESSION_NAME, type: 'whatsapp_qr' },
+      where: { tenantId, type: 'whatsapp_qr' },
     });
 
     let channelId = existing?.id;
 
     if (!existing) {
       const configEncryptedJson = safeEncrypt({
-        sessionName: SESSION_NAME,
+        sessionName,
         connectionType: 'qr',
       });
 
@@ -109,24 +125,29 @@ async function handleCreate(tenantId: string) {
           type: 'whatsapp_qr',
           chatwootInboxId: 0,
           configEncryptedJson,
-          evolutionInstance: SESSION_NAME,
+          evolutionInstance: sessionName,
         },
       });
       channelId = channel.id;
+    } else if (existing.evolutionInstance !== sessionName) {
+      await prisma.tenantChannel.update({
+        where: { id: existing.id },
+        data: { evolutionInstance: sessionName },
+      });
     }
 
     let qr: string | null = null;
 
     if (wahaSession.status === 'SCAN_QR_CODE') {
-      qr = await getQrCode(SESSION_NAME);
+      qr = await getQrCode(sessionName);
     }
 
-    if (!qr) {
+    if (!qr && wahaSession.status !== 'WORKING') {
       for (let i = 0; i < 5; i++) {
         await new Promise((r) => setTimeout(r, 2000));
-        const status = await getSessionStatus(SESSION_NAME);
+        const status = await getSessionStatus(sessionName);
         if (status === 'SCAN_QR_CODE') {
-          qr = await getQrCode(SESSION_NAME);
+          qr = await getQrCode(sessionName);
           if (qr) break;
         }
         if (status === 'WORKING') break;
@@ -134,7 +155,7 @@ async function handleCreate(tenantId: string) {
     }
 
     return NextResponse.json({
-      sessionName: SESSION_NAME,
+      sessionName,
       channelId,
       qr,
       status: wahaSession.status,
@@ -146,7 +167,12 @@ async function handleCreate(tenantId: string) {
 }
 
 async function handleDelete(tenantId: string, channelId?: string) {
-  try { await stopSession(SESSION_NAME); } catch {}
+  const sessionName = await getTenantSessionName(tenantId);
+
+  if (sessionName) {
+    try { await stopSession(sessionName); } catch {}
+    try { await deleteSession(sessionName); } catch {}
+  }
 
   if (channelId) {
     await prisma.tenantChannel.deleteMany({

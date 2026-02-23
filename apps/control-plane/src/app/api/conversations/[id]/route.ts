@@ -151,7 +151,13 @@ export async function POST(
   return handleChatwootAction(conv, action, message);
 }
 
-const WAHA_SESSION = 'default';
+async function getWahaSessionForTenant(tenantId: string): Promise<string> {
+  const channel = await prisma.tenantChannel.findFirst({
+    where: { tenantId, type: 'whatsapp_qr' },
+    select: { evolutionInstance: true },
+  });
+  return channel?.evolutionInstance || `qr-${tenantId.slice(0, 8)}`;
+}
 
 async function handleWahaAction(
   conv: { id: string; wahaChatId: string | null; handoffActive: boolean },
@@ -177,7 +183,8 @@ async function handleWahaAction(
 
   if (action === 'send' && message?.trim() && conv.wahaChatId) {
     try {
-      await sendText(WAHA_SESSION, conv.wahaChatId, message.trim());
+      const wahaSession = await getWahaSessionForTenant(tenantId);
+      await sendText(wahaSession, conv.wahaChatId, message.trim());
       await prisma.message.create({
         data: {
           tenantId,
