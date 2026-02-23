@@ -12,13 +12,16 @@
   "dependencies": {
     "@chat-platform/shared": "workspace:*",
     "@prisma/client": "^6.3.0",
+    "@whiskeysockets/baileys": "7.0.0-rc.9",
     "fastify": "^5.2.0",
     "openai": "^4.80.0",
     "pino": "^9.6.0",
+    "qrcode": "^1.5.4",
     "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/qrcode": "^1.5.6",
     "prisma": "^6.3.0",
     "tsx": "^4.19.0",
     "typescript": "^5.5.0"

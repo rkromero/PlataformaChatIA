@@ -1,27 +1,29 @@
-const getConfig = () => ({
-  url: (process.env['WAHA_API_URL'] || '').replace(/\/$/, ''),
-  key: process.env['WAHA_API_KEY'] || '',
-});
+function getAiBotUrl(): string {
+  return (process.env['AI_BOT_URL'] || '').replace(/\/$/, '');
+}
 
-async function wahaFetch<T = unknown>(
+export function isWahaConfigured(): boolean {
+  return !!getAiBotUrl();
+}
+
+async function aiBotFetch<T = unknown>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const { url, key } = getConfig();
-  if (!url || !key) throw new Error('WAHA no configurada');
+  const url = getAiBotUrl();
+  if (!url) throw new Error('AI_BOT_URL no configurada');
 
   const res = await fetch(`${url}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      'X-Api-Key': key,
       ...(options.headers ?? {}),
     },
   });
 
   const text = await res.text();
   if (!res.ok) {
-    throw new Error(`WAHA error ${res.status}: ${text}`);
+    throw new Error(`AI Bot error ${res.status}: ${text}`);
   }
 
   try {
@@ -31,118 +33,61 @@ async function wahaFetch<T = unknown>(
   }
 }
 
-export function isWahaConfigured(): boolean {
-  const { url, key } = getConfig();
-  return !!(url && key);
-}
-
-export function getWahaUrl(): string {
-  return getConfig().url;
-}
-
-interface WahaSession {
-  name: string;
-  status: string;
-  me?: { id: string; pushName: string } | null;
-  config?: Record<string, unknown>;
-}
-
 export async function ensureSession(
-  sessionName: string,
-  webhookUrl: string,
-): Promise<WahaSession> {
-  const webhookConfig = {
-    webhooks: webhookUrl
-      ? [{ url: webhookUrl, events: ['message', 'session.status'] }]
-      : [],
-  };
-
-  try {
-    const existing = await getSession(sessionName);
-    if (existing.status === 'WORKING' || existing.status === 'SCAN_QR_CODE') {
-      return existing;
-    }
-
-    if (existing.status === 'STOPPED' || existing.status === 'FAILED') {
-      await wahaFetch(`/api/sessions/${sessionName}`, {
-        method: 'PUT',
-        body: JSON.stringify({ config: webhookConfig }),
-      });
-      await wahaFetch(`/api/sessions/${sessionName}/start`, { method: 'POST' });
-      return getSession(sessionName);
-    }
-
-    return existing;
-  } catch {
-    return wahaFetch<WahaSession>('/api/sessions', {
+  tenantId: string,
+): Promise<{ status: string; qr: string | null }> {
+  return aiBotFetch<{ status: string; qr: string | null }>(
+    '/api/sessions',
+    {
       method: 'POST',
-      body: JSON.stringify({
-        name: sessionName,
-        start: true,
-        config: webhookConfig,
-      }),
-    });
-  }
+      body: JSON.stringify({ tenantId }),
+    },
+  );
 }
 
-export async function getSession(sessionName: string): Promise<WahaSession> {
-  return wahaFetch<WahaSession>(`/api/sessions/${sessionName}`);
-}
-
-export async function getQrCode(sessionName: string): Promise<string | null> {
-  const { url, key } = getConfig();
-  if (!url || !key) return null;
-
+export async function getQrCode(
+  tenantId: string,
+): Promise<string | null> {
   try {
-    const res = await fetch(
-      `${url}/api/${sessionName}/auth/qr`,
-      { headers: { 'X-Api-Key': key } },
+    const data = await aiBotFetch<{ qr: string | null }>(
+      `/api/sessions/${tenantId}/qr`,
     );
-
-    if (!res.ok) return null;
-
-    const buffer = await res.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
-    return `data:image/png;base64,${base64}`;
+    return data.qr;
   } catch {
     return null;
   }
 }
 
 export async function getSessionStatus(
-  sessionName: string,
+  tenantId: string,
 ): Promise<string> {
   try {
-    const session = await getSession(sessionName);
-    return session.status ?? 'STOPPED';
+    const data = await aiBotFetch<{ status: string }>(
+      `/api/sessions/${tenantId}/status`,
+    );
+    return data.status ?? 'STOPPED';
   } catch {
     return 'STOPPED';
   }
 }
 
-export async function stopSession(sessionName: string): Promise<void> {
-  await wahaFetch(`/api/sessions/${sessionName}/stop`, { method: 'POST' });
-}
-
-export async function deleteSession(sessionName: string): Promise<void> {
-  try {
-    await wahaFetch(`/api/sessions/${sessionName}`, { method: 'DELETE' });
-  } catch {
-    // ignore if session doesn't exist
-  }
-}
-
 export async function sendText(
-  sessionName: string,
+  tenantId: string,
   chatId: string,
   text: string,
 ): Promise<void> {
-  await wahaFetch('/api/sendText', {
+  await aiBotFetch(`/api/sessions/${tenantId}/send`, {
     method: 'POST',
-    body: JSON.stringify({
-      session: sessionName,
-      chatId,
-      text,
-    }),
+    body: JSON.stringify({ chatId, text }),
   });
+}
+
+export async function deleteSessionAndCleanup(
+  tenantId: string,
+): Promise<void> {
+  try {
+    await aiBotFetch(`/api/sessions/${tenantId}`, { method: 'DELETE' });
+  } catch {
+    // Ignore — session might not exist
+  }
 }

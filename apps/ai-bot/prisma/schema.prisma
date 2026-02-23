@@ -162,3 +162,13 @@ model DailyUsage {
   @@unique([tenantId, date])
   @@map("daily_usage")
 }
+
+model BaileysAuth {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @map("tenant_id") @db.Uuid
+  dataKey  String @map("data_key")
+  dataVal  String @map("data_val") @db.Text
+
+  @@unique([tenantId, dataKey])
+  @@map("baileys_auth")
+}

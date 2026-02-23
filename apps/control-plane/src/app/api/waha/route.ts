@@ -6,22 +6,9 @@ import {
   ensureSession,
   getQrCode,
   getSessionStatus,
-  stopSession,
-  deleteSession,
+  deleteSessionAndCleanup,
 } from '@/lib/waha-api';
 import { getPlanLimits } from '@chat-platform/shared/plans';
-
-function buildSessionName(tenantId: string): string {
-  return `qr-${tenantId.slice(0, 8)}`;
-}
-
-async function getTenantSessionName(tenantId: string): Promise<string | null> {
-  const channel = await prisma.tenantChannel.findFirst({
-    where: { tenantId, type: 'whatsapp_qr' },
-    select: { evolutionInstance: true },
-  });
-  return channel?.evolutionInstance || null;
-}
 
 function safeEncrypt(data: Record<string, string>): string {
   try {
@@ -34,24 +21,26 @@ function safeEncrypt(data: Record<string, string>): string {
 
 export async function GET(request: NextRequest) {
   const session = await getAuthSession();
-  if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
   if (!isWahaConfigured()) {
-    return NextResponse.json({ error: 'WAHA no configurada' }, { status: 503 });
+    return NextResponse.json(
+      { error: 'Servicio no configurado' },
+      { status: 503 },
+    );
   }
 
   const action = request.nextUrl.searchParams.get('action');
-  const sessionName = await getTenantSessionName(session.tenantId);
+  const tenantId = session.tenantId;
 
   if (action === 'status') {
-    if (!sessionName) return NextResponse.json({ status: 'STOPPED' });
-    const status = await getSessionStatus(sessionName);
+    const status = await getSessionStatus(tenantId);
     return NextResponse.json({ status });
   }
 
   if (action === 'qr') {
-    if (!sessionName) return NextResponse.json({ qr: null });
-    const qr = await getQrCode(sessionName);
+    const qr = await getQrCode(tenantId);
     return NextResponse.json({ qr });
   }
 
@@ -64,10 +53,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const session = await getAuthSession();
-  if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
   if (!isWahaConfigured()) {
-    return NextResponse.json({ error: 'WAHA no configurada' }, { status: 503 });
+    return NextResponse.json(
+      { error: 'Servicio no configurado' },
+      { status: 503 },
+    );
   }
 
   const body = await request.json();
@@ -85,27 +78,29 @@ async function handleCreate(tenantId: string) {
     select: { name: true, slug: true, plan: true },
   });
 
-  if (!tenant) return NextResponse.json({ error: 'Tenant no encontrado' }, { status: 404 });
+  if (!tenant)
+    return NextResponse.json(
+      { error: 'Tenant no encontrado' },
+      { status: 404 },
+    );
 
   const limits = getPlanLimits(tenant.plan);
   if (limits.maxChannels !== -1) {
-    const currentChannels = await prisma.tenantChannel.count({ where: { tenantId } });
+    const currentChannels = await prisma.tenantChannel.count({
+      where: { tenantId },
+    });
     if (currentChannels >= limits.maxChannels) {
-      return NextResponse.json({
-        error: `Tu plan ${limits.name} permite máximo ${limits.maxChannels} canal(es).`,
-      }, { status: 403 });
+      return NextResponse.json(
+        {
+          error: `Tu plan ${limits.name} permite máximo ${limits.maxChannels} canal(es).`,
+        },
+        { status: 403 },
+      );
     }
   }
 
-  const sessionName = buildSessionName(tenantId);
-
   try {
-    const aiBotUrl = process.env['AI_BOT_URL'] || '';
-    const webhookUrl = aiBotUrl
-      ? `${aiBotUrl.replace(/\/$/, '')}/webhooks/waha`
-      : '';
-
-    const wahaSession = await ensureSession(sessionName, webhookUrl);
+    const result = await ensureSession(tenantId);
 
     const existing = await prisma.tenantChannel.findFirst({
       where: { tenantId, type: 'whatsapp_qr' },
@@ -115,8 +110,8 @@ async function handleCreate(tenantId: string) {
 
     if (!existing) {
       const configEncryptedJson = safeEncrypt({
-        sessionName,
         connectionType: 'qr',
+        engine: 'baileys',
       });
 
       const channel = await prisma.tenantChannel.create({
@@ -125,29 +120,20 @@ async function handleCreate(tenantId: string) {
           type: 'whatsapp_qr',
           chatwootInboxId: 0,
           configEncryptedJson,
-          evolutionInstance: sessionName,
+          evolutionInstance: tenantId,
         },
       });
       channelId = channel.id;
-    } else if (existing.evolutionInstance !== sessionName) {
-      await prisma.tenantChannel.update({
-        where: { id: existing.id },
-        data: { evolutionInstance: sessionName },
-      });
     }
 
-    let qr: string | null = null;
+    let qr = result.qr;
 
-    if (wahaSession.status === 'SCAN_QR_CODE') {
-      qr = await getQrCode(sessionName);
-    }
-
-    if (!qr && wahaSession.status !== 'WORKING') {
+    if (!qr && result.status !== 'WORKING') {
       for (let i = 0; i < 5; i++) {
         await new Promise((r) => setTimeout(r, 2000));
-        const status = await getSessionStatus(sessionName);
+        const status = await getSessionStatus(tenantId);
         if (status === 'SCAN_QR_CODE') {
-          qr = await getQrCode(sessionName);
+          qr = await getQrCode(tenantId);
           if (qr) break;
         }
         if (status === 'WORKING') break;
@@ -155,24 +141,20 @@ async function handleCreate(tenantId: string) {
     }
 
     return NextResponse.json({
-      sessionName,
+      sessionName: tenantId,
       channelId,
       qr,
-      status: wahaSession.status,
+      status: result.status,
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Error al crear sesión WAHA';
+    const msg =
+      err instanceof Error ? err.message : 'Error al crear sesión';
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
 async function handleDelete(tenantId: string, channelId?: string) {
-  const sessionName = await getTenantSessionName(tenantId);
-
-  if (sessionName) {
-    try { await stopSession(sessionName); } catch {}
-    try { await deleteSession(sessionName); } catch {}
-  }
+  await deleteSessionAndCleanup(tenantId);
 
   if (channelId) {
     await prisma.tenantChannel.deleteMany({
