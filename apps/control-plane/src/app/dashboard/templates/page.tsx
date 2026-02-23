@@ -2,6 +2,7 @@ import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { getBodyText } from '@/lib/meta-templates';
 import Link from 'next/link';
+import { EmptyState } from '@/components/empty-state';
 import { SyncButton } from './sync-button';
 import { TemplateActions } from './template-actions';
 
@@ -65,17 +66,18 @@ export default async function TemplatesPage() {
       )}
 
       {templates.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800">
-            <svg className="h-7 w-7 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <EmptyState
+          title="Sin plantillas"
+          description="Sincronizá tus plantillas de Meta o creá una nueva para empezar a enviar mensajes proactivos."
+          icon={
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
             </svg>
-          </div>
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Sin plantillas</p>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Sincronizá tus plantillas de Meta o creá una nueva.
-          </p>
-        </div>
+          }
+          action={
+            <Link href="/dashboard/templates/new" className="btn-primary">Nueva plantilla</Link>
+          }
+        />
       ) : (
         <div className="space-y-3">
           {templates.map((tpl) => {

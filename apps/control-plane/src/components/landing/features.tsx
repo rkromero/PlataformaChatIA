@@ -63,16 +63,16 @@ const FEATURES = [
 
 export function Features() {
   return (
-    <section id="features" className="bg-gray-50 py-24 sm:py-32">
+    <section id="features" className="bg-gray-50 py-24 dark:bg-gray-900 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">
+          <p className="text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">
             Todo lo que necesitás
           </p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
             Características que hacen la diferencia
           </h2>
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
             Herramientas potentes para automatizar tu atención al cliente sin perder la calidez humana.
           </p>
         </div>
@@ -81,13 +81,13 @@ export function Features() {
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-2xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-lg"
+              className="rounded-2xl border border-gray-200 bg-white p-6 transition-shadow duration-150 hover:shadow-lg dark:border-gray-800 dark:bg-gray-950 dark:hover:shadow-gray-900/50"
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
                 {feature.icon}
               </div>
-              <h3 className="mt-4 text-base font-semibold text-gray-900">{feature.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600">{feature.description}</p>
+              <h3 className="mt-4 text-base font-semibold text-gray-900 dark:text-white">{feature.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{feature.description}</p>
             </div>
           ))}
         </div>

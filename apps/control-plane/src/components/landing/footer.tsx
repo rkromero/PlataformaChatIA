@@ -22,26 +22,26 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-semibold text-white">Producto</h4>
             <ul className="mt-4 space-y-3">
-              <li><a href="#features" className="text-sm text-gray-400 hover:text-white transition-colors">Características</a></li>
-              <li><a href="#precios" className="text-sm text-gray-400 hover:text-white transition-colors">Precios</a></li>
-              <li><a href="#faq" className="text-sm text-gray-400 hover:text-white transition-colors">FAQ</a></li>
+              <li><a href="#features" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Características</a></li>
+              <li><a href="#precios" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Precios</a></li>
+              <li><a href="#faq" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">FAQ</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-sm font-semibold text-white">Empresa</h4>
             <ul className="mt-4 space-y-3">
-              <li><a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Sobre nosotros</a></li>
-              <li><a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Blog</a></li>
-              <li><a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Contacto</a></li>
+              <li><a href="#" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Sobre nosotros</a></li>
+              <li><a href="#" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Blog</a></li>
+              <li><a href="#" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Contacto</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-sm font-semibold text-white">Legal</h4>
             <ul className="mt-4 space-y-3">
-              <li><a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Términos de servicio</a></li>
-              <li><a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Política de privacidad</a></li>
+              <li><a href="#" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Términos de servicio</a></li>
+              <li><a href="#" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Política de privacidad</a></li>
             </ul>
           </div>
         </div>

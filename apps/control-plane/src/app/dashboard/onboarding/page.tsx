@@ -135,7 +135,7 @@ export default function OnboardingPage() {
               <button
                 key={type.label}
                 onClick={() => selectBusinessType(i)}
-                className={`rounded-xl border p-4 text-left transition-all ${
+                className={`cursor-pointer rounded-xl border p-4 text-left transition-all duration-150 ${
                   selectedType === i
                     ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-600/20 dark:bg-brand-500/10'
                     : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'

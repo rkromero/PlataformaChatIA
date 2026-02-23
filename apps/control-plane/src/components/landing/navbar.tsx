@@ -30,7 +30,7 @@ export function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm text-gray-400 transition-colors hover:text-white"
+              className="text-sm text-gray-400 transition-colors duration-150 hover:text-white"
             >
               {link.label}
             </a>
@@ -40,13 +40,13 @@ export function Navbar() {
         <div className="hidden items-center gap-3 md:flex">
           <Link
             href="/login"
-            className="text-sm font-medium text-gray-300 transition-colors hover:text-white"
+            className="text-sm font-medium text-gray-300 transition-colors duration-150 hover:text-white"
           >
             Iniciar sesión
           </Link>
           <Link
             href="/register"
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-500"
+            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-500"
           >
             Empezar gratis
           </Link>

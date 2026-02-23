@@ -95,7 +95,7 @@ export default async function ChannelsPage() {
           {/* Official API */}
           <Link
             href="/dashboard/channels/connect-whatsapp"
-            className="group rounded-xl border-2 border-gray-200 p-5 transition-all hover:border-emerald-400 hover:shadow-md dark:border-gray-700 dark:hover:border-emerald-500"
+            className="group cursor-pointer rounded-xl border-2 border-gray-200 p-5 transition-all duration-150 hover:border-emerald-400 hover:shadow-md dark:border-gray-700 dark:hover:border-emerald-500"
           >
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 transition-colors group-hover:bg-emerald-200 dark:bg-emerald-500/10">
@@ -121,7 +121,7 @@ export default async function ChannelsPage() {
           {/* QR Code */}
           <Link
             href="/dashboard/channels/connect-qr"
-            className="group rounded-xl border-2 border-gray-200 p-5 transition-all hover:border-purple-400 hover:shadow-md dark:border-gray-700 dark:hover:border-purple-500"
+            className="group cursor-pointer rounded-xl border-2 border-gray-200 p-5 transition-all duration-150 hover:border-purple-400 hover:shadow-md dark:border-gray-700 dark:hover:border-purple-500"
           >
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 transition-colors group-hover:bg-purple-200 dark:bg-purple-500/10">

@@ -44,18 +44,18 @@ export function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="bg-white py-24 sm:py-32">
+    <section id="faq" className="bg-white py-24 dark:bg-gray-950 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">
+          <p className="text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">
             Preguntas frecuentes
           </p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
             ¿Tenés dudas? Acá las respuestas
           </h2>
         </div>
 
-        <div className="mx-auto mt-16 max-w-3xl divide-y divide-gray-200">
+        <div className="mx-auto mt-16 max-w-3xl divide-y divide-gray-200 dark:divide-gray-800">
           {FAQS.map((faq, index) => {
             const isOpen = openIndex === index;
             return (
@@ -64,7 +64,7 @@ export function FaqSection() {
                   onClick={() => setOpenIndex(isOpen ? null : index)}
                   className="flex w-full items-center justify-between py-5 text-left"
                 >
-                  <span className="text-sm font-medium text-gray-900">{faq.question}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{faq.question}</span>
                   <svg
                     className={`ml-4 h-5 w-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${
                       isOpen ? 'rotate-180' : ''
@@ -82,7 +82,7 @@ export function FaqSection() {
                     isOpen ? 'max-h-96 pb-5' : 'max-h-0'
                   }`}
                 >
-                  <p className="text-sm leading-relaxed text-gray-600">{faq.answer}</p>
+                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">{faq.answer}</p>
                 </div>
               </div>
             );

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useActionState } from 'react';
 import { createTemplateAction } from '../actions';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 
 export default function NewTemplatePage() {
   const [state, formAction, pending] = useActionState(createTemplateAction, null);
@@ -10,6 +11,10 @@ export default function NewTemplatePage() {
   if (state?.success) {
     return (
       <div className="mx-auto max-w-lg">
+        <Breadcrumbs items={[
+          { label: 'Plantillas', href: '/dashboard/templates' },
+          { label: 'Nueva plantilla' },
+        ]} />
         <div className="card text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/10">
             <svg className="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -29,9 +34,10 @@ export default function NewTemplatePage() {
   return (
     <div className="mx-auto max-w-lg">
       <div className="mb-6">
-        <Link href="/dashboard/templates" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-          ← Volver a plantillas
-        </Link>
+        <Breadcrumbs items={[
+          { label: 'Plantillas', href: '/dashboard/templates' },
+          { label: 'Nueva plantilla' },
+        ]} />
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Nueva plantilla</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Se envía a Meta para aprobación. Solo se puede usar después de aprobada.

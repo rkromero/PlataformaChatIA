@@ -24,13 +24,13 @@ const TESTIMONIALS = [
 
 export function Testimonials() {
   return (
-    <section className="bg-gray-50 py-24 sm:py-32">
+    <section className="bg-gray-50 py-24 dark:bg-gray-900 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">
+          <p className="text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">
             Testimonios
           </p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
             Lo que dicen nuestros clientes
           </h2>
         </div>
@@ -39,7 +39,7 @@ export function Testimonials() {
           {TESTIMONIALS.map((t) => (
             <div
               key={t.author}
-              className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6"
+              className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-950"
             >
               <div className="mb-4 flex gap-1">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -48,16 +48,16 @@ export function Testimonials() {
                   </svg>
                 ))}
               </div>
-              <p className="flex-1 text-sm leading-relaxed text-gray-600">
+              <p className="flex-1 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
                 &ldquo;{t.quote}&rdquo;
               </p>
-              <div className="mt-6 flex items-center gap-3 border-t border-gray-100 pt-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
+              <div className="mt-6 flex items-center gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
                   {t.initials}
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-900">{t.author}</div>
-                  <div className="text-xs text-gray-500">{t.role}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">{t.author}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{t.role}</div>
                 </div>
               </div>
             </div>

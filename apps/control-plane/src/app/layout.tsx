@@ -6,6 +6,21 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'ChatPlatform — Panel de Control',
   description: 'Plataforma de atención al cliente por WhatsApp con IA',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://chatplatform.app'),
+  openGraph: {
+    title: 'ChatPlatform',
+    description: 'Automatizá la atención al cliente de tu negocio por WhatsApp con IA',
+    siteName: 'ChatPlatform',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ChatPlatform',
+    description: 'Automatizá la atención al cliente de tu negocio por WhatsApp con IA',
+  },
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

@@ -36,16 +36,16 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section id="como-funciona" className="bg-white py-24 sm:py-32">
+    <section id="como-funciona" className="bg-white py-24 dark:bg-gray-950 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">
+          <p className="text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">
             Simple y rápido
           </p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
             Empezá en 3 pasos
           </h2>
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
             No necesitás conocimientos técnicos. En minutos tenés tu bot funcionando.
           </p>
         </div>
@@ -53,14 +53,14 @@ export function HowItWorks() {
         <div className="mx-auto mt-16 grid max-w-5xl gap-8 sm:grid-cols-3">
           {STEPS.map((item) => (
             <div key={item.step} className="relative text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
                 {item.icon}
               </div>
-              <span className="mt-4 block text-xs font-bold uppercase tracking-widest text-brand-600">
+              <span className="mt-4 block text-xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">
                 Paso {item.step}
               </span>
-              <h3 className="mt-2 text-lg font-semibold text-gray-900">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600">{item.description}</p>
+              <h3 className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{item.description}</p>
             </div>
           ))}
         </div>
