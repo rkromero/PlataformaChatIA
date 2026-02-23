@@ -20,6 +20,7 @@ import {
   mediaToBase64Url,
 } from '../services/media.js';
 import { transcribeAudio } from '../services/transcription.js';
+import { bufferMessage } from '../services/message-buffer.js';
 import type { HandoffRules } from '@chat-platform/shared/types';
 
 export async function webhookRoutes(app: FastifyInstance) {
@@ -191,7 +192,49 @@ async function handleWebhook(body: Record<string, unknown>) {
     return;
   }
 
-  // --- Usage check ---
+  const hasMedia = imageBase64Urls.length > 0 || !!audioAttachment;
+
+  if (hasMedia) {
+    await processAiReply({
+      tenant, settings, log, account, conversation,
+      effectiveContent, imageBase64Urls,
+      contactId, contactPhone, contactName, inboxId: inbox?.id ?? null,
+    });
+  } else {
+    const bufferKey = `cw:${tenant.id}:${conversation.id}`;
+    bufferMessage(bufferKey, effectiveContent, async (combinedText) => {
+      try {
+        await processAiReply({
+          tenant, settings, log, account, conversation,
+          effectiveContent: combinedText, imageBase64Urls: [],
+          contactId, contactPhone, contactName, inboxId: inbox?.id ?? null,
+        });
+      } catch (err) {
+        log.error({ err }, 'Error processing buffered Chatwoot message');
+      }
+    });
+  }
+}
+
+async function processAiReply(params: {
+  tenant: { id: string; plan: string };
+  settings: { model: string; systemPrompt: string };
+  log: ReturnType<typeof tenantLogger>;
+  account: { id: number };
+  conversation: { id: number };
+  effectiveContent: string;
+  imageBase64Urls: string[];
+  contactId: number | null;
+  contactPhone: string | null;
+  contactName: string | null;
+  inboxId: number | null;
+}) {
+  const {
+    tenant, settings, log, account, conversation,
+    effectiveContent, imageBase64Urls,
+    contactId, contactPhone, contactName, inboxId,
+  } = params;
+
   const usage = await checkAndIncrementUsage(tenant.id, tenant.plan);
   if (!usage.allowed) {
     log.info({ current: usage.current, limit: usage.limit }, 'Monthly message limit reached');
@@ -203,7 +246,6 @@ async function handleWebhook(body: Record<string, unknown>) {
     return;
   }
 
-  // --- Generate AI reply ---
   const [history, knowledgeContext] = await Promise.all([
     getConversationMessages(account.id, conversation.id, 10),
     getKnowledgeContext(tenant.id, effectiveContent),
@@ -221,14 +263,13 @@ async function handleWebhook(body: Record<string, unknown>) {
 
   await sendMessage(account.id, conversation.id, aiReply);
 
-  // CRM sync (async, non-blocking)
   syncLeadInBackground({
     tenantId: tenant.id,
     conversationId: conversation.id,
     contactId,
     contactPhone,
     contactName,
-    inboxId: inbox?.id ?? null,
+    inboxId,
     lastMessage: effectiveContent,
   }).catch((err) => log.error({ err }, 'Background CRM sync failed'));
 }

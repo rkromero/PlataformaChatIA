@@ -7,6 +7,7 @@ import { logger, tenantLogger } from '../lib/logger.js';
 import { prisma } from '../lib/db.js';
 import { usePostgresAuthState } from './baileys-store.js';
 import { handleIncomingMessage } from './message-handler.js';
+import { bufferMessage } from './message-buffer.js';
 
 interface SessionInfo {
   socket: ReturnType<typeof makeWASocket>;
@@ -139,20 +140,23 @@ async function startSocket(
 
       const chatId = msg.key.remoteJid;
       const contactName = msg.pushName || null;
+      const bufferKey = `baileys:${tenantId}:${chatId}`;
 
-      try {
-        await handleIncomingMessage({
-          tenantId,
-          chatId,
-          messageText: text,
-          contactName,
-          sendReply: async (replyText) => {
-            await sock.sendMessage(chatId, { text: replyText });
-          },
-        });
-      } catch (err) {
-        log.error({ err, chatId }, 'Error handling incoming Baileys message');
-      }
+      bufferMessage(bufferKey, text, async (combinedText) => {
+        try {
+          await handleIncomingMessage({
+            tenantId,
+            chatId,
+            messageText: combinedText,
+            contactName,
+            sendReply: async (replyText) => {
+              await sock.sendMessage(chatId, { text: replyText });
+            },
+          });
+        } catch (err) {
+          log.error({ err, chatId }, 'Error handling incoming Baileys message');
+        }
+      });
     }
   });
 
