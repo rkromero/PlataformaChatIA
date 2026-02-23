@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
   const conversations = await prisma.conversationLink.findMany({
     where: {
       tenantId: session.tenantId,
-      chatwootConversationId: { gt: 0 },
       ...(q
         ? {
             OR: [
@@ -41,10 +40,14 @@ export async function GET(req: NextRequest) {
 
   const enriched = await Promise.all(
     conversations.map(async (conv) => {
+      const isWaha = conv.chatwootConversationId <= 0;
       let labels: string[] = [];
-      let status = 'bot';
+      let status: 'bot' | 'human' = 'bot';
 
-      if (url && token && accountId) {
+      if (isWaha) {
+        status = conv.handoffActive ? 'human' : 'bot';
+        labels = conv.handoffActive ? ['human_handoff'] : [];
+      } else if (url && token && accountId) {
         try {
           const res = await fetch(
             `${url}/api/v1/accounts/${accountId}/conversations/${conv.chatwootConversationId}`,
@@ -55,10 +58,10 @@ export async function GET(req: NextRequest) {
             labels = data.labels ?? [];
           }
         } catch {}
-      }
 
-      if (labels.includes('human_handoff')) {
-        status = 'human';
+        if (labels.includes('human_handoff')) {
+          status = 'human';
+        }
       }
 
       return {
@@ -71,6 +74,7 @@ export async function GET(req: NextRequest) {
         updatedAt: conv.updatedAt.toISOString(),
         labels,
         status,
+        isWaha,
       };
     }),
   );

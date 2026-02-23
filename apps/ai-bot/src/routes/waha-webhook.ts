@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { logger, tenantLogger } from '../lib/logger.js';
 import { prisma } from '../lib/db.js';
 import { generateReply } from '../services/openai.js';
-import { wahaSendText, wahaGetMessages, isWahaConfigured } from '../services/waha.js';
+import { wahaSendText, isWahaConfigured } from '../services/waha.js';
 import { checkAndIncrementUsage } from '../services/usage.js';
 import { getKnowledgeContext } from '../services/knowledge.js';
 import { upsertConversationLink, existsLeadForPhone } from '../services/conversation-link.js';
@@ -76,6 +76,20 @@ async function handleWahaWebhook(body: WahaWebhookBody) {
   }
 
   const log = tenantLogger(tenant.id);
+
+  const convLink = await ensureConversationLink(tenant.id, senderChatId, phone, contactName);
+
+  await saveMessage(tenant.id, convLink.id, 'incoming', messageText, contactName || phone);
+
+  if (convLink.handoffActive) {
+    log.info({ chatId: senderChatId }, 'Handoff active, skipping AI reply (WAHA)');
+    await prisma.conversationLink.update({
+      where: { id: convLink.id },
+      data: { lastMessage: messageText.slice(0, 500) },
+    });
+    return;
+  }
+
   const settings = tenant.aiSettings;
 
   if (!settings?.enabled) {
@@ -91,30 +105,36 @@ async function handleWahaWebhook(body: WahaWebhookBody) {
 
   if (isHandoffRequest) {
     log.info({ chatId: senderChatId }, 'Handoff requested by user (WAHA)');
-    await wahaSendText(
-      sessionName,
-      senderChatId,
-      'Te estoy transfiriendo con un asesor. Un momento por favor.',
-    );
+    const handoffMsg = 'Te estoy transfiriendo con un asesor. Un momento por favor.';
+    await wahaSendText(sessionName, senderChatId, handoffMsg);
+    await saveMessage(tenant.id, convLink.id, 'outgoing', handoffMsg, 'Bot');
+    await prisma.conversationLink.update({
+      where: { id: convLink.id },
+      data: { handoffActive: true, lastMessage: handoffMsg },
+    });
     return;
   }
 
   const usage = await checkAndIncrementUsage(tenant.id, tenant.plan);
   if (!usage.allowed) {
     log.info({ current: usage.current, limit: usage.limit }, 'Monthly limit reached');
-    await wahaSendText(
-      sessionName,
-      senderChatId,
-      'Nuestro servicio de atención automática alcanzó el límite mensual. Por favor contactanos directamente.',
-    );
+    const limitMsg = 'Nuestro servicio de atención automática alcanzó el límite mensual. Por favor contactanos directamente.';
+    await wahaSendText(sessionName, senderChatId, limitMsg);
+    await saveMessage(tenant.id, convLink.id, 'outgoing', limitMsg, 'Bot');
     return;
   }
 
-  const [history, knowledgeContext] = await Promise.all([
-    wahaGetMessages(sessionName, senderChatId, 10),
-    getKnowledgeContext(tenant.id, messageText),
-  ]);
+  const recentMessages = await prisma.message.findMany({
+    where: { conversationLinkId: convLink.id },
+    orderBy: { timestamp: 'desc' },
+    take: 10,
+  });
+  const history = recentMessages.reverse().map((m) => ({
+    role: m.direction === 'incoming' ? 'user' as const : 'assistant' as const,
+    content: m.content,
+  }));
 
+  const knowledgeContext = await getKnowledgeContext(tenant.id, messageText);
   const enrichedPrompt = settings.systemPrompt + knowledgeContext;
 
   const aiReply = await generateReply(
@@ -125,6 +145,12 @@ async function handleWahaWebhook(body: WahaWebhookBody) {
   );
 
   await wahaSendText(sessionName, senderChatId, aiReply);
+  await saveMessage(tenant.id, convLink.id, 'outgoing', aiReply, 'Bot');
+
+  await prisma.conversationLink.update({
+    where: { id: convLink.id },
+    data: { lastMessage: aiReply.slice(0, 500) },
+  });
 
   syncLeadInBackground({
     tenantId: tenant.id,
@@ -134,6 +160,61 @@ async function handleWahaWebhook(body: WahaWebhookBody) {
     contactName,
     lastMessage: messageText,
   }).catch((err) => log.error({ err }, 'Background CRM sync failed (WAHA)'));
+}
+
+async function ensureConversationLink(
+  tenantId: string,
+  chatId: string,
+  phone: string,
+  contactName: string | null,
+) {
+  const uniqueConvId = -Math.abs(hashCode(tenantId + chatId));
+
+  const existing = await prisma.conversationLink.findUnique({
+    where: {
+      tenantId_chatwootConversationId: {
+        tenantId,
+        chatwootConversationId: uniqueConvId,
+      },
+    },
+  });
+
+  if (existing) {
+    const updates: Record<string, unknown> = {};
+    if (!existing.wahaChatId) updates.wahaChatId = chatId;
+    if (contactName && !existing.contactName) updates.contactName = contactName;
+    if (!existing.phone && phone) updates.phone = phone;
+
+    if (Object.keys(updates).length > 0) {
+      return prisma.conversationLink.update({
+        where: { id: existing.id },
+        data: updates,
+      });
+    }
+    return existing;
+  }
+
+  return prisma.conversationLink.create({
+    data: {
+      tenantId,
+      chatwootConversationId: uniqueConvId,
+      phone: phone || null,
+      contactName: contactName || null,
+      wahaChatId: chatId,
+    },
+  });
+}
+
+async function saveMessage(
+  tenantId: string,
+  conversationLinkId: string,
+  direction: string,
+  content: string,
+  senderName: string | null,
+) {
+  await prisma.message.create({
+    data: { tenantId, conversationLinkId, direction, content, senderName },
+  });
 }
 
 function chatIdToPhone(chatId: string): string {

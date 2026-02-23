@@ -93,14 +93,32 @@ model ConversationLink {
   stage                  LeadStage @default(new)
   notes                  String?   @db.Text
   crmLeadId              String?   @map("crm_lead_id")
+  wahaChatId             String?   @map("waha_chat_id")
+  handoffActive          Boolean   @default(false) @map("handoff_active")
   createdAt              DateTime  @default(now()) @map("created_at")
   updatedAt              DateTime  @updatedAt @map("updated_at")
 
   tenant                 Tenant   @relation(fields: [tenantId], references: [id])
+  messages               Message[]
 
   @@unique([tenantId, chatwootConversationId])
   @@index([tenantId, stage])
   @@map("conversation_links")
+}
+
+model Message {
+  id                 String           @id @default(uuid()) @db.Uuid
+  tenantId           String           @map("tenant_id") @db.Uuid
+  conversationLinkId String           @map("conversation_link_id") @db.Uuid
+  direction          String
+  content            String           @db.Text
+  senderName         String?          @map("sender_name")
+  timestamp          DateTime         @default(now())
+
+  conversationLink   ConversationLink @relation(fields: [conversationLinkId], references: [id], onDelete: Cascade)
+
+  @@index([conversationLinkId, timestamp])
+  @@map("messages")
 }
 
 model UsageRecord {

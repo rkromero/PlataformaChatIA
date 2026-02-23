@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { sendText } from '@/lib/waha-api';
 
 function getChatwootConfig() {
   const url = process.env[String('CW_PLATFORM_URL')] || process.env[String('CHATWOOT_BASE_URL')] || '';
@@ -22,7 +23,42 @@ export async function GET(
     include: { tenant: { select: { chatwootAccountId: true } } },
   });
 
-  if (!conv || !conv.tenant.chatwootAccountId || conv.chatwootConversationId <= 0) {
+  if (!conv) return NextResponse.json({ messages: [], labels: [] });
+
+  const isWaha = conv.chatwootConversationId <= 0;
+
+  if (isWaha) {
+    return getWahaMessages(conv);
+  }
+
+  return getChatwootMessages(conv);
+}
+
+async function getWahaMessages(conv: { id: string; handoffActive: boolean }) {
+  const dbMessages = await prisma.message.findMany({
+    where: { conversationLinkId: conv.id },
+    orderBy: { timestamp: 'asc' },
+    take: 100,
+  });
+
+  const messages = dbMessages.map((m) => ({
+    id: m.id,
+    content: m.content,
+    type: m.direction === 'incoming' ? 'incoming' : 'outgoing',
+    sender: m.senderName ?? (m.direction === 'incoming' ? 'Cliente' : 'Bot/Agente'),
+    timestamp: Math.floor(m.timestamp.getTime() / 1000),
+    private: false,
+  }));
+
+  const labels = conv.handoffActive ? ['human_handoff'] : [];
+  return NextResponse.json({ messages, labels });
+}
+
+async function getChatwootMessages(conv: {
+  chatwootConversationId: number;
+  tenant: { chatwootAccountId: number | null };
+}) {
+  if (!conv.tenant.chatwootAccountId || conv.chatwootConversationId <= 0) {
     return NextResponse.json({ messages: [], labels: [] });
   }
 
@@ -102,7 +138,78 @@ export async function POST(
     include: { tenant: { select: { chatwootAccountId: true } } },
   });
 
-  if (!conv || !conv.tenant.chatwootAccountId || conv.chatwootConversationId <= 0) {
+  if (!conv) {
+    return NextResponse.json({ error: 'Conversación no encontrada' }, { status: 404 });
+  }
+
+  const isWaha = conv.chatwootConversationId <= 0;
+
+  if (isWaha) {
+    return handleWahaAction(conv, action, message, session.tenantId);
+  }
+
+  return handleChatwootAction(conv, action, message);
+}
+
+const WAHA_SESSION = 'default';
+
+async function handleWahaAction(
+  conv: { id: string; wahaChatId: string | null; handoffActive: boolean },
+  action: string | undefined,
+  message: string | undefined,
+  tenantId: string,
+) {
+  if (action === 'take') {
+    await prisma.conversationLink.update({
+      where: { id: conv.id },
+      data: { handoffActive: true },
+    });
+    return NextResponse.json({ ok: true, labels: ['human_handoff'] });
+  }
+
+  if (action === 'release') {
+    await prisma.conversationLink.update({
+      where: { id: conv.id },
+      data: { handoffActive: false },
+    });
+    return NextResponse.json({ ok: true, labels: [] });
+  }
+
+  if (action === 'send' && message?.trim() && conv.wahaChatId) {
+    try {
+      await sendText(WAHA_SESSION, conv.wahaChatId, message.trim());
+      await prisma.message.create({
+        data: {
+          tenantId,
+          conversationLinkId: conv.id,
+          direction: 'outgoing',
+          content: message.trim(),
+          senderName: 'Agente',
+        },
+      });
+      await prisma.conversationLink.update({
+        where: { id: conv.id },
+        data: { lastMessage: message.trim().slice(0, 500) },
+      });
+      return NextResponse.json({ ok: true });
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Error desconocido';
+      return NextResponse.json({ error: errMsg }, { status: 502 });
+    }
+  }
+
+  return NextResponse.json({ error: 'Acción inválida' }, { status: 400 });
+}
+
+async function handleChatwootAction(
+  conv: {
+    chatwootConversationId: number;
+    tenant: { chatwootAccountId: number | null };
+  },
+  action: string | undefined,
+  message: string | undefined,
+) {
+  if (!conv.tenant.chatwootAccountId || conv.chatwootConversationId <= 0) {
     return NextResponse.json({ error: 'Conversación no encontrada' }, { status: 404 });
   }
 
@@ -115,11 +222,11 @@ export async function POST(
   const cwConvId = conv.chatwootConversationId;
 
   if (action === 'take') {
-    return await toggleHandoff(url, token, accountId, cwConvId, true);
+    return toggleChatwootHandoff(url, token, accountId, cwConvId, true);
   }
 
   if (action === 'release') {
-    return await toggleHandoff(url, token, accountId, cwConvId, false);
+    return toggleChatwootHandoff(url, token, accountId, cwConvId, false);
   }
 
   if (action === 'send' && message?.trim()) {
@@ -147,7 +254,7 @@ export async function POST(
   return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
 }
 
-async function toggleHandoff(
+async function toggleChatwootHandoff(
   cwUrl: string,
   token: string,
   accountId: number,
@@ -168,12 +275,9 @@ async function toggleHandoff(
     const currentLabels: string[] = convData.labels ?? [];
     const tag = 'human_handoff';
 
-    let newLabels: string[];
-    if (take) {
-      newLabels = currentLabels.includes(tag) ? currentLabels : [...currentLabels, tag];
-    } else {
-      newLabels = currentLabels.filter((l: string) => l !== tag);
-    }
+    const newLabels = take
+      ? currentLabels.includes(tag) ? currentLabels : [...currentLabels, tag]
+      : currentLabels.filter((l: string) => l !== tag);
 
     const labelRes = await fetch(
       `${cwUrl}/api/v1/accounts/${accountId}/conversations/${convId}/labels`,

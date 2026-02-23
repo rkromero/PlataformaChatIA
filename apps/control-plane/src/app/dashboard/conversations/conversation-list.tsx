@@ -100,6 +100,11 @@ export function ConversationList({
                     }`}>
                       {isHuman ? 'Agente' : 'Bot'}
                     </span>
+                    {conv.isWaha && (
+                      <span className="inline-flex items-center rounded-full bg-green-100 px-1.5 py-0.5 text-[9px] font-semibold text-green-700 dark:bg-green-500/10 dark:text-green-400">
+                        WhatsApp
+                      </span>
+                    )}
                     {conv.phone && conv.contactName && (
                       <span className="text-[10px] text-gray-400">{conv.phone}</span>
                     )}
