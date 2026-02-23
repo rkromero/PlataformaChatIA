@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --port 3000",
-    "build": "prisma generate && prisma migrate deploy && next build",
-    "start": "next start --port 3000",
+    "build": "prisma generate && next build",
+    "start": "prisma migrate deploy && next start --port 3000",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "db:migrate": "prisma migrate deploy",
