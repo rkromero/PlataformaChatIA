@@ -22,6 +22,11 @@ interface WahaMessagePayload {
     mimetype: string;
     filename?: string;
   };
+  _data?: {
+    notifyName?: string;
+    pushName?: string;
+    [key: string]: unknown;
+  };
 }
 
 interface WahaWebhookBody {
@@ -136,7 +141,12 @@ function chatIdToPhone(chatId: string): string {
 }
 
 function extractName(body: WahaWebhookBody): string | null {
-  return body.me?.pushName ?? null;
+  const data = body.payload?._data;
+  if (data?.notifyName) return data.notifyName;
+  if (data?.pushName) return data.pushName;
+
+  const phone = chatIdToPhone(body.payload?.from || '');
+  return phone || null;
 }
 
 async function resolveTenantFromSession(sessionName: string) {
