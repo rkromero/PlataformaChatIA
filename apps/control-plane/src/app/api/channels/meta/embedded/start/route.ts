@@ -31,7 +31,10 @@ export async function GET() {
     const authUrl = new URL(`https://www.facebook.com/${version}/dialog/oauth`);
     authUrl.searchParams.set('client_id', appId);
     authUrl.searchParams.set('redirect_uri', redirectUri);
-    authUrl.searchParams.set('scope', 'business_management,whatsapp_business_management,whatsapp_business_messaging');
+    authUrl.searchParams.set(
+      'scope',
+      'whatsapp_business_management,whatsapp_business_messaging',
+    );
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('state', statePayload);
     authUrl.searchParams.set('config_id', configId);
