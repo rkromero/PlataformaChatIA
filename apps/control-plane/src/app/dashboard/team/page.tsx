@@ -17,7 +17,7 @@ export default async function TeamPage() {
   const members = await prisma.tenantUser.findMany({
     where: { tenantId: session.tenantId },
     orderBy: { createdAt: 'asc' },
-    select: { id: true, email: true, role: true, emailVerified: true, createdAt: true },
+    select: { id: true, email: true, role: true, createdAt: true },
   });
 
   const tenant = await prisma.tenant.findUnique({
@@ -50,14 +50,7 @@ export default async function TeamPage() {
               </div>
               <div>
                 <p className="text-sm font-medium">{m.email}</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">{ROLE_LABELS[m.role] ?? m.role}</span>
-                  {m.emailVerified ? (
-                    <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">Verificado</span>
-                  ) : (
-                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">Sin verificar</span>
-                  )}
-                </div>
+                <span className="text-xs text-gray-500">{ROLE_LABELS[m.role] ?? m.role}</span>
               </div>
             </div>
             {isOwner && m.id !== session.userId && m.role !== 'owner' && (

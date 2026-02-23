@@ -3,35 +3,36 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
-import { createToken } from '@/lib/tokens';
-import { sendTeamInviteEmail } from '@/lib/email';
 import { getPlanLimits } from '@chat-platform/shared/plans';
+import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
-const inviteSchema = z.object({
+const createAgentSchema = z.object({
   email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'Mínimo 6 caracteres'),
   role: z.enum(['admin', 'agent']),
 });
 
-export async function inviteTeamMemberAction(_prev: unknown, formData: FormData) {
+export async function createAgentAction(_prev: unknown, formData: FormData) {
   const session = await requireSession();
 
   if (session.role !== 'owner' && session.role !== 'super_admin') {
-    return { error: 'Solo el owner puede invitar miembros' };
+    return { error: 'Solo el owner puede agregar miembros' };
   }
 
-  const parsed = inviteSchema.safeParse({
+  const parsed = createAgentSchema.safeParse({
     email: formData.get('email'),
+    password: formData.get('password'),
     role: formData.get('role'),
   });
 
   if (!parsed.success) return { error: parsed.error.errors[0].message };
 
-  const { email, role } = parsed.data;
+  const { email, password, role } = parsed.data;
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.tenantId },
-    select: { name: true, plan: true },
+    select: { plan: true },
   });
   if (!tenant) return { error: 'Tenant no encontrado' };
 
@@ -48,14 +49,20 @@ export async function inviteTeamMemberAction(_prev: unknown, formData: FormData)
   });
   if (existing) return { error: 'Este email ya es parte del equipo' };
 
-  const token = await createToken(email, 'team_invite', 168, {
-    tenantId: session.tenantId,
-    role,
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  await prisma.tenantUser.create({
+    data: {
+      tenantId: session.tenantId,
+      email,
+      passwordHash,
+      role,
+      emailVerified: true,
+    },
   });
-  await sendTeamInviteEmail(email, token, tenant.name, role);
 
   revalidatePath('/dashboard/team');
-  return { success: true, message: `Invitación enviada a ${email}` };
+  return { success: true, message: `${role === 'agent' ? 'Agente' : 'Admin'} ${email} creado` };
 }
 
 export async function removeTeamMemberAction(userId: string) {
