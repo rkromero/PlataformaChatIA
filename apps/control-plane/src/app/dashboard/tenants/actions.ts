@@ -37,12 +37,17 @@ export async function createTenantAction(_prev: unknown, formData: FormData) {
     }
   }
 
+  const trialEndsAt = parsed.data.plan === 'trial'
+    ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+    : null;
+
   const tenant = await prisma.tenant.create({
     data: {
       name: parsed.data.name,
       slug: parsed.data.slug || null,
       status: parsed.data.status,
       plan: parsed.data.plan,
+      trialEndsAt,
       chatwootAccountId: parsed.data.chatwootAccountId ?? null,
     },
   });
@@ -96,15 +101,23 @@ export async function updateTenantAction(tenantId: string, _prev: unknown, formD
     }
   }
 
+  const updateData: Record<string, unknown> = {
+    name: parsed.data.name,
+    slug: parsed.data.slug || null,
+    status: parsed.data.status,
+    plan: parsed.data.plan,
+    chatwootAccountId: parsed.data.chatwootAccountId ?? null,
+  };
+
+  if (parsed.data.plan === 'trial') {
+    updateData.trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  } else {
+    updateData.trialEndsAt = null;
+  }
+
   await prisma.tenant.update({
     where: { id: tenantId },
-    data: {
-      name: parsed.data.name,
-      slug: parsed.data.slug || null,
-      status: parsed.data.status,
-      plan: parsed.data.plan,
-      chatwootAccountId: parsed.data.chatwootAccountId ?? null,
-    },
+    data: updateData,
   });
 
   revalidatePath('/dashboard/tenants');

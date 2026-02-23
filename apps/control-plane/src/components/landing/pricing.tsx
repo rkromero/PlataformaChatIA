@@ -14,7 +14,7 @@ const PLANS = [
       'Historial de conversaciones',
     ],
     cta: 'Empezar gratis',
-    href: '/register?plan=starter',
+    href: '/register',
     popular: false,
   },
   {
@@ -31,7 +31,7 @@ const PLANS = [
       'Soporte prioritario',
     ],
     cta: 'Empezar con Pro',
-    href: '/register?plan=pro',
+    href: '/register',
     popular: true,
   },
   {
@@ -65,11 +65,23 @@ export function Pricing() {
             Elegí el plan que se adapte a tu negocio
           </h2>
           <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-            Empezá gratis y escalá cuando lo necesites. Sin sorpresas.
+            Empezá con 14 días gratis y escalá cuando lo necesites. Sin tarjeta de crédito.
           </p>
         </div>
 
-        <div className="mx-auto mt-16 grid max-w-5xl gap-8 lg:grid-cols-3">
+        {/* Trial callout */}
+        <div className="mx-auto mt-10 max-w-2xl text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-5 py-2.5 dark:border-brand-800 dark:bg-brand-500/10">
+            <svg className="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <span className="text-sm font-medium text-brand-900 dark:text-brand-100">
+              14 días de prueba gratuita con 50 mensajes — sin compromiso
+            </span>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-12 grid max-w-5xl gap-8 lg:grid-cols-3">
           {PLANS.map((plan) => (
             <div
               key={plan.name}

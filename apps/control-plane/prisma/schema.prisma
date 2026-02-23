@@ -13,6 +13,7 @@ enum TenantStatus {
 }
 
 enum TenantPlan {
+  trial
   starter
   pro
   enterprise
@@ -47,9 +48,10 @@ model Tenant {
   name                  String
   slug                  String?      @unique
   status                TenantStatus @default(active)
-  plan                  TenantPlan   @default(starter)
+  plan                  TenantPlan   @default(trial)
   chatwootAccountId     Int?         @unique @map("chatwoot_account_id")
   onboardingCompleted   Boolean      @default(false) @map("onboarding_completed")
+  trialEndsAt           DateTime?    @map("trial_ends_at")
   createdAt             DateTime     @default(now()) @map("created_at")
   updatedAt             DateTime     @updatedAt @map("updated_at")
   deletedAt             DateTime?    @map("deleted_at")

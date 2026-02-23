@@ -5,23 +5,28 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import type { TenantPlan } from '@prisma/client';
 
-const VALID_PLANS: TenantPlan[] = ['starter', 'pro', 'enterprise'];
+const UPGRADEABLE_PLANS: TenantPlan[] = ['starter', 'pro'];
 
 export async function changePlanAction(_prev: unknown, formData: FormData) {
   const session = await requireSession();
   const newPlan = formData.get('plan') as string;
 
-  if (!VALID_PLANS.includes(newPlan as TenantPlan)) {
+  if (!UPGRADEABLE_PLANS.includes(newPlan as TenantPlan)) {
+    if (newPlan === 'enterprise') {
+      return { error: 'Para Enterprise contactanos directamente' };
+    }
+    if (newPlan === 'trial') {
+      return { error: 'No podés volver al plan de prueba' };
+    }
     return { error: 'Plan no válido' };
-  }
-
-  if (newPlan === 'enterprise') {
-    return { error: 'Para Enterprise contactanos directamente' };
   }
 
   await prisma.tenant.update({
     where: { id: session.tenantId },
-    data: { plan: newPlan as TenantPlan },
+    data: {
+      plan: newPlan as TenantPlan,
+      trialEndsAt: null,
+    },
   });
 
   revalidatePath('/dashboard/plan');

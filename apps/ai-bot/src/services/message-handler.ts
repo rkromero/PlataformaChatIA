@@ -8,6 +8,7 @@ import {
   existsLeadForPhone,
 } from './conversation-link.js';
 import { syncLeadToCrm } from './crm.js';
+import { isTrialExpired } from '@chat-platform/shared/plans';
 import type { HandoffRules } from '@chat-platform/shared/types';
 
 interface IncomingMessageParams {
@@ -28,6 +29,12 @@ export async function handleIncomingMessage(params: IncomingMessageParams) {
   });
 
   if (!tenant || tenant.status !== 'active') return;
+
+  if (tenant.plan === 'trial' && isTrialExpired(tenant.trialEndsAt)) {
+    const expiredMsg = 'Nuestro período de prueba finalizó. Contactanos para seguir usando el servicio.';
+    await sendReply(expiredMsg);
+    return;
+  }
 
   const log = tenantLogger(tenantId);
   const convLink = await ensureConversationLink(

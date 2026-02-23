@@ -9,7 +9,7 @@ export const tenantSchema = z.object({
   name: z.string().min(2, 'Mínimo 2 caracteres').max(100),
   slug: z.string().min(2).max(60).regex(/^[a-z0-9-]+$/, 'Solo letras minúsculas, números y guiones').optional().or(z.literal('')),
   status: z.enum(['active', 'paused']),
-  plan: z.enum(['starter', 'pro', 'enterprise']),
+  plan: z.enum(['trial', 'starter', 'pro', 'enterprise']),
   chatwootAccountId: z.coerce.number().int().positive('Debe ser un número positivo').optional().or(z.literal(0).transform(() => undefined)),
 });
 

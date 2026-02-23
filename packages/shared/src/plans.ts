@@ -1,3 +1,5 @@
+export const TRIAL_DAYS = 14;
+
 export interface PlanLimits {
   name: string;
   price: number;
@@ -8,6 +10,14 @@ export interface PlanLimits {
 }
 
 export const PLAN_LIMITS: Record<string, PlanLimits> = {
+  trial: {
+    name: 'Trial',
+    price: 0,
+    messagesPerMonth: 50,
+    maxChannels: 1,
+    maxUsers: 1,
+    models: ['gpt-4.1-mini'],
+  },
   starter: {
     name: 'Starter',
     price: 29,
@@ -41,4 +51,15 @@ export function getPlanLimits(plan: string): PlanLimits {
 export function getCurrentPeriod(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+export function isTrialExpired(trialEndsAt: Date | null | undefined): boolean {
+  if (!trialEndsAt) return false;
+  return new Date() > new Date(trialEndsAt);
+}
+
+export function getTrialDaysLeft(trialEndsAt: Date | null | undefined): number {
+  if (!trialEndsAt) return 0;
+  const diff = new Date(trialEndsAt).getTime() - Date.now();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }

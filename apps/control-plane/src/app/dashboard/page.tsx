@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
-import { getPlanLimits, getCurrentPeriod } from '@chat-platform/shared/plans';
+import { getPlanLimits, getCurrentPeriod, isTrialExpired, getTrialDaysLeft } from '@chat-platform/shared/plans';
 
 export default async function DashboardPage() {
   const session = await requireSession();
@@ -68,10 +68,14 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const limits = getPlanLimits(tenant?.plan ?? 'starter');
+  const limits = getPlanLimits(tenant?.plan ?? 'trial');
   const messagesUsed = usage?.messages ?? 0;
   const usagePercent = Math.min((messagesUsed / limits.messagesPerMonth) * 100, 100);
   const barColor = usagePercent >= 100 ? 'bg-red-500' : usagePercent >= 80 ? 'bg-amber-500' : 'bg-brand-600';
+
+  const isTrial = tenant?.plan === 'trial';
+  const trialExpired = isTrial && isTrialExpired(tenant?.trialEndsAt);
+  const daysLeft = isTrial ? getTrialDaysLeft(tenant?.trialEndsAt) : 0;
 
   return (
     <div>
@@ -83,6 +87,59 @@ export default async function DashboardPage() {
           Resumen de tu cuenta — Plan {limits.name}
         </p>
       </div>
+
+      {/* Trial banner */}
+      {isTrial && !trialExpired && (
+        <div className="mb-6 flex items-center justify-between rounded-xl border border-brand-200 bg-brand-50 px-5 py-4 dark:border-brand-800 dark:bg-brand-500/10">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-500/20">
+              <svg className="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-brand-900 dark:text-brand-100">
+                Período de prueba — {daysLeft} día{daysLeft !== 1 ? 's' : ''} restante{daysLeft !== 1 ? 's' : ''}
+              </p>
+              <p className="text-xs text-brand-700 dark:text-brand-300">
+                Tenés {limits.messagesPerMonth} mensajes para probar. Elegí un plan para desbloquear todo.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/plan"
+            className="flex-shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-500"
+          >
+            Elegir plan
+          </Link>
+        </div>
+      )}
+
+      {isTrial && trialExpired && (
+        <div className="mb-6 flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-5 py-4 dark:border-red-800 dark:bg-red-500/10">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-500/20">
+              <svg className="h-5 w-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-red-900 dark:text-red-100">
+                Tu período de prueba terminó
+              </p>
+              <p className="text-xs text-red-700 dark:text-red-300">
+                Tu bot dejó de responder. Elegí un plan para reactivar todo al instante.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/plan"
+            className="flex-shrink-0 rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-500"
+          >
+            Elegir plan ahora
+          </Link>
+        </div>
+      )}
 
       {/* Usage bar */}
       <div className="card mb-6">

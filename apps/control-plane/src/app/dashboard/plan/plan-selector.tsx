@@ -13,11 +13,15 @@ const CHECK_ICON = (
 export function PlanSelector({
   currentPlan,
   plans,
+  isTrialExpired = false,
 }: {
   currentPlan: string;
   plans: Record<string, PlanLimits>;
+  isTrialExpired?: boolean;
 }) {
   const [state, action, pending] = useActionState(changePlanAction, null);
+
+  const paidPlans = Object.entries(plans).filter(([key]) => key !== 'trial');
 
   return (
     <div>
@@ -33,20 +37,30 @@ export function PlanSelector({
       )}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        {Object.entries(plans).map(([key, plan]) => {
+        {paidPlans.map(([key, plan]) => {
           const isCurrent = key === currentPlan;
           const isEnterprise = key === 'enterprise';
+          const isRecommended = key === 'starter' && currentPlan === 'trial';
 
           return (
             <div
               key={key}
               className={`card relative flex flex-col ${
-                isCurrent ? 'ring-2 ring-brand-600' : ''
+                isCurrent
+                  ? 'ring-2 ring-brand-600'
+                  : isRecommended && isTrialExpired
+                    ? 'ring-2 ring-amber-500 shadow-lg shadow-amber-500/10'
+                    : ''
               }`}
             >
               {isCurrent && (
                 <span className="absolute -top-2.5 left-4 rounded-full bg-brand-600 px-3 py-0.5 text-[10px] font-semibold text-white">
                   Plan actual
+                </span>
+              )}
+              {isRecommended && !isCurrent && (
+                <span className="absolute -top-2.5 left-4 rounded-full bg-amber-500 px-3 py-0.5 text-[10px] font-semibold text-white">
+                  Recomendado
                 </span>
               )}
 
@@ -95,9 +109,15 @@ export function PlanSelector({
               ) : (
                 <form action={action} className="mt-4">
                   <input type="hidden" name="plan" value={key} />
-                  <button type="submit" disabled={pending} className="btn-primary w-full">
+                  <button
+                    type="submit"
+                    disabled={pending}
+                    className={`w-full ${isRecommended && isTrialExpired ? 'btn-primary animate-pulse' : 'btn-primary'}`}
+                  >
                     {pending ? (
                       <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    ) : currentPlan === 'trial' ? (
+                      `Activar ${plan.name}`
                     ) : (
                       `Cambiar a ${plan.name}`
                     )}

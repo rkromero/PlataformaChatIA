@@ -65,12 +65,16 @@ export async function registerAction(_prev: unknown, formData: FormData) {
     console.error('Chatwoot Platform API error (non-blocking):', err);
   }
 
+  const trialEndsAt = new Date();
+  trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+
   const tenant = await prisma.tenant.create({
     data: {
       name: businessName,
       slug,
       status: 'active',
-      plan: 'starter',
+      plan: 'trial',
+      trialEndsAt,
       chatwootAccountId,
     },
   });

@@ -11,6 +11,7 @@ import {
 } from '../services/conversation-link.js';
 import { checkAndIncrementUsage } from '../services/usage.js';
 import { getKnowledgeContext } from '../services/knowledge.js';
+import { isTrialExpired } from '@chat-platform/shared/plans';
 import {
   extractAttachments,
   getAudioAttachment,
@@ -78,6 +79,17 @@ async function handleWebhook(body: Record<string, unknown>) {
   }
 
   const log = tenantLogger(tenant.id);
+
+  if (tenant.plan === 'trial' && isTrialExpired(tenant.trialEndsAt)) {
+    log.info('Trial expired, skipping AI reply');
+    await sendMessage(
+      account.id,
+      conversation.id,
+      'Nuestro período de prueba finalizó. Contactanos para seguir usando el servicio.',
+    );
+    return;
+  }
+
   const settings = tenant.aiSettings;
 
   if (!settings?.enabled) {

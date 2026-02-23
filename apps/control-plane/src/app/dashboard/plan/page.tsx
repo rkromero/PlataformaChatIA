@@ -1,6 +1,7 @@
+import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
-import { getPlanLimits, getCurrentPeriod, PLAN_LIMITS } from '@chat-platform/shared/plans';
+import { getPlanLimits, getCurrentPeriod, PLAN_LIMITS, isTrialExpired, getTrialDaysLeft } from '@chat-platform/shared/plans';
 import { PlanSelector } from './plan-selector';
 
 export default async function PlanPage() {
@@ -8,7 +9,7 @@ export default async function PlanPage() {
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.tenantId },
-    select: { plan: true, name: true },
+    select: { plan: true, name: true, trialEndsAt: true },
   });
 
   if (!tenant) return null;
@@ -29,6 +30,10 @@ export default async function PlanPage() {
     where: { tenantId: session.tenantId },
   });
 
+  const isTrial = tenant.plan === 'trial';
+  const expired = isTrial && isTrialExpired(tenant.trialEndsAt);
+  const daysLeft = isTrial ? getTrialDaysLeft(tenant.trialEndsAt) : 0;
+
   return (
     <div>
       <div className="mb-8">
@@ -37,6 +42,28 @@ export default async function PlanPage() {
           Gestioná tu plan y monitoreá el consumo de tu cuenta
         </p>
       </div>
+
+      {/* Trial alert */}
+      {isTrial && !expired && (
+        <div className="mb-6 rounded-xl border border-brand-200 bg-brand-50 px-5 py-4 dark:border-brand-800 dark:bg-brand-500/10">
+          <p className="text-sm font-semibold text-brand-900 dark:text-brand-100">
+            Estás en el período de prueba gratuito — {daysLeft} día{daysLeft !== 1 ? 's' : ''} restante{daysLeft !== 1 ? 's' : ''}
+          </p>
+          <p className="mt-1 text-xs text-brand-700 dark:text-brand-300">
+            Probá todas las funciones con {limits.messagesPerMonth} mensajes. Elegí un plan abajo para desbloquear todo el potencial.
+          </p>
+        </div>
+      )}
+      {isTrial && expired && (
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4 dark:border-red-800 dark:bg-red-500/10">
+          <p className="text-sm font-semibold text-red-900 dark:text-red-100">
+            Tu período de prueba terminó
+          </p>
+          <p className="mt-1 text-xs text-red-700 dark:text-red-300">
+            Tu bot dejó de responder mensajes. Elegí un plan abajo para reactivar todo al instante.
+          </p>
+        </div>
+      )}
 
       {/* Usage overview */}
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
@@ -63,8 +90,19 @@ export default async function PlanPage() {
       </div>
 
       {/* Plan selector */}
-      <h2 className="mb-4 text-lg font-semibold">Tu plan actual: {limits.name}</h2>
-      <PlanSelector currentPlan={tenant.plan} plans={PLAN_LIMITS} />
+      <h2 className="mb-4 text-lg font-semibold">
+        Tu plan actual: {limits.name}
+        {isTrial && !expired && (
+          <span className="ml-2 text-sm font-normal text-brand-600 dark:text-brand-400">
+            (prueba gratuita)
+          </span>
+        )}
+      </h2>
+      <PlanSelector
+        currentPlan={tenant.plan}
+        plans={PLAN_LIMITS}
+        isTrialExpired={expired}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ interface TenantWithSettings {
   id: string;
   name: string;
   plan: string;
+  trialEndsAt: Date | null;
   chatwootAccountId: number | null;
   aiSettings: {
     enabled: boolean;
