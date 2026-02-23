@@ -8,11 +8,12 @@ interface DataPoint {
 }
 
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const CHART_HEIGHT = 180;
+const MIN_BAR_PX = 6;
 
 function getWeekStart(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');
-  const day = d.getDay();
-  d.setDate(d.getDate() - day);
+  d.setDate(d.getDate() - d.getDay());
   return d.toISOString().slice(0, 10);
 }
 
@@ -31,21 +32,18 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
       if (!map.has(wk)) map.set(wk, []);
       map.get(wk)!.push(d);
     }
-    return Array.from(map.entries()).map(([weekStart, days]) => ({
-      weekStart,
-      days,
-    }));
+    return Array.from(map.entries()).map(([weekStart, days]) => ({ weekStart, days }));
   }, [data]);
 
-  const todayWeekStart = getWeekStart(new Date().toISOString().slice(0, 10));
-  const currentWeekIdx = weeks.findIndex((w) => w.weekStart === todayWeekStart);
-  const [weekIndex, setWeekIndex] = useState(currentWeekIdx >= 0 ? currentWeekIdx : weeks.length - 1);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayWeekStart = getWeekStart(todayStr);
+  const defaultIdx = weeks.findIndex((w) => w.weekStart === todayWeekStart);
+  const [weekIndex, setWeekIndex] = useState(defaultIdx >= 0 ? defaultIdx : weeks.length - 1);
 
   const week = weeks[weekIndex];
   const weekDays = week?.days ?? [];
   const max = Math.max(...weekDays.map((d) => d.messages), 1);
   const weekTotal = weekDays.reduce((s, d) => s + d.messages, 0);
-
   const lastDay = weekDays[weekDays.length - 1]?.date ?? '';
   const rangeLabel = week ? formatRange(week.weekStart, lastDay) : '';
 
@@ -72,11 +70,11 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
   return (
     <div>
       {/* Week navigation */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <button
           onClick={() => canPrev && setWeekIndex(weekIndex - 1)}
           disabled={!canPrev}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed dark:hover:bg-gray-800"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed dark:hover:bg-gray-800"
           aria-label="Semana anterior"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -85,7 +83,7 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
         </button>
 
         <div className="text-center">
-          <p className="text-sm font-medium">{rangeLabel}</p>
+          <p className="text-sm font-semibold">{rangeLabel}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {weekTotal} mensaje{weekTotal !== 1 ? 's' : ''} esta semana
           </p>
@@ -94,7 +92,7 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
         <button
           onClick={() => canNext && setWeekIndex(weekIndex + 1)}
           disabled={!canNext}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed dark:hover:bg-gray-800"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed dark:hover:bg-gray-800"
           aria-label="Semana siguiente"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -103,45 +101,58 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
         </button>
       </div>
 
-      {/* Bars */}
+      {/* Chart */}
       <div role="img" aria-label={`Gráfico semanal. ${rangeLabel}. Total: ${weekTotal} mensajes`}>
-        <div className="flex items-end gap-2" style={{ height: 200 }} role="group" aria-label="Barras del gráfico">
+        <div className="flex items-end gap-3 px-2" style={{ height: CHART_HEIGHT }}>
           {weekDays.map((d, i) => {
-            const height = weekTotal === 0 ? 4 : Math.max((d.messages / max) * 100, 4);
+            const barPx = d.messages === 0
+              ? MIN_BAR_PX
+              : Math.max(Math.round((d.messages / max) * CHART_HEIGHT), MIN_BAR_PX + 4);
             const isActive = focusedIndex === i;
-            const dayOfWeek = DAY_NAMES[new Date(d.date + 'T12:00:00').getDay()];
+            const hasMessages = d.messages > 0;
 
             return (
               <div
                 key={d.date}
-                className="group relative flex flex-1 flex-col items-center"
+                className="group relative flex flex-1 flex-col items-center justify-end"
+                style={{ height: CHART_HEIGHT }}
                 role="button"
                 tabIndex={i === 0 ? 0 : -1}
-                aria-label={`${dayOfWeek} ${d.date}: ${d.messages} mensajes`}
+                aria-label={`${DAY_NAMES[new Date(d.date + 'T12:00:00').getDay()]} ${d.date}: ${d.messages} mensajes`}
                 onKeyDown={(e) => handleKeyDown(e, i)}
                 onFocus={() => setFocusedIndex(i)}
                 onBlur={() => setFocusedIndex(null)}
                 onMouseEnter={() => setFocusedIndex(i)}
                 onMouseLeave={() => setFocusedIndex(null)}
               >
+                {/* Tooltip */}
                 <div
-                  className={`pointer-events-none absolute -top-10 z-10 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-lg dark:bg-gray-700 ${
+                  className={`pointer-events-none absolute -top-12 z-10 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs text-white shadow-lg dark:bg-gray-700 ${
                     isActive ? 'block' : 'hidden'
                   }`}
                 >
-                  <span className="font-semibold">{d.messages}</span> mensaje{d.messages !== 1 ? 's' : ''}
+                  <span className="font-bold">{d.messages}</span> mensaje{d.messages !== 1 ? 's' : ''}
                   <br />
-                  <span className="text-gray-400">{dayOfWeek} {d.date}</span>
+                  <span className="text-gray-300">{d.date}</span>
                 </div>
+
+                {/* Message count above bar */}
+                {hasMessages && (
+                  <span className="mb-1 text-xs font-semibold tabular-nums text-brand-600 dark:text-brand-400">
+                    {d.messages}
+                  </span>
+                )}
+
+                {/* Bar */}
                 <div
                   className={`w-full rounded-t-lg transition-all duration-150 ${
-                    isActive
-                      ? 'bg-brand-400 dark:bg-brand-400'
-                      : weekTotal === 0
-                        ? 'bg-gray-200 dark:bg-gray-800'
-                        : 'bg-brand-500 dark:bg-brand-600'
+                    !hasMessages
+                      ? 'bg-gray-200 dark:bg-gray-700'
+                      : isActive
+                        ? 'bg-brand-400 dark:bg-brand-400'
+                        : 'bg-brand-500 dark:bg-brand-500'
                   }`}
-                  style={{ height: `${height}%` }}
+                  style={{ height: barPx }}
                 />
               </div>
             );
@@ -149,14 +160,19 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
         </div>
 
         {/* Day labels */}
-        <div className="mt-2 flex gap-2" aria-hidden="true">
+        <div className="mt-3 flex gap-3 px-2">
           {weekDays.map((d) => {
-            const dayOfWeek = DAY_NAMES[new Date(d.date + 'T12:00:00').getDay()];
+            const dow = DAY_NAMES[new Date(d.date + 'T12:00:00').getDay()];
+            const isToday = d.date === todayStr;
             return (
               <div key={d.date} className="flex-1 text-center">
-                <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400">{dayOfWeek}</span>
+                <span className={`text-xs font-medium ${isToday ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                  {dow}
+                </span>
                 <br />
-                <span className="text-[9px] text-gray-400">{d.date.slice(5)}</span>
+                <span className={`text-[10px] ${isToday ? 'font-semibold text-brand-600 dark:text-brand-400' : 'text-gray-400'}`}>
+                  {d.date.slice(8)}/{d.date.slice(5, 7)}
+                </span>
               </div>
             );
           })}
