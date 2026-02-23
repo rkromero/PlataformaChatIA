@@ -103,7 +103,7 @@ export default async function AnalyticsPage() {
 
       {/* Chart */}
       <div className="card">
-        <h2 className="mb-4 text-sm font-medium text-gray-500 dark:text-gray-400">Mensajes por día</h2>
+        <h2 className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Mensajes por semana</h2>
         <AnalyticsChart data={days} />
       </div>
     </div>
