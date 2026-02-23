@@ -113,6 +113,7 @@ model ConversationLink {
   lastMessage            String?            @map("last_message") @db.Text
   stage                  LeadStage          @default(new)
   notes                  String?            @db.Text
+  tags                   String[]           @default([])
   crmLeadId              String?            @map("crm_lead_id")
   wahaChatId             String?            @map("waha_chat_id")
   handoffActive          Boolean            @default(false) @map("handoff_active")
@@ -131,6 +132,29 @@ model ConversationLink {
   @@index([tenantId, source])
   @@index([tenantId, assignedAgentId])
   @@map("conversation_links")
+}
+
+enum RoutingRuleType {
+  round_robin
+  fixed
+  geo
+}
+
+model RoutingRule {
+  id               String          @id @db.Uuid
+  tenantId         String          @map("tenant_id") @db.Uuid
+  name             String
+  type             RoutingRuleType
+  conditionsJson   Json            @map("conditions_json") @db.JsonB
+  assignedAgentId  String?         @map("assigned_agent_id") @db.Uuid
+  priority         Int             @default(0)
+  isActive         Boolean         @default(true) @map("is_active")
+  roundRobinIndex  Int             @default(0) @map("round_robin_index")
+  createdAt        DateTime        @map("created_at")
+  updatedAt        DateTime        @map("updated_at")
+
+  @@index([tenantId, isActive, priority])
+  @@map("routing_rules")
 }
 
 model Message {

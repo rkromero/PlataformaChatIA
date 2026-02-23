@@ -8,6 +8,7 @@ import {
   existsLeadForPhone,
 } from './conversation-link.js';
 import { syncLeadToCrm } from './crm.js';
+import { routeNewLead } from './lead-router.js';
 import { isTrialExpired } from '@chat-platform/shared/plans';
 import type { HandoffRules } from '@chat-platform/shared/types';
 
@@ -158,6 +159,8 @@ async function ensureConversationLink(
     return existing;
   }
 
+  const assignedAgentId = await routeNewLead(tenantId, phone, contactName).catch(() => null);
+
   return prisma.conversationLink.create({
     data: {
       tenantId,
@@ -166,6 +169,7 @@ async function ensureConversationLink(
       contactName: contactName || null,
       wahaChatId: chatId,
       source: 'whatsapp_qr',
+      assignedAgentId,
     },
   });
 }

@@ -4,6 +4,7 @@ import { agentLeadFilter, isAdmin } from '@/lib/agent-filter';
 import { routeUnassignedLeads } from '@/lib/routing-engine';
 import { KanbanBoard } from './kanban-board';
 import { NewLeadButton } from './new-lead-button';
+import { FunnelMetrics } from './funnel-metrics';
 
 const STAGES = [
   { key: 'new', label: 'Nuevos', color: 'bg-blue-500' },
@@ -61,6 +62,34 @@ export default async function CrmPage() {
 
   const totalLeads = leads.length;
   const wonLeads = leads.filter((l) => l.stage === 'won').length;
+  const conversionRate = totalLeads > 0 ? (wonLeads / totalLeads) * 100 : 0;
+
+  const wonLeadsList = leads.filter((l) => l.stage === 'won');
+  const avgCycleTime = wonLeadsList.length > 0
+    ? wonLeadsList.reduce((sum, l) => {
+        const days = (new Date(l.updatedAt).getTime() - new Date(l.createdAt).getTime()) / 86_400_000;
+        return sum + days;
+      }, 0) / wonLeadsList.length
+    : null;
+
+  const now = Date.now();
+  const stageMetrics = STAGES.map((stage) => {
+    const stageLeads = leads.filter((l) => l.stage === stage.key);
+    const avgDays = stageLeads.length > 0
+      ? stageLeads.reduce((sum, l) => {
+          const days = (now - new Date(l.updatedAt).getTime()) / 86_400_000;
+          return sum + Math.max(days, 0);
+        }, 0) / stageLeads.length
+      : null;
+
+    return {
+      key: stage.key,
+      label: stage.label,
+      color: stage.color,
+      count: stageLeads.length,
+      avgDaysInStage: avgDays,
+    };
+  });
 
   return (
     <div className="flex h-[calc(100vh-7rem)] flex-col">
@@ -74,6 +103,13 @@ export default async function CrmPage() {
         </div>
         {isAdmin(session) && <NewLeadButton />}
       </div>
+
+      <FunnelMetrics
+        stages={stageMetrics}
+        totalLeads={totalLeads}
+        conversionRate={conversionRate}
+        avgCycleTime={avgCycleTime}
+      />
 
       <KanbanBoard
         leads={leads.map((l) => ({

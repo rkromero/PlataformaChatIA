@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Link from 'next/link';
 import { updateLeadNotesAction, deleteLeadAction } from './actions';
 import { assignAgentAction } from '../routing/actions';
 import { SendTemplateButton } from './send-template';
@@ -77,11 +78,17 @@ export function LeadCard({
     >
       {/* Header */}
       <div className="flex items-start gap-2">
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
+        <Link
+          href={`/dashboard/crm/${lead.id}`}
+          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 transition-colors hover:bg-brand-200 dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500/20"
+          title="Ver perfil"
+        >
           {initial}
-        </div>
+        </Link>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{displayName}</p>
+          <Link href={`/dashboard/crm/${lead.id}`} className="truncate text-sm font-medium hover:text-brand-600 dark:hover:text-brand-400">
+            {displayName}
+          </Link>
           {lead.phone && lead.contactName && (
             <p className="truncate text-xs text-gray-500">{lead.phone}</p>
           )}
