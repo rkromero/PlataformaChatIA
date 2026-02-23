@@ -95,7 +95,7 @@ export async function getQrCode(sessionName: string): Promise<string | null> {
 
   try {
     const res = await fetch(
-      `${url}/api/screenshot?session=${sessionName}`,
+      `${url}/api/${sessionName}/auth/qr`,
       { headers: { 'X-Api-Key': key } },
     );
 
@@ -103,7 +103,7 @@ export async function getQrCode(sessionName: string): Promise<string | null> {
 
     const buffer = await res.arrayBuffer();
     const base64 = Buffer.from(buffer).toString('base64');
-    return `data:image/jpeg;base64,${base64}`;
+    return `data:image/png;base64,${base64}`;
   } catch {
     return null;
   }
