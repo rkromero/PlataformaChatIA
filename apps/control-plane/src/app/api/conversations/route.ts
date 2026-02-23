@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { agentLeadFilter } from '@/lib/agent-filter';
 
 function getChatwootConfig() {
   const url = process.env[String('CW_PLATFORM_URL')] || process.env[String('CHATWOOT_BASE_URL')] || '';
@@ -13,10 +14,12 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json([], { status: 401 });
 
   const q = req.nextUrl.searchParams.get('q')?.trim() ?? '';
+  const filter = agentLeadFilter(session);
 
   const conversations = await prisma.conversationLink.findMany({
     where: {
       tenantId: session.tenantId,
+      ...filter,
       ...(q
         ? {
             OR: [

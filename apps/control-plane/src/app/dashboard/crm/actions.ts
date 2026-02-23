@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
+import { agentLeadFilter, isAdmin } from '@/lib/agent-filter';
+import { routeLead } from '@/lib/routing-engine';
 import type { LeadStage } from '@prisma/client';
 import { z } from 'zod';
 
@@ -14,6 +16,7 @@ const newLeadSchema = z.object({
 
 export async function createLeadAction(_prev: unknown, formData: FormData) {
   const session = await requireSession();
+  if (!isAdmin(session)) return { error: 'No autorizado' };
 
   const parsed = newLeadSchema.safeParse({
     contactName: formData.get('contactName'),
@@ -25,6 +28,14 @@ export async function createLeadAction(_prev: unknown, formData: FormData) {
 
   const manualId = -Math.floor(Math.random() * 2_000_000_000);
 
+  const leadData = {
+    phone: parsed.data.phone || null,
+    source: 'manual' as const,
+    contactName: parsed.data.contactName,
+  };
+
+  const assignedAgentId = await routeLead(session.tenantId, leadData);
+
   await prisma.conversationLink.create({
     data: {
       tenantId: session.tenantId,
@@ -34,6 +45,7 @@ export async function createLeadAction(_prev: unknown, formData: FormData) {
       notes: parsed.data.notes || null,
       stage: 'new',
       source: 'manual',
+      assignedAgentId,
     },
   });
 
@@ -43,9 +55,10 @@ export async function createLeadAction(_prev: unknown, formData: FormData) {
 
 export async function moveLeadAction(leadId: string, stage: string) {
   const session = await requireSession();
+  const filter = agentLeadFilter(session);
 
   await prisma.conversationLink.updateMany({
-    where: { id: leadId, tenantId: session.tenantId },
+    where: { id: leadId, tenantId: session.tenantId, ...filter },
     data: { stage: stage as LeadStage },
   });
 
@@ -54,9 +67,10 @@ export async function moveLeadAction(leadId: string, stage: string) {
 
 export async function updateLeadNotesAction(leadId: string, notes: string) {
   const session = await requireSession();
+  const filter = agentLeadFilter(session);
 
   await prisma.conversationLink.updateMany({
-    where: { id: leadId, tenantId: session.tenantId },
+    where: { id: leadId, tenantId: session.tenantId, ...filter },
     data: { notes: notes || null },
   });
 
@@ -65,9 +79,10 @@ export async function updateLeadNotesAction(leadId: string, notes: string) {
 
 export async function updateLeadNameAction(leadId: string, contactName: string) {
   const session = await requireSession();
+  const filter = agentLeadFilter(session);
 
   await prisma.conversationLink.updateMany({
-    where: { id: leadId, tenantId: session.tenantId },
+    where: { id: leadId, tenantId: session.tenantId, ...filter },
     data: { contactName: contactName || null },
   });
 
@@ -76,6 +91,7 @@ export async function updateLeadNameAction(leadId: string, contactName: string) 
 
 export async function deleteLeadAction(leadId: string) {
   const session = await requireSession();
+  if (!isAdmin(session)) return;
 
   await prisma.conversationLink.updateMany({
     where: { id: leadId, tenantId: session.tenantId },

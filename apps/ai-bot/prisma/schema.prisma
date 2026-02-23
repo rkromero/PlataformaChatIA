@@ -117,6 +117,7 @@ model ConversationLink {
   wahaChatId             String?            @map("waha_chat_id")
   handoffActive          Boolean            @default(false) @map("handoff_active")
   source                 ConversationSource @default(chatwoot)
+  assignedAgentId        String?            @map("assigned_agent_id") @db.Uuid
   createdAt              DateTime           @default(now()) @map("created_at")
   updatedAt              DateTime           @updatedAt @map("updated_at")
   deletedAt              DateTime?          @map("deleted_at")
@@ -128,6 +129,7 @@ model ConversationLink {
   @@index([tenantId, stage])
   @@index([tenantId, phone])
   @@index([tenantId, source])
+  @@index([tenantId, assignedAgentId])
   @@map("conversation_links")
 }
 

@@ -1,5 +1,7 @@
 import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { agentLeadFilter, isAdmin } from '@/lib/agent-filter';
+import { routeUnassignedLeads } from '@/lib/routing-engine';
 import { KanbanBoard } from './kanban-board';
 import { NewLeadButton } from './new-lead-button';
 
@@ -15,8 +17,14 @@ const STAGES = [
 export default async function CrmPage() {
   const session = await requireSession();
 
+  if (isAdmin(session)) {
+    routeUnassignedLeads(session.tenantId).catch(() => {});
+  }
+
+  const filter = agentLeadFilter(session);
+
   const leads = await prisma.conversationLink.findMany({
-    where: { tenantId: session.tenantId },
+    where: { tenantId: session.tenantId, ...filter },
     orderBy: { updatedAt: 'desc' },
     select: {
       id: true,
@@ -27,8 +35,10 @@ export default async function CrmPage() {
       notes: true,
       chatwootConversationId: true,
       source: true,
+      assignedAgentId: true,
       createdAt: true,
       updatedAt: true,
+      assignedAgent: { select: { id: true, email: true } },
     },
   });
 
@@ -36,6 +46,14 @@ export default async function CrmPage() {
     where: { id: session.tenantId },
     select: { chatwootAccountId: true },
   });
+
+  const agents = isAdmin(session)
+    ? await prisma.tenantUser.findMany({
+        where: { tenantId: session.tenantId, deletedAt: null },
+        select: { id: true, email: true, role: true },
+        orderBy: { email: 'asc' },
+      })
+    : [];
 
   const chatwootBaseUrl = process.env[String('CW_PLATFORM_URL')]
     || process.env[String('CHATWOOT_BASE_URL')]
@@ -51,20 +69,32 @@ export default async function CrmPage() {
           <h1 className="text-2xl font-semibold tracking-tight">CRM</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {totalLeads} lead{totalLeads !== 1 ? 's' : ''} — {wonLeads} ganado{wonLeads !== 1 ? 's' : ''}
+            {!isAdmin(session) && ' (asignados a vos)'}
           </p>
         </div>
-        <NewLeadButton />
+        {isAdmin(session) && <NewLeadButton />}
       </div>
 
       <KanbanBoard
         leads={leads.map((l) => ({
-          ...l,
+          id: l.id,
+          contactName: l.contactName,
+          phone: l.phone,
+          lastMessage: l.lastMessage,
+          stage: l.stage,
+          notes: l.notes,
+          chatwootConversationId: l.chatwootConversationId,
+          source: l.source,
+          assignedAgentId: l.assignedAgentId,
+          assignedAgentEmail: l.assignedAgent?.email ?? null,
           createdAt: l.createdAt.toISOString(),
           updatedAt: l.updatedAt.toISOString(),
         }))}
         stages={STAGES.map((s) => ({ ...s }))}
         chatwootBaseUrl={chatwootBaseUrl}
         chatwootAccountId={tenant?.chatwootAccountId ?? null}
+        agents={agents}
+        isAdmin={isAdmin(session)}
       />
     </div>
   );

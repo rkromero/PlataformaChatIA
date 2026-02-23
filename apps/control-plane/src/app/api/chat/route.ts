@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { agentLeadFilter } from '@/lib/agent-filter';
 
 function getChatwootConfig() {
   const url = process.env[String('CW_PLATFORM_URL')] || process.env[String('CHATWOOT_BASE_URL')] || '';
@@ -15,8 +16,9 @@ export async function GET(request: NextRequest) {
   const leadId = request.nextUrl.searchParams.get('leadId');
   if (!leadId) return NextResponse.json({ error: 'leadId required' }, { status: 400 });
 
+  const filter = agentLeadFilter(session);
   const lead = await prisma.conversationLink.findFirst({
-    where: { id: leadId, tenantId: session.tenantId },
+    where: { id: leadId, tenantId: session.tenantId, ...filter },
     select: { chatwootConversationId: true, source: true, tenant: { select: { chatwootAccountId: true } } },
   });
 
@@ -70,8 +72,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'leadId and message required' }, { status: 400 });
   }
 
+  const postFilter = agentLeadFilter(session);
   const lead = await prisma.conversationLink.findFirst({
-    where: { id: leadId, tenantId: session.tenantId },
+    where: { id: leadId, tenantId: session.tenantId, ...postFilter },
     select: { chatwootConversationId: true, source: true, tenant: { select: { chatwootAccountId: true } } },
   });
 

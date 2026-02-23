@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { sendText } from '@/lib/waha-api';
+import { agentLeadFilter } from '@/lib/agent-filter';
 
 function getChatwootConfig() {
   const url = process.env[String('CW_PLATFORM_URL')] || process.env[String('CHATWOOT_BASE_URL')] || '';
@@ -17,9 +18,10 @@ export async function GET(
   if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
   const { id } = await params;
+  const agentFilter = agentLeadFilter(session);
 
   const conv = await prisma.conversationLink.findFirst({
-    where: { id, tenantId: session.tenantId },
+    where: { id, tenantId: session.tenantId, ...agentFilter },
     include: { tenant: { select: { chatwootAccountId: true } } },
   });
 
@@ -132,8 +134,9 @@ export async function POST(
   const body = await request.json();
   const { action, message } = body as { action?: string; message?: string };
 
+  const postAgentFilter = agentLeadFilter(session);
   const conv = await prisma.conversationLink.findFirst({
-    where: { id, tenantId: session.tenantId },
+    where: { id, tenantId: session.tenantId, ...postAgentFilter },
     include: { tenant: { select: { chatwootAccountId: true } } },
   });
 

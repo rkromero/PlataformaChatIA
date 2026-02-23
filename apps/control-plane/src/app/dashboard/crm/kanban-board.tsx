@@ -13,8 +13,16 @@ export interface Lead {
   notes: string | null;
   chatwootConversationId: number;
   source: string;
+  assignedAgentId: string | null;
+  assignedAgentEmail: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Agent {
+  id: string;
+  email: string;
+  role: string;
 }
 
 interface Stage {
@@ -28,9 +36,18 @@ interface KanbanBoardProps {
   stages: Stage[];
   chatwootBaseUrl: string;
   chatwootAccountId: number | null;
+  agents: Agent[];
+  isAdmin: boolean;
 }
 
-export function KanbanBoard({ leads: initialLeads, stages, chatwootBaseUrl, chatwootAccountId }: KanbanBoardProps) {
+export function KanbanBoard({
+  leads: initialLeads,
+  stages,
+  chatwootBaseUrl,
+  chatwootAccountId,
+  agents,
+  isAdmin,
+}: KanbanBoardProps) {
   const [leads, setLeads] = useState(initialLeads);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
@@ -94,7 +111,6 @@ export function KanbanBoard({ leads: initialLeads, stages, chatwootBaseUrl, chat
             onDragLeave={handleDragLeave}
             onDrop={() => handleDrop(stage.key)}
           >
-            {/* Column header */}
             <div className="flex items-center gap-2 border-b border-gray-200 px-3 py-2.5 dark:border-gray-800">
               <div className={`h-2.5 w-2.5 rounded-full ${stage.color}`} />
               <span className="text-sm font-semibold">{stage.label}</span>
@@ -103,7 +119,6 @@ export function KanbanBoard({ leads: initialLeads, stages, chatwootBaseUrl, chat
               </span>
             </div>
 
-            {/* Cards */}
             <div className="flex-1 space-y-2 overflow-y-auto p-2">
               {stageLeads.length === 0 && (
                 <div className="flex h-20 items-center justify-center rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-800">
@@ -119,6 +134,8 @@ export function KanbanBoard({ leads: initialLeads, stages, chatwootBaseUrl, chat
                   isDragging={draggedId === lead.id}
                   onDragStart={() => handleDragStart(lead.id)}
                   onDragEnd={handleDragEnd}
+                  agents={agents}
+                  isAdmin={isAdmin}
                 />
               ))}
             </div>
