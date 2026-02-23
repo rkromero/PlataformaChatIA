@@ -121,9 +121,9 @@ export function Hero() {
 
               <div className="flex items-center gap-2 rounded-b-xl border-t border-white/5 bg-[#0b141a] px-4 py-3">
                 <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-gray-500 [animation-delay:0ms]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-gray-500 [animation-delay:150ms]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-gray-500 [animation-delay:300ms]" />
+                  <span className="h-2 w-2 rounded-full bg-gray-500 motion-safe:animate-bounce [animation-delay:0ms]" />
+                  <span className="h-2 w-2 rounded-full bg-gray-500 motion-safe:animate-bounce [animation-delay:150ms]" />
+                  <span className="h-2 w-2 rounded-full bg-gray-500 motion-safe:animate-bounce [animation-delay:300ms]" />
                 </div>
                 <span className="text-xs text-gray-500">Escribiendo...</span>
               </div>

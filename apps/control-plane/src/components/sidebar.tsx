@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 
 interface NavItem {
   label: string;
@@ -132,7 +133,13 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-export function Sidebar({ role }: { role: string }) {
+interface SidebarProps {
+  role: string;
+  open: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ role, open, onClose }: SidebarProps) {
   const pathname = usePathname();
   const isSuperAdmin = role === 'super_admin';
 
@@ -140,22 +147,44 @@ export function Sidebar({ role }: { role: string }) {
     (item) => !item.superAdminOnly || isSuperAdmin,
   );
 
-  return (
-    <aside className="hidden w-64 flex-shrink-0 border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 lg:block">
+  useEffect(() => {
+    onClose();
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [open, onClose]);
+
+  const navContent = (
+    <>
       <div className="flex h-16 items-center gap-3 border-b border-gray-200 px-6 dark:border-gray-800">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600">
           <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
           </svg>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
           <span className="text-sm font-semibold tracking-tight">ChatPlatform</span>
           {isSuperAdmin && (
-            <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
               ADMIN
             </span>
           )}
         </div>
+        <button
+          onClick={onClose}
+          className="ml-auto flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 lg:hidden"
+          aria-label="Cerrar menú"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       <nav className="mt-4 space-y-1 px-3">
@@ -169,7 +198,7 @@ export function Sidebar({ role }: { role: string }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
                 isActive
                   ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400'
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
@@ -181,6 +210,29 @@ export function Sidebar({ role }: { role: string }) {
           );
         })}
       </nav>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden w-64 flex-shrink-0 border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 lg:block">
+        {navContent}
+      </aside>
+
+      {/* Mobile overlay */}
+      {open && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <div
+            className="absolute inset-0 bg-gray-950/50 backdrop-blur-sm"
+            onClick={onClose}
+            aria-hidden="true"
+          />
+          <aside className="relative z-50 flex h-full w-72 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+            {navContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

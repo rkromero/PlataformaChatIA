@@ -3,22 +3,37 @@
 import { useTheme } from './theme-provider';
 import { logoutAction } from '@/app/dashboard/logout-action';
 
-export function Topbar({ email, role }: { email: string; role: string }) {
+interface TopbarProps {
+  email: string;
+  role: string;
+  onMenuToggle: () => void;
+}
+
+export function Topbar({ email, role, onMenuToggle }: TopbarProps) {
   const { theme, toggle } = useTheme();
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 dark:border-gray-800 dark:bg-gray-900">
-      <div className="flex items-center gap-4 lg:hidden">
-        <span className="text-sm font-semibold">Chat Platform</span>
+    <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-800 dark:bg-gray-900 sm:px-6">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onMenuToggle}
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+          aria-label="Abrir menú de navegación"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+        <span className="text-sm font-semibold lg:hidden">ChatPlatform</span>
       </div>
 
       <div className="hidden lg:block" />
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <button
           onClick={toggle}
-          className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-          title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+          aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
         >
           {theme === 'dark' ? (
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -32,7 +47,7 @@ export function Topbar({ email, role }: { email: string; role: string }) {
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="text-right">
+          <div className="hidden text-right sm:block">
             <p className="text-sm font-medium">{email}</p>
             <p className="text-xs capitalize text-gray-500 dark:text-gray-400">{role}</p>
           </div>
@@ -40,8 +55,8 @@ export function Topbar({ email, role }: { email: string; role: string }) {
           <form action={logoutAction}>
             <button
               type="submit"
-              className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-red-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-red-400"
-              title="Cerrar sesión"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 hover:text-red-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-red-400"
+              aria-label="Cerrar sesión"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />

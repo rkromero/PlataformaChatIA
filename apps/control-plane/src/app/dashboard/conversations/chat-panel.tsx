@@ -120,7 +120,11 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
         {/* Back button (mobile) */}
-        <button onClick={onBack} className="flex-shrink-0 rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden">
+        <button
+          onClick={onBack}
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden"
+          aria-label="Volver a la lista de conversaciones"
+        >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
           </svg>
@@ -255,7 +259,8 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
         <button
           type="submit"
           disabled={!isHuman || sending || !input.trim()}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white transition-colors hover:bg-brand-500 disabled:opacity-40"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-600 text-white transition-colors duration-150 hover:bg-brand-500 disabled:opacity-40"
+          aria-label="Enviar mensaje"
         >
           {sending ? (
             <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
