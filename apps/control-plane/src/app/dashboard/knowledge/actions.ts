@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
-import { capKnowledgeEntries, parseKnowledgeFile } from '@/lib/knowledge-import';
+import { capKnowledgeEntries, parseKnowledgeFile, parseKnowledgeFromUrl } from '@/lib/knowledge-import';
 import { z } from 'zod';
 
 const entrySchema = z.object({
@@ -164,4 +164,51 @@ export async function uploadKnowledgeFileAction(_prev: unknown, formData: FormDa
 
   revalidatePath('/dashboard/knowledge');
   return { success: true, message: `Importación completa: ${cappedEntries.length} entrada(s) creada(s)` };
+}
+
+const urlImportSchema = z.object({
+  category: z.string().min(1),
+  url: z
+    .string()
+    .trim()
+    .url('Ingresá una URL válida (incluí https://)')
+    .refine((value) => /^https?:\/\//i.test(value), 'La URL debe empezar con http:// o https://'),
+});
+
+export async function importKnowledgeUrlAction(_prev: unknown, formData: FormData) {
+  const session = await requireSession();
+
+  const parsed = urlImportSchema.safeParse({
+    category: formData.get('category'),
+    url: formData.get('url'),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0].message };
+  }
+
+  let entries: Awaited<ReturnType<typeof parseKnowledgeFromUrl>>;
+  try {
+    entries = await parseKnowledgeFromUrl(parsed.data.url);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'No se pudo importar la URL';
+    return { error: message };
+  }
+
+  const cappedEntries = capKnowledgeEntries(entries);
+  if (cappedEntries.length === 0) {
+    return { error: 'El contenido de la URL excede los límites de importación.' };
+  }
+
+  await prisma.knowledgeEntry.createMany({
+    data: cappedEntries.map((entry) => ({
+      tenantId: session.tenantId,
+      category: parsed.data.category,
+      title: entry.title.slice(0, 200),
+      content: entry.content.slice(0, 5000),
+      enabled: true,
+    })),
+  });
+
+  revalidatePath('/dashboard/knowledge');
+  return { success: true, message: `Importación web completa: ${cappedEntries.length} entrada(s) creada(s)` };
 }

@@ -9,6 +9,15 @@ interface ParsedEntry {
   content: string;
 }
 
+function safeUrlTitle(rawUrl: string): string {
+  try {
+    const { hostname } = new URL(rawUrl);
+    return `Sitio web - ${hostname}`;
+  } catch {
+    return 'Sitio web importado';
+  }
+}
+
 function normalizeText(raw: string): string {
   return raw
     .replace(/\r/g, '\n')
@@ -51,6 +60,40 @@ function splitTextIntoChunks(text: string): string[] {
 
 function fileTitleBase(fileName: string): string {
   return fileName.replace(/\.[^.]+$/, '').trim() || 'Documento importado';
+}
+
+function decodeHtmlEntities(value: string): string {
+  return value
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+}
+
+function extractTextFromHtml(html: string): { title: string; text: string } {
+  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  const titleRaw = titleMatch?.[1] || '';
+
+  const withoutScripts = html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ');
+
+  const bodyText = decodeHtmlEntities(
+    withoutScripts
+      .replace(/<\/(p|div|section|article|li|h1|h2|h3|h4|h5|h6|br)>/gi, '\n')
+      .replace(/<[^>]+>/g, ' '),
+  )
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  return {
+    title: decodeHtmlEntities(titleRaw).trim(),
+    text: bodyText,
+  };
 }
 
 function parseExcelEntries(buffer: Buffer, fileName: string): ParsedEntry[] {
@@ -130,6 +173,63 @@ export async function parseKnowledgeFile(file: File): Promise<ParsedEntry[]> {
   }
 
   throw new Error('Formato no soportado. Subí un PDF o Excel (.xlsx/.xls/.csv).');
+}
+
+export async function parseKnowledgeFromUrl(rawUrl: string): Promise<ParsedEntry[]> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  let response: Response;
+  try {
+    response = await fetch(rawUrl, {
+      method: 'GET',
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'ChatPlatformKnowledgeImporter/1.0',
+      },
+      cache: 'no-store',
+    });
+  } catch {
+    throw new Error('No se pudo acceder a la URL indicada.');
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!response.ok) {
+    throw new Error(`La URL respondió con estado ${response.status}.`);
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  const isTextResponse =
+    contentType.includes('text/html') ||
+    contentType.includes('text/plain') ||
+    contentType.includes('application/xhtml+xml');
+  if (!isTextResponse) {
+    throw new Error('La URL no devuelve contenido de texto compatible.');
+  }
+
+  const rawBody = await response.text();
+  const limitedBody = rawBody.slice(0, 1_200_000);
+
+  let title = '';
+  let text = limitedBody;
+  if (contentType.includes('text/html') || contentType.includes('application/xhtml+xml')) {
+    const extracted = extractTextFromHtml(limitedBody);
+    title = extracted.title;
+    text = extracted.text;
+  }
+
+  const chunks = splitTextIntoChunks(text);
+  if (chunks.length === 0) {
+    throw new Error('No se encontró contenido útil para importar desde la URL.');
+  }
+
+  const base = title || safeUrlTitle(rawUrl);
+  return chunks.map((chunk, idx) => ({
+    title: `${base}${chunks.length > 1 ? ` (parte ${idx + 1})` : ''}`,
+    content: chunk,
+  }));
 }
 
 export function capKnowledgeEntries(entries: ParsedEntry[]): ParsedEntry[] {
