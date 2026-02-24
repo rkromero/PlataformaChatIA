@@ -77,11 +77,24 @@ function parseExcelEntries(buffer: Buffer, fileName: string): ParsedEntry[] {
 
 async function parsePdfEntries(buffer: Buffer, fileName: string): Promise<ParsedEntry[]> {
   const pdfParseModule: any = await import('pdf-parse');
-  const pdfParse = (pdfParseModule.default || pdfParseModule.pdfParse || pdfParseModule) as (
-    dataBuffer: Buffer,
-  ) => Promise<{ text: string }>;
+  const Parser = pdfParseModule.PDFParse as
+    | (new (options: { data: Buffer }) => {
+        getText: () => Promise<{ text: string }>;
+        destroy: () => Promise<void>;
+      })
+    | undefined;
 
-  const parsed = await pdfParse(buffer);
+  if (!Parser) {
+    throw new Error('No se pudo inicializar el parser de PDF');
+  }
+
+  const parser = new Parser({ data: buffer });
+  let parsed: { text: string };
+  try {
+    parsed = await parser.getText();
+  } finally {
+    await parser.destroy().catch(() => {});
+  }
   const chunks = splitTextIntoChunks(parsed.text || '');
   const base = fileTitleBase(fileName);
 
