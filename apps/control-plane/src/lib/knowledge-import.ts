@@ -78,10 +78,37 @@ function parseExcelEntries(buffer: Buffer, fileName: string): ParsedEntry[] {
 async function parsePdfEntries(buffer: Buffer, fileName: string): Promise<ParsedEntry[]> {
   // Use the internal parser entrypoint to avoid pdf-parse debug mode in bundled runtimes.
   const pdfParseModule: any = await import('pdf-parse/lib/pdf-parse.js');
-  const pdfParse =
-    (pdfParseModule.default || pdfParseModule) as (data: Buffer) => Promise<{ text: string }>;
-  const parsed = await pdfParse(buffer);
-  const chunks = splitTextIntoChunks(parsed.text || '');
+  const pdfParse = (pdfParseModule.default || pdfParseModule) as (
+    data: Buffer,
+    options?: Record<string, unknown>,
+  ) => Promise<{ text: string }>;
+
+  const parsedDefault = await pdfParse(buffer);
+  let extractedText = parsedDefault?.text || '';
+
+  if (!normalizeText(extractedText)) {
+    const parsedFallback = await pdfParse(buffer, {
+      pagerender: async (pageData: any) => {
+        const textContent = await pageData.getTextContent({
+          normalizeWhitespace: true,
+          disableCombineTextItems: false,
+        });
+        return textContent.items
+          .map((item: { str?: string }) => item?.str || '')
+          .join(' ')
+          .trim();
+      },
+    });
+    extractedText = parsedFallback?.text || '';
+  }
+
+  if (!normalizeText(extractedText)) {
+    throw new Error(
+      'No se pudo extraer texto del PDF. Parece escaneado o sin texto seleccionable. Probá con un PDF con texto o importá el contenido en Excel/CSV.',
+    );
+  }
+
+  const chunks = splitTextIntoChunks(extractedText);
   const base = fileTitleBase(fileName);
 
   return chunks.map((chunk, idx) => ({
