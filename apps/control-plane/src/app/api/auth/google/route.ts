@@ -23,6 +23,13 @@ function generateSlug(name: string): string {
 
 export async function POST(req: NextRequest) {
     try {
+        if (!process.env.GOOGLE_CLIENT_ID) {
+            return NextResponse.json(
+                { error: 'GOOGLE_CLIENT_ID no configurado en el servidor' },
+                { status: 500 },
+            );
+        }
+
         const { idToken } = await req.json();
 
         if (!idToken) {
@@ -35,8 +42,11 @@ export async function POST(req: NextRequest) {
         });
 
         const payload = ticket.getPayload();
-        if (!payload || !payload.email) {
-            return NextResponse.json({ error: 'Invalid token payload' }, { status: 400 });
+        if (!payload || !payload.email || !payload.sub) {
+            return NextResponse.json(
+                { error: 'Invalid token payload: missing email or subject' },
+                { status: 400 },
+            );
         }
 
         const { sub: googleId, email, name, picture } = payload;
@@ -143,8 +153,9 @@ export async function POST(req: NextRequest) {
 
     } catch (error) {
         console.error('Google Login Error:', error);
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
         return NextResponse.json(
-            { error: 'Internal Server Error' },
+            { error: message },
             { status: 500 }
         );
     }
