@@ -3,6 +3,7 @@ import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { EmptyState } from '@/components/empty-state';
 import { KnowledgeActions } from './knowledge-actions';
+import { KnowledgeUploadForm } from './upload-form';
 
 const CATEGORY_LABELS: Record<string, string> = {
   faq: 'Preguntas frecuentes',
@@ -39,6 +40,8 @@ export default async function KnowledgePage() {
           Agregar
         </Link>
       </div>
+
+      <KnowledgeUploadForm />
 
       {entries.length === 0 ? (
         <EmptyState

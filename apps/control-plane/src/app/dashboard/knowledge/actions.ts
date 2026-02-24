@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
+import { capKnowledgeEntries, parseKnowledgeFile } from '@/lib/knowledge-import';
 import { z } from 'zod';
 
 const entrySchema = z.object({
@@ -85,4 +86,82 @@ export async function deleteKnowledgeEntryAction(id: string) {
   });
 
   revalidatePath('/dashboard/knowledge');
+}
+
+const uploadSchema = z.object({
+  category: z.string().min(1),
+});
+
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'xlsx', 'xls', 'csv']);
+const ALLOWED_MIME_TYPES = new Set([
+  'application/pdf',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/csv',
+  'application/csv',
+]);
+
+export async function uploadKnowledgeFileAction(_prev: unknown, formData: FormData) {
+  const session = await requireSession();
+
+  const parsed = uploadSchema.safeParse({
+    category: formData.get('category'),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0].message };
+  }
+
+  const file = formData.get('file');
+  if (!(file instanceof File)) {
+    return { error: 'Seleccioná un archivo PDF o Excel' };
+  }
+
+  const fileName = file.name || '';
+  const ext = fileName.toLowerCase().split('.').pop() || '';
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    return { error: 'Formato no soportado. Usá PDF, XLSX, XLS o CSV.' };
+  }
+
+  // Browsers may omit MIME for some local files, so we validate when present.
+  if (file.type && !ALLOWED_MIME_TYPES.has(file.type)) {
+    return { error: 'Tipo de archivo no permitido para importación.' };
+  }
+
+  if (file.size === 0) {
+    return { error: 'El archivo está vacío' };
+  }
+
+  if (file.size > 15 * 1024 * 1024) {
+    return { error: 'El archivo supera el máximo de 15MB' };
+  }
+
+  let entries: Awaited<ReturnType<typeof parseKnowledgeFile>>;
+  try {
+    entries = await parseKnowledgeFile(file);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'No se pudo procesar el archivo';
+    return { error: message };
+  }
+
+  if (entries.length === 0) {
+    return { error: 'No se encontró texto útil para importar en el archivo' };
+  }
+
+  const cappedEntries = capKnowledgeEntries(entries);
+  if (cappedEntries.length === 0) {
+    return { error: 'El contenido del archivo excede los límites de importación.' };
+  }
+
+  await prisma.knowledgeEntry.createMany({
+    data: cappedEntries.map((entry) => ({
+      tenantId: session.tenantId,
+      category: parsed.data.category,
+      title: entry.title.slice(0, 200),
+      content: entry.content.slice(0, 5000),
+      enabled: true,
+    })),
+  });
+
+  revalidatePath('/dashboard/knowledge');
+  return { success: true, message: `Importación completa: ${cappedEntries.length} entrada(s) creada(s)` };
 }
