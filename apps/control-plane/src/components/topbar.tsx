@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from './theme-provider';
-import { logoutAction } from '@/app/dashboard/logout-action';
 
 const SEARCH_ITEMS = [
   { label: 'Dashboard', href: '/dashboard' },
@@ -17,6 +16,7 @@ const SEARCH_ITEMS = [
   { label: 'Equipo', href: '/dashboard/team' },
   { label: 'Analytics', href: '/dashboard/analytics' },
   { label: 'Plan y uso', href: '/dashboard/plan' },
+  { label: 'Configuración', href: '/dashboard/configuracion' },
 ];
 
 interface TopbarProps {
@@ -152,18 +152,6 @@ export function Topbar({ email, role, tenantName, onMenuToggle }: TopbarProps) {
             <p className="text-sm font-medium">{email}</p>
             <p className="text-xs capitalize text-gray-500 dark:text-gray-400">{role}</p>
           </div>
-
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 hover:text-red-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-red-400"
-              aria-label="Cerrar sesión"
-            >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-              </svg>
-            </button>
-          </form>
         </div>
       </div>
     </header>

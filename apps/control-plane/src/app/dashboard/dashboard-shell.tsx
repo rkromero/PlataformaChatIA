@@ -8,17 +8,27 @@ interface Props {
   email: string;
   role: string;
   tenantName: string | null;
+  ownerName: string | null;
+  ownerEmail: string | null;
   children: React.ReactNode;
 }
 
-export function DashboardShell({ email, role, tenantName, children }: Props) {
+export function DashboardShell({ email, role, tenantName, ownerName, ownerEmail, children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar role={role} tenantName={tenantName} open={sidebarOpen} onClose={closeSidebar} />
+      <Sidebar
+        role={role}
+        email={email}
+        tenantName={tenantName}
+        ownerName={ownerName}
+        ownerEmail={ownerEmail}
+        open={sidebarOpen}
+        onClose={closeSidebar}
+      />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar
           email={email}

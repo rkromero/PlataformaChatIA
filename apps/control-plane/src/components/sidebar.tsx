@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import { logoutAction } from '@/app/dashboard/logout-action';
 
 interface NavItem {
   label: string;
@@ -154,15 +155,30 @@ const NAV_ITEMS: NavItem[] = [
 
 interface SidebarProps {
   role: string;
+  email: string;
   tenantName: string | null;
+  ownerName: string | null;
+  ownerEmail: string | null;
   open: boolean;
   onClose: () => void;
 }
 
-export function Sidebar({ role, tenantName, open, onClose }: SidebarProps) {
+function formatRole(role: string) {
+  const labels: Record<string, string> = {
+    super_admin: 'Super Admin',
+    owner: 'Owner',
+    admin: 'Admin',
+    agent: 'Agente',
+  };
+  return labels[role] ?? role;
+}
+
+export function Sidebar({ role, email, tenantName, ownerName, ownerEmail, open, onClose }: SidebarProps) {
   const pathname = usePathname();
   const isSuperAdmin = role === 'super_admin';
   const brandName = (tenantName || '').trim() || 'ChatPlatform';
+  const sessionRole = formatRole(role);
+  const isConfigActive = pathname.startsWith('/dashboard/configuracion');
 
   const isAgent = role === 'agent';
   const visibleItems = NAV_ITEMS.filter((item) => {
@@ -185,7 +201,7 @@ export function Sidebar({ role, tenantName, open, onClose }: SidebarProps) {
   }, [open, onClose]);
 
   const navContent = (
-    <>
+    <div className="flex h-full flex-col">
       <div className="flex h-16 items-center gap-3 border-b border-gray-200 px-6 dark:border-gray-800">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600">
           <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -213,7 +229,7 @@ export function Sidebar({ role, tenantName, open, onClose }: SidebarProps) {
         </button>
       </div>
 
-      <nav className="mt-4 space-y-1 px-3">
+      <nav className="mt-4 flex-1 space-y-1 overflow-y-auto px-3 pb-3">
         {visibleItems.map((item) => {
           const isActive =
             item.href === '/dashboard'
@@ -236,7 +252,44 @@ export function Sidebar({ role, tenantName, open, onClose }: SidebarProps) {
           );
         })}
       </nav>
-    </>
+
+      <div className="border-t border-gray-200 px-3 py-3 dark:border-gray-800">
+        <Link
+          href="/dashboard/configuracion"
+          className={`mb-2 flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
+            isConfigActive
+              ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+          }`}
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12a7.5 7.5 0 0 1 12.322-5.738l3.89-1.167a.75.75 0 1 1 .576 1.386l-3.89 1.167a7.5 7.5 0 0 1 0 8.704l3.89 1.167a.75.75 0 0 1-.576 1.386l-3.89-1.167A7.5 7.5 0 1 1 4.5 12Z" />
+          </svg>
+          Configuración
+        </Link>
+
+        <div className="mb-2 rounded-lg border border-gray-200 px-3 py-2.5 dark:border-gray-700">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Sesión activa</p>
+          <p className="mt-1 truncate text-sm font-medium text-gray-900 dark:text-gray-100" title={email}>{email}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{sessionRole}</p>
+          <p className="mt-2 truncate text-xs text-gray-500 dark:text-gray-400" title={ownerName || ownerEmail || 'Owner no definido'}>
+            Owner: {ownerName || ownerEmail || 'No definido'}
+          </p>
+        </div>
+
+        <form action={logoutAction}>
+          <button
+            type="submit"
+            className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors duration-150 hover:bg-red-50 hover:text-red-700 dark:text-gray-300 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+            </svg>
+            Cerrar sesión
+          </button>
+        </form>
+      </div>
+    </div>
   );
 
   return (
