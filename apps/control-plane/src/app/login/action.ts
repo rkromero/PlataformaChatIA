@@ -27,6 +27,10 @@ export async function loginAction(_prev: unknown, formData: FormData) {
     return { error: 'Credenciales inválidas' };
   }
 
+  if (!user.passwordHash) {
+    return { error: 'Este usuario no tiene contraseña. Ingresá con Google.' };
+  }
+
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
     return { error: 'Credenciales inválidas' };
