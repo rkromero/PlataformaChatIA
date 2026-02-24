@@ -76,7 +76,8 @@ function parseExcelEntries(buffer: Buffer, fileName: string): ParsedEntry[] {
 }
 
 async function parsePdfEntries(buffer: Buffer, fileName: string): Promise<ParsedEntry[]> {
-  const pdfParseModule: any = await import('pdf-parse');
+  // Use the internal parser entrypoint to avoid pdf-parse debug mode in bundled runtimes.
+  const pdfParseModule: any = await import('pdf-parse/lib/pdf-parse.js');
   const pdfParse =
     (pdfParseModule.default || pdfParseModule) as (data: Buffer) => Promise<{ text: string }>;
   const parsed = await pdfParse(buffer);
