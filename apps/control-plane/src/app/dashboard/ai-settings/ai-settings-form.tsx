@@ -74,7 +74,17 @@ export function AiSettingsForm({ action, settings }: Props) {
       </div>
 
       <div>
-        <label htmlFor="handoffKeywords" className="label">Keywords de handoff</label>
+        <div className="mb-1.5 flex items-center gap-2">
+          <label htmlFor="handoffKeywords" className="label mb-0">Keywords de handoff</label>
+          <div className="group relative">
+            <svg className="h-4 w-4 text-gray-400 cursor-help" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.835a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+            </svg>
+            <div className="absolute bottom-full left-1/2 mb-2 hidden w-48 -translate-x-1/2 rounded bg-gray-900 px-2 py-1 text-[10px] text-white group-hover:block">
+              Si el cliente detecta estas palabras, la IA dejará de responder y marcará el chat como "Pendiente" para un humano.
+            </div>
+          </div>
+        </div>
         <input
           id="handoffKeywords"
           name="handoffKeywords"
@@ -84,12 +94,22 @@ export function AiSettingsForm({ action, settings }: Props) {
           placeholder="humano, asesor, agente, persona"
         />
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Separadas por coma. Si el cliente dice alguna, se transfiere a un humano.
+          Separadas por coma.
         </p>
       </div>
 
       <div>
-        <label htmlFor="handoffTag" className="label">Tag de handoff en Chatwoot</label>
+        <div className="mb-1.5 flex items-center gap-2">
+          <label htmlFor="handoffTag" className="label mb-0">Tag de handoff en Chatwoot</label>
+          <div className="group relative">
+            <svg className="h-4 w-4 text-gray-400 cursor-help" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.835a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+            </svg>
+            <div className="absolute bottom-full left-1/2 mb-2 hidden w-48 -translate-x-1/2 rounded bg-gray-900 px-2 py-1 text-[10px] text-white group-hover:block">
+              Esta etiqueta se aplicará automáticamente a la conversación en tu panel de Chatwoot.
+            </div>
+          </div>
+        </div>
         <input
           id="handoffTag"
           name="handoffTag"

@@ -1,5 +1,5 @@
-'use client';
-
+import { EmptyState } from '@/components/empty-state';
+import Link from 'next/link';
 import type { ConversationItem } from './chat-view';
 
 interface Props {
@@ -57,8 +57,23 @@ export function ConversationList({
             ))}
           </div>
         ) : conversations.length === 0 ? (
-          <div className="px-4 py-16 text-center text-sm text-gray-400">
-            {search ? 'Sin resultados' : 'Aún no hay conversaciones'}
+          <div className="p-8">
+            <EmptyState
+              icon={
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+                </svg>
+              }
+              title={search ? 'Sin resultados' : 'Aún no hay conversaciones'}
+              description={search ? 'Probá con otro término de búsqueda.' : 'Tus chats de WhatsApp aparecerán acá. ¡Probá tu bot en el Sandbox para empezar!'}
+              action={
+                !search && (
+                  <Link href="/dashboard/sandbox" className="btn-primary py-2 text-xs">
+                    Ir al Sandbox
+                  </Link>
+                )
+              }
+            />
           </div>
         ) : (
           conversations.map((conv) => {
@@ -71,24 +86,21 @@ export function ConversationList({
               <button
                 key={conv.id}
                 onClick={() => onSelect(conv.id)}
-                className={`flex w-full items-start gap-3 border-b border-gray-100 px-4 py-3 text-left transition-colors dark:border-gray-800/50 ${
-                  isSelected
+                className={`flex w-full items-start gap-3 border-b border-gray-100 px-4 py-3 text-left transition-colors dark:border-gray-800/50 ${isSelected
                     ? 'bg-brand-50 dark:bg-brand-500/10'
                     : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                }`}
+                  }`}
               >
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${
-                    isHuman
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${isHuman
                       ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400'
                       : 'bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-400'
-                  }`}>
+                    }`}>
                     {initial}
                   </div>
-                  <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-gray-900 ${
-                    isHuman ? 'bg-amber-500' : 'bg-emerald-500'
-                  }`} />
+                  <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-gray-900 ${isHuman ? 'bg-amber-500' : 'bg-emerald-500'
+                    }`} />
                 </div>
 
                 {/* Info */}
@@ -105,11 +117,10 @@ export function ConversationList({
                     </p>
                   )}
                   <div className="mt-1 flex items-center gap-1.5">
-                    <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${
-                      isHuman
+                    <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${isHuman
                         ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
                         : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
-                    }`}>
+                      }`}>
                       {isHuman ? 'Agente' : 'Bot'}
                     </span>
                     {conv.source !== 'chatwoot' && (

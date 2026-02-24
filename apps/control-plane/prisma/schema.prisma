@@ -77,7 +77,8 @@ model TenantUser {
   tenantId      String   @map("tenant_id") @db.Uuid
   email         String
   name          String   @default("")
-  passwordHash  String   @map("password_hash")
+  passwordHash  String?  @map("password_hash")
+  googleId      String?  @unique @map("google_id")
   role          UserRole @default(agent)
   emailVerified Boolean  @default(false) @map("email_verified")
   createdAt     DateTime @default(now()) @map("created_at")

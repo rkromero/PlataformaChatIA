@@ -85,11 +85,10 @@ export function Pricing() {
           {PLANS.map((plan) => (
             <div
               key={plan.name}
-              className={`relative flex flex-col rounded-2xl border p-8 ${
-                plan.popular
+              className={`relative flex flex-col rounded-2xl border p-8 ${plan.popular
                   ? 'border-brand-600 shadow-xl shadow-brand-600/10 dark:border-brand-500 dark:shadow-brand-500/10'
                   : 'border-gray-200 dark:border-gray-800'
-              }`}
+                }`}
             >
               {plan.popular && (
                 <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-brand-600 px-4 py-1 text-xs font-semibold text-white">
@@ -121,16 +120,67 @@ export function Pricing() {
 
               <Link
                 href={plan.href}
-                className={`mt-8 block rounded-lg px-4 py-3 text-center text-sm font-semibold transition-colors duration-150 ${
-                  plan.popular
+                className={`mt-8 block rounded-lg px-4 py-3 text-center text-sm font-semibold transition-colors duration-150 ${plan.popular
                     ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/25 hover:bg-brand-500'
                     : 'border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800'
-                }`}
+                  }`}
               >
                 {plan.cta}
               </Link>
             </div>
           ))}
+        </div>
+
+        {/* Comparison Table */}
+        <div className="mx-auto mt-24 max-w-5xl overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-gray-50 dark:bg-gray-900/50">
+              <tr>
+                <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">Funcionalidades</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">Starter</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">Pro</th>
+                <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">Enterprise</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              <tr>
+                <td className="px-6 py-4 text-gray-600 dark:text-gray-400">Mensajes / mes</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">500</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">5.000</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">Ilimitados</td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 text-gray-600 dark:text-gray-400">Números WA</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">1</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">Hasta 3</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">Ilimitados</td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 text-gray-600 dark:text-gray-400">Modelo IA</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">GPT-4o mini</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">GPT-4o</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">Personalizado</td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 text-gray-600 dark:text-gray-400">Transferencia humana</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">—</td>
+                <td className="px-6 py-4 text-emerald-500">✅</td>
+                <td className="px-6 py-4 text-emerald-500">✅</td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 text-gray-600 dark:text-gray-400">Integración CRM</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">—</td>
+                <td className="px-6 py-4 text-emerald-500">✅</td>
+                <td className="px-6 py-4 text-emerald-500">✅</td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 text-gray-600 dark:text-gray-400">Soporte</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">Email</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">Prioritario</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-white">Dedicado</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>

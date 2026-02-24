@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useActionState } from 'react';
 import { loginAction } from './action';
+import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(loginAction, null);
@@ -68,6 +69,19 @@ export default function LoginPage() {
               Iniciar sesión
             </button>
           </form>
+
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white px-2 text-gray-500 dark:bg-[#111827] dark:text-gray-400">O continuar con</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            <GoogleLoginButton />
+          </div>
 
           <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
             ¿No tenés cuenta?{' '}

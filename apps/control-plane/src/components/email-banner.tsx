@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 
 export function EmailBanner({ email }: { email: string }) {
   const [sending, setSending] = useState(false);
@@ -8,13 +9,23 @@ export function EmailBanner({ email }: { email: string }) {
 
   async function resend() {
     setSending(true);
+    const promise = fetch('/api/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    toast.promise(promise, {
+      loading: 'Enviando email...',
+      success: 'Email enviado con éxito. Revisá tu casilla.',
+      error: 'Error al enviar el email. Intentá de nuevo.',
+    });
+
     try {
-      await fetch('/api/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+      await promise;
       setSent(true);
+    } catch (err) {
+      console.error(err);
     } finally {
       setSending(false);
     }
