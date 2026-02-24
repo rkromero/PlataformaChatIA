@@ -75,6 +75,7 @@ const STEPS = ['Configurá tu bot', 'Conectá WhatsApp', 'Todo listo'];
 export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [selectedType, setSelectedType] = useState<number | null>(null);
+  const [businessName, setBusinessName] = useState('');
   const [prompt, setPrompt] = useState('');
   const [botState, botAction, botPending] = useActionState(saveOnboardingBotAction, null);
   const [waState, waAction, waPending] = useActionState(connectWhatsAppAction, null);
@@ -125,7 +126,25 @@ export default function OnboardingPage() {
       {/* Step 1: Configure bot */}
       {step === 0 && (
         <div>
-          <h2 className="text-xl font-semibold">¿Qué tipo de negocio tenés?</h2>
+          <h2 className="text-xl font-semibold">Contanos tu negocio</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Esto lo usamos para personalizar tu bot y el panel.
+          </p>
+
+          <div className="mt-4">
+            <label htmlFor="businessName" className="label">Nombre del negocio</label>
+            <input
+              id="businessName"
+              type="text"
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              className="input"
+              placeholder="Ej: Mi Tienda Online"
+              required
+            />
+          </div>
+
+          <h3 className="mt-6 text-lg font-semibold">¿Qué tipo de negocio tenés?</h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Elegí una categoría y te sugerimos un prompt ideal para tu bot.
           </p>
@@ -149,6 +168,7 @@ export default function OnboardingPage() {
 
           {selectedType !== null && (
             <form action={botAction} className="mt-6">
+              <input type="hidden" name="businessName" value={businessName} />
               <label className="label">Prompt de tu bot (podés editarlo)</label>
               <textarea
                 name="systemPrompt"
@@ -160,6 +180,11 @@ export default function OnboardingPage() {
               <p className="mt-1 text-xs text-gray-500">
                 Tip: Reemplazá {'{nombre}'} con el nombre real de tu negocio y agregá detalles como precios, horarios, etc.
               </p>
+              {!businessName.trim() && (
+                <p className="mt-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+                  Completá el nombre del negocio para continuar.
+                </p>
+              )}
 
               {botState?.error && (
                 <p className="mt-2 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">
@@ -174,7 +199,7 @@ export default function OnboardingPage() {
               )}
 
               <div className="mt-4 flex gap-3">
-                <button type="submit" disabled={botPending} className="btn-primary">
+                <button type="submit" disabled={botPending || !businessName.trim()} className="btn-primary">
                   {botPending ? (
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                   ) : null}

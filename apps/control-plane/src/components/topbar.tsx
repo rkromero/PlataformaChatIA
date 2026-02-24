@@ -22,15 +22,17 @@ const SEARCH_ITEMS = [
 interface TopbarProps {
   email: string;
   role: string;
+  tenantName: string | null;
   onMenuToggle: () => void;
 }
 
-export function Topbar({ email, role, onMenuToggle }: TopbarProps) {
+export function Topbar({ email, role, tenantName, onMenuToggle }: TopbarProps) {
   const { theme, toggle } = useTheme();
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const brandName = (tenantName || '').trim() || 'ChatPlatform';
 
   const filtered = query.trim()
     ? SEARCH_ITEMS.filter((i) => i.label.toLowerCase().includes(query.toLowerCase()))
@@ -69,7 +71,9 @@ export function Topbar({ email, role, onMenuToggle }: TopbarProps) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
         </button>
-        <span className="text-sm font-semibold lg:hidden">ChatPlatform</span>
+        <span className="max-w-[160px] truncate text-sm font-semibold lg:hidden" title={brandName}>
+          {brandName}
+        </span>
       </div>
 
       <div className="hidden lg:block">

@@ -154,13 +154,15 @@ const NAV_ITEMS: NavItem[] = [
 
 interface SidebarProps {
   role: string;
+  tenantName: string | null;
   open: boolean;
   onClose: () => void;
 }
 
-export function Sidebar({ role, open, onClose }: SidebarProps) {
+export function Sidebar({ role, tenantName, open, onClose }: SidebarProps) {
   const pathname = usePathname();
   const isSuperAdmin = role === 'super_admin';
+  const brandName = (tenantName || '').trim() || 'ChatPlatform';
 
   const isAgent = role === 'agent';
   const visibleItems = NAV_ITEMS.filter((item) => {
@@ -191,7 +193,9 @@ export function Sidebar({ role, open, onClose }: SidebarProps) {
           </svg>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold tracking-tight">ChatPlatform</span>
+          <span className="max-w-[130px] truncate text-sm font-semibold tracking-tight" title={brandName}>
+            {brandName}
+          </span>
           {isSuperAdmin && (
             <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
               ADMIN
