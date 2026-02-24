@@ -8,6 +8,7 @@ import {
     linkUserToAccount,
 } from '@/lib/chatwoot-platform';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -19,6 +20,37 @@ function generateSlug(name: string): string {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
         .slice(0, 60);
+}
+
+function generateStrongPassword(): string {
+    const lower = 'abcdefghijkmnopqrstuvwxyz';
+    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const digits = '23456789';
+    const specials = '!@#$%^&*()_+-=[]{}|:;.,?';
+
+    const pick = (charset: string) =>
+        charset[Math.floor(Math.random() * charset.length)];
+
+    // Ensure complexity requirements are met.
+    const seed = [
+        pick(upper),
+        pick(lower),
+        pick(digits),
+        pick(specials),
+    ];
+
+    const all = lower + upper + digits + specials;
+    while (seed.length < 18) {
+        seed.push(pick(all));
+    }
+
+    // Shuffle
+    for (let i = seed.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [seed[i], seed[j]] = [seed[j], seed[i]];
+    }
+
+    return seed.join('');
 }
 
 export async function POST(req: NextRequest) {
@@ -49,7 +81,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { sub: googleId, email, name, picture } = payload;
+        const { sub: googleId, email, name } = payload;
 
         // 1. Check if user exists by googleId or email
         let user = await prisma.tenantUser.findFirst({
@@ -97,7 +129,7 @@ export async function POST(req: NextRequest) {
             chatwootAccountId = account.id;
 
             // For social login, we generate a random password for the Chatwoot user
-            const randomPassword = crypto.randomBytes(16).toString('hex');
+            const randomPassword = generateStrongPassword();
             const cwUser = await createChatwootUser(email, businessName, randomPassword);
             await linkUserToAccount(chatwootAccountId, cwUser.id);
         } catch (err) {
@@ -118,11 +150,14 @@ export async function POST(req: NextRequest) {
             },
         });
 
+        const passwordHash = await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 12);
+
         const newUser = await prisma.tenantUser.create({
             data: {
                 tenantId: tenant.id,
                 email,
                 name: name || '',
+                passwordHash,
                 googleId,
                 role: 'owner',
                 emailVerified: true, // Google emails are already verified
