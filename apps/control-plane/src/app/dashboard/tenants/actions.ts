@@ -5,6 +5,12 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { tenantSchema } from '@/lib/validators';
 
+function buildModulesJson(formData: FormData) {
+  return {
+    calendar: formData.get('module_calendar') === '1',
+  };
+}
+
 export async function createTenantAction(_prev: unknown, formData: FormData) {
   const raw = formData.get('chatwootAccountId');
   const chatwootAccountId = raw && String(raw).trim() !== '' ? raw : undefined;
@@ -41,12 +47,15 @@ export async function createTenantAction(_prev: unknown, formData: FormData) {
     ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
     : null;
 
+  const modulesJson = buildModulesJson(formData);
+
   const tenant = await prisma.tenant.create({
     data: {
       name: parsed.data.name,
       slug: parsed.data.slug || null,
       status: parsed.data.status,
       plan: parsed.data.plan,
+      modulesJson,
       trialEndsAt,
       chatwootAccountId: parsed.data.chatwootAccountId ?? null,
     },
@@ -64,6 +73,10 @@ export async function createTenantAction(_prev: unknown, formData: FormData) {
       },
     },
   });
+
+  if (modulesJson.calendar) {
+    await prisma.calendarConfig.create({ data: { tenantId: tenant.id } });
+  }
 
   revalidatePath('/dashboard/tenants');
   redirect('/dashboard/tenants');
@@ -101,11 +114,14 @@ export async function updateTenantAction(tenantId: string, _prev: unknown, formD
     }
   }
 
+  const modulesJson = buildModulesJson(formData);
+
   const updateData: Record<string, unknown> = {
     name: parsed.data.name,
     slug: parsed.data.slug || null,
     status: parsed.data.status,
     plan: parsed.data.plan,
+    modulesJson,
     chatwootAccountId: parsed.data.chatwootAccountId ?? null,
   };
 
@@ -119,6 +135,14 @@ export async function updateTenantAction(tenantId: string, _prev: unknown, formD
     where: { id: tenantId },
     data: updateData,
   });
+
+  if (modulesJson.calendar) {
+    await prisma.calendarConfig.upsert({
+      where: { tenantId },
+      create: { tenantId },
+      update: {},
+    });
+  }
 
   revalidatePath('/dashboard/tenants');
   redirect('/dashboard/tenants');

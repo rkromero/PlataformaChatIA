@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import type { Tenant } from '@prisma/client';
+import { parseModules } from '@/lib/modules';
 
 type FormAction = (prev: unknown, formData: FormData) => Promise<{ error?: string } | void>;
 
@@ -13,6 +14,7 @@ export function TenantForm({
   tenant?: Tenant;
 }) {
   const [state, formAction, pending] = useActionState(action, null);
+  const modules = tenant ? parseModules(tenant.modulesJson) : {};
 
   return (
     <form action={formAction} className="card max-w-xl space-y-5">
@@ -73,6 +75,25 @@ export function TenantForm({
         />
         <p className="mt-1 text-xs text-gray-500">Opcional. Se crea automáticamente al registrarse.</p>
       </div>
+
+      <fieldset className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+        <legend className="px-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Módulos</legend>
+        <label className="flex cursor-pointer items-center gap-3">
+          <input
+            type="checkbox"
+            name="module_calendar"
+            value="1"
+            defaultChecked={modules.calendar === true}
+            className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+          />
+          <div>
+            <span className="text-sm font-medium">Calendario de turnos</span>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Permite agendar citas desde el dashboard y por chat IA.
+            </p>
+          </div>
+        </label>
+      </fieldset>
 
       {state?.error && (
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">

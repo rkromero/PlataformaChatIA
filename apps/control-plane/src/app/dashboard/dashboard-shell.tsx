@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Sidebar } from '@/components/sidebar';
 import { Topbar } from '@/components/topbar';
+import type { TenantModules } from '@/lib/modules';
 
 interface Props {
   email: string;
@@ -10,10 +11,11 @@ interface Props {
   tenantName: string | null;
   ownerName: string | null;
   ownerEmail: string | null;
+  modules: TenantModules;
   children: React.ReactNode;
 }
 
-export function DashboardShell({ email, role, tenantName, ownerName, ownerEmail, children }: Props) {
+export function DashboardShell({ email, role, tenantName, ownerName, ownerEmail, modules, children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
@@ -26,6 +28,7 @@ export function DashboardShell({ email, role, tenantName, ownerName, ownerEmail,
         tenantName={tenantName}
         ownerName={ownerName}
         ownerEmail={ownerEmail}
+        modules={modules}
         open={sidebarOpen}
         onClose={closeSidebar}
       />

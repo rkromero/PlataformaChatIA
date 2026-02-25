@@ -16,6 +16,7 @@ const SEARCH_ITEMS = [
   { label: 'Equipo', href: '/dashboard/team' },
   { label: 'Analytics', href: '/dashboard/analytics' },
   { label: 'Plan y uso', href: '/dashboard/plan' },
+  { label: 'Calendario', href: '/dashboard/calendario' },
   { label: 'Configuración', href: '/dashboard/configuracion' },
 ];
 

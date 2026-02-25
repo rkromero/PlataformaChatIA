@@ -2,6 +2,7 @@ import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { EmailBanner } from '@/components/email-banner';
 import { DashboardShell } from './dashboard-shell';
+import { parseModules } from '@/lib/modules';
 
 export default async function DashboardLayout({
   children,
@@ -17,7 +18,7 @@ export default async function DashboardLayout({
     }),
     prisma.tenant.findUnique({
       where: { id: session.tenantId },
-      select: { name: true },
+      select: { name: true, modulesJson: true },
     }),
     prisma.tenantUser.findFirst({
       where: { tenantId: session.tenantId, role: 'owner', deletedAt: null },
@@ -26,6 +27,8 @@ export default async function DashboardLayout({
     }),
   ]);
 
+  const modules = parseModules(tenant?.modulesJson);
+
   return (
     <DashboardShell
       email={session.email}
@@ -33,6 +36,7 @@ export default async function DashboardLayout({
       tenantName={tenant?.name || null}
       ownerName={owner?.name?.trim() || null}
       ownerEmail={owner?.email || null}
+      modules={modules}
     >
       {user && !user.emailVerified && <EmailBanner email={session.email} />}
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">{children}</main>
