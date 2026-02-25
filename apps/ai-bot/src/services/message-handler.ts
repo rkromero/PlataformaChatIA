@@ -1,6 +1,7 @@
 import { prisma } from '../lib/db.js';
 import { tenantLogger } from '../lib/logger.js';
-import { generateReply } from './openai.js';
+import { generateReply, generateReplyWithToolResults } from './openai.js';
+import type { ToolCall } from './openai.js';
 import { checkAndIncrementUsage } from './usage.js';
 import { getKnowledgeContext } from './knowledge.js';
 import {
@@ -11,6 +12,10 @@ import { syncLeadToCrm } from './crm.js';
 import { routeNewLead } from './lead-router.js';
 import { isTrialExpired } from '@chat-platform/shared/plans';
 import type { HandoffRules } from '@chat-platform/shared/types';
+import { getCalendarContext } from './calendar-context.js';
+import { executeCalendarTool } from './calendar-tools.js';
+
+const MAX_TOOL_ROUNDS = 3;
 
 interface IncomingMessageParams {
   tenantId: string;
@@ -99,15 +104,53 @@ export async function handleIncomingMessage(params: IncomingMessageParams) {
     content: m.content,
   }));
 
-  const knowledgeContext = await getKnowledgeContext(tenantId, messageText);
-  const enrichedPrompt = settings.systemPrompt + knowledgeContext;
+  const [knowledgeContext, calendarCtx] = await Promise.all([
+    getKnowledgeContext(tenantId, messageText),
+    getCalendarContext(tenantId),
+  ]);
 
-  const aiReply = await generateReply(
+  const enrichedPrompt = settings.systemPrompt + knowledgeContext + calendarCtx.promptAddendum;
+  const tools = calendarCtx.enabled ? calendarCtx.tools : undefined;
+
+  const toolContext = {
+    tenantId,
+    conversationLinkId: convLink.id,
+    clientPhone: phone || null,
+    clientName: contactName,
+  };
+
+  let result = await generateReply(
     settings.model,
     enrichedPrompt,
     messageText,
     history,
+    [],
+    tools,
   );
+
+  let rounds = 0;
+  while (result.toolCalls.length > 0 && rounds < MAX_TOOL_ROUNDS) {
+    rounds++;
+    const toolResults: Array<{ tool_call_id: string; content: string }> = [];
+
+    for (const tc of result.toolCalls) {
+      log.info({ tool: tc.name, args: tc.arguments }, 'Executing calendar tool');
+      const output = await executeCalendarTool(tc.name, tc.arguments, toolContext);
+      toolResults.push({ tool_call_id: tc.id, content: output });
+    }
+
+    result = await generateReplyWithToolResults(
+      settings.model,
+      enrichedPrompt,
+      messageText,
+      history,
+      result.toolCalls,
+      toolResults,
+      calendarCtx.tools,
+    );
+  }
+
+  const aiReply = result.text || 'Lo siento, no pude procesar la solicitud.';
 
   await sendReply(aiReply);
   await saveMessage(tenantId, convLink.id, 'outgoing', aiReply, 'Bot');

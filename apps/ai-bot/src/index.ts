@@ -4,6 +4,7 @@ import { logger } from './lib/logger.js';
 import { webhookRoutes } from './routes/webhook.js';
 import { baileysApiRoutes } from './routes/baileys-api.js';
 import { reconnectActiveSessions } from './services/baileys-manager.js';
+import { startReminderLoop } from './services/appointment-reminders.js';
 
 const app = Fastify({ logger: false });
 
@@ -20,6 +21,8 @@ async function start() {
     reconnectActiveSessions().catch((err) =>
       logger.error({ err }, 'Failed to reconnect Baileys sessions on startup'),
     );
+
+    startReminderLoop();
   } catch (err) {
     logger.fatal(err, 'Failed to start');
     process.exit(1);

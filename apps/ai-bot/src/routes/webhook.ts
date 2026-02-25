@@ -3,7 +3,8 @@ import { env } from '../lib/env.js';
 import { logger, tenantLogger } from '../lib/logger.js';
 import { resolveTenant } from '../services/tenant-resolver.js';
 import { sendMessage, addLabel, getConversationMessages } from '../services/chatwoot.js';
-import { generateReply } from '../services/openai.js';
+import { generateReply, generateReplyWithToolResults } from '../services/openai.js';
+import type { ToolCall } from '../services/openai.js';
 import { syncLeadToCrm } from '../services/crm.js';
 import {
   upsertConversationLink,
@@ -22,6 +23,11 @@ import {
 import { transcribeAudio } from '../services/transcription.js';
 import { bufferMessage } from '../services/message-buffer.js';
 import type { HandoffRules } from '@chat-platform/shared/types';
+import { getCalendarContext } from '../services/calendar-context.js';
+import { executeCalendarTool } from '../services/calendar-tools.js';
+import { prisma } from '../lib/db.js';
+
+const MAX_TOOL_ROUNDS = 3;
 
 export async function webhookRoutes(app: FastifyInstance) {
   app.post('/webhooks/chatwoot', async (request, reply) => {
@@ -126,7 +132,6 @@ async function handleWebhook(body: Record<string, unknown>) {
     conversation.meta?.sender?.id ??
     null;
 
-  // --- Process media attachments ---
   const attachments = extractAttachments(body);
   const audioAttachment = getAudioAttachment(attachments);
   const imageAttachments = getImageAttachments(attachments);
@@ -175,7 +180,6 @@ async function handleWebhook(body: Record<string, unknown>) {
     return;
   }
 
-  // --- Handoff check (on effective content after transcription) ---
   const contentLower = effectiveContent.toLowerCase();
   const isHandoffRequest = handoffRules.keywords.some((kw: string) =>
     contentLower.includes(kw.toLowerCase()),
@@ -246,20 +250,59 @@ async function processAiReply(params: {
     return;
   }
 
-  const [history, knowledgeContext] = await Promise.all([
+  const [history, knowledgeContext, calendarCtx] = await Promise.all([
     getConversationMessages(account.id, conversation.id, 10),
     getKnowledgeContext(tenant.id, effectiveContent),
+    getCalendarContext(tenant.id),
   ]);
 
-  const enrichedPrompt = settings.systemPrompt + knowledgeContext;
+  const enrichedPrompt = settings.systemPrompt + knowledgeContext + calendarCtx.promptAddendum;
+  const tools = calendarCtx.enabled ? calendarCtx.tools : undefined;
 
-  const aiReply = await generateReply(
+  const convLink = await prisma.conversationLink.findFirst({
+    where: { tenantId: tenant.id, chatwootConversationId: conversation.id },
+    select: { id: true, phone: true, contactName: true },
+  });
+
+  const toolContext = {
+    tenantId: tenant.id,
+    conversationLinkId: convLink?.id ?? null,
+    clientPhone: contactPhone ?? convLink?.phone ?? null,
+    clientName: contactName ?? convLink?.contactName ?? null,
+  };
+
+  let result = await generateReply(
     settings.model,
     enrichedPrompt,
     effectiveContent,
     history,
     imageBase64Urls,
+    tools,
   );
+
+  let rounds = 0;
+  while (result.toolCalls.length > 0 && rounds < MAX_TOOL_ROUNDS) {
+    rounds++;
+    const toolResults: Array<{ tool_call_id: string; content: string }> = [];
+
+    for (const tc of result.toolCalls) {
+      log.info({ tool: tc.name, args: tc.arguments }, 'Executing calendar tool');
+      const output = await executeCalendarTool(tc.name, tc.arguments, toolContext);
+      toolResults.push({ tool_call_id: tc.id, content: output });
+    }
+
+    result = await generateReplyWithToolResults(
+      settings.model,
+      enrichedPrompt,
+      effectiveContent,
+      history,
+      result.toolCalls,
+      toolResults,
+      calendarCtx.tools,
+    );
+  }
+
+  const aiReply = result.text || 'Lo siento, no pude procesar la solicitud.';
 
   await sendMessage(account.id, conversation.id, aiReply);
 
