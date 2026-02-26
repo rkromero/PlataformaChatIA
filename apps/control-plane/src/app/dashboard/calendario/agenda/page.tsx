@@ -87,8 +87,6 @@ export default async function AgendaPage({
     return d;
   });
 
-  const hours = Array.from({ length: 13 }, (_, i) => i + 8);
-
   const appointmentsByDay = days.map((day) => {
     const dayStart = new Date(day);
     dayStart.setHours(0, 0, 0, 0);
@@ -96,6 +94,15 @@ export default async function AgendaPage({
     dayEnd.setHours(23, 59, 59, 999);
     return appointments.filter((a) => a.startAt >= dayStart && a.startAt <= dayEnd);
   });
+
+  let minHour = 8;
+  let maxHour = 20;
+  for (const appt of appointments) {
+    const h = getLocalHour(appt.startAt, tz);
+    if (h < minHour) minHour = h;
+    if (h > maxHour) maxHour = h;
+  }
+  const hours = Array.from({ length: maxHour - minHour + 1 }, (_, i) => i + minHour);
 
   return (
     <div>
