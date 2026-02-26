@@ -39,6 +39,7 @@ async function processReminders() {
           id: true,
           name: true,
           chatwootAccountId: true,
+          calendarConfig: { select: { reminderChannel: true } },
         },
       },
       conversationLink: {
@@ -58,6 +59,13 @@ async function processReminders() {
 
   for (const appt of appointments) {
     try {
+      const channel = appt.tenant.calendarConfig?.reminderChannel ?? null;
+
+      if (!channel) {
+        logger.debug({ appointmentId: appt.id }, 'Reminders disabled for tenant, skipping');
+        continue;
+      }
+
       const timeStr = appt.startAt.toISOString().slice(11, 16);
       const dateStr = appt.startAt.toISOString().slice(0, 10);
       const profName = appt.professional.name || 'tu profesional';
@@ -77,55 +85,10 @@ async function processReminders() {
 
       let sent = false;
 
-      if (appt.conversationLink?.wahaChatId) {
-        try {
-          await sendBaileysMessage(
-            appt.tenant.id,
-            appt.conversationLink.wahaChatId,
-            message,
-          );
-          sent = true;
-        } catch (err) {
-          logger.warn(
-            { err, appointmentId: appt.id },
-            'Failed to send reminder via Baileys, trying Chatwoot',
-          );
-        }
-      }
-
-      if (
-        !sent &&
-        appt.conversationLink?.chatwootConversationId &&
-        appt.tenant.chatwootAccountId
-      ) {
-        try {
-          await sendChatwootMessage(
-            appt.tenant.chatwootAccountId,
-            appt.conversationLink.chatwootConversationId,
-            message,
-          );
-          sent = true;
-        } catch (err) {
-          logger.warn(
-            { err, appointmentId: appt.id },
-            'Failed to send reminder via Chatwoot',
-          );
-        }
-      }
-
-      if (!sent && appt.clientPhone) {
-        const chatId = appt.clientPhone.includes('@')
-          ? appt.clientPhone
-          : `${appt.clientPhone}@s.whatsapp.net`;
-        try {
-          await sendBaileysMessage(appt.tenant.id, chatId, message);
-          sent = true;
-        } catch (err) {
-          logger.warn(
-            { err, appointmentId: appt.id, phone: appt.clientPhone },
-            'Failed to send reminder via phone fallback',
-          );
-        }
+      if (channel === 'whatsapp_qr') {
+        sent = await trySendViaBaileys(appt, message);
+      } else if (channel === 'whatsapp') {
+        sent = await trySendViaChatwoot(appt, message);
       }
 
       if (sent) {
@@ -133,12 +96,80 @@ async function processReminders() {
           where: { id: appt.id },
           data: { reminderSentAt: new Date() },
         });
-        logger.info({ appointmentId: appt.id }, 'Reminder sent');
+        logger.info({ appointmentId: appt.id, channel }, 'Reminder sent');
       } else {
-        logger.warn({ appointmentId: appt.id }, 'Could not send reminder via any channel');
+        logger.warn({ appointmentId: appt.id, channel }, 'Could not send reminder');
       }
     } catch (err) {
       logger.error({ err, appointmentId: appt.id }, 'Error processing reminder');
     }
   }
 }
+
+async function trySendViaBaileys(
+  appt: AppointmentWithRelations,
+  message: string,
+): Promise<boolean> {
+  const chatId =
+    appt.conversationLink?.wahaChatId ??
+    (appt.clientPhone
+      ? appt.clientPhone.includes('@')
+        ? appt.clientPhone
+        : `${appt.clientPhone}@s.whatsapp.net`
+      : null);
+
+  if (!chatId) return false;
+
+  try {
+    await sendBaileysMessage(appt.tenant.id, chatId, message);
+    return true;
+  } catch (err) {
+    logger.warn({ err, appointmentId: appt.id }, 'Failed to send reminder via Baileys');
+    return false;
+  }
+}
+
+async function trySendViaChatwoot(
+  appt: AppointmentWithRelations,
+  message: string,
+): Promise<boolean> {
+  if (
+    !appt.conversationLink?.chatwootConversationId ||
+    !appt.tenant.chatwootAccountId
+  ) {
+    return false;
+  }
+
+  try {
+    await sendChatwootMessage(
+      appt.tenant.chatwootAccountId,
+      appt.conversationLink.chatwootConversationId,
+      message,
+    );
+    return true;
+  } catch (err) {
+    logger.warn({ err, appointmentId: appt.id }, 'Failed to send reminder via Chatwoot');
+    return false;
+  }
+}
+
+type AppointmentWithRelations = {
+  id: string;
+  clientName: string;
+  clientPhone: string | null;
+  startAt: Date;
+  service: { name: string };
+  professional: { name: string };
+  tenant: {
+    id: string;
+    name: string;
+    chatwootAccountId: number | null;
+    calendarConfig: { reminderChannel: string | null } | null;
+  };
+  conversationLink: {
+    id: string;
+    wahaChatId: string | null;
+    chatwootConversationId: number;
+    source: string;
+  } | null;
+};

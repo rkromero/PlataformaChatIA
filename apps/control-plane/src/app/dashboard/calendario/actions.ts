@@ -36,6 +36,7 @@ const calendarConfigSchema = z.object({
   slotBufferMinutes: z.coerce.number().int().min(0).max(120),
   minAdvanceHours: z.coerce.number().int().min(0).max(168),
   maxAdvanceDays: z.coerce.number().int().min(1).max(365),
+  reminderChannel: z.string().nullable().optional(),
 });
 
 const scheduleEntrySchema = z.object({
@@ -298,11 +299,14 @@ export async function saveCalendarConfigAction(
 ) {
   const session = await requireSession();
 
+  const rawChannel = formData.get('reminderChannel') as string | null;
+
   const parsed = calendarConfigSchema.safeParse({
     timezone: formData.get('timezone'),
     slotBufferMinutes: formData.get('slotBufferMinutes'),
     minAdvanceHours: formData.get('minAdvanceHours'),
     maxAdvanceDays: formData.get('maxAdvanceDays'),
+    reminderChannel: rawChannel === '' || rawChannel === 'none' ? null : rawChannel,
   });
 
   if (!parsed.success) {

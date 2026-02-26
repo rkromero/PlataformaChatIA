@@ -3,16 +3,23 @@
 import { useActionState } from 'react';
 import { saveCalendarConfigAction } from '../actions';
 
+interface ChannelOption {
+  value: string;
+  label: string;
+}
+
 interface Props {
   config?: {
     timezone: string;
     slotBufferMinutes: number;
     minAdvanceHours: number;
     maxAdvanceDays: number;
+    reminderChannel: string | null;
   };
+  availableChannels: ChannelOption[];
 }
 
-export function CalendarConfigForm({ config }: Props) {
+export function CalendarConfigForm({ config, availableChannels }: Props) {
   const [state, action, pending] = useActionState(saveCalendarConfigAction, null);
 
   return (
@@ -66,6 +73,27 @@ export function CalendarConfigForm({ config }: Props) {
             className="input"
           />
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="reminderChannel" className="label">Canal de recordatorios</label>
+        <select
+          id="reminderChannel"
+          name="reminderChannel"
+          defaultValue={config?.reminderChannel ?? 'none'}
+          className="input"
+        >
+          <option value="none">Desactivado</option>
+          {availableChannels.map((ch) => (
+            <option key={ch.value} value={ch.value}>
+              {ch.label}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Seleccioná por qué canal enviar los recordatorios automáticos (1 hora antes del turno).
+          Solo se muestran los canales que tenés configurados.
+        </p>
       </div>
 
       {state?.error && (

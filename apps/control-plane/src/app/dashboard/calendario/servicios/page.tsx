@@ -16,7 +16,7 @@ export default async function CalendarioServiciosPage() {
   });
   if (!hasModule(tenant?.modulesJson, 'calendar')) redirect('/dashboard');
 
-  const [services, professionals, config] = await Promise.all([
+  const [services, professionals, config, channels] = await Promise.all([
     prisma.calendarService.findMany({
       where: { tenantId: session.tenantId },
       orderBy: { name: 'asc' },
@@ -35,7 +35,22 @@ export default async function CalendarioServiciosPage() {
     prisma.calendarConfig.findUnique({
       where: { tenantId: session.tenantId },
     }),
+    prisma.tenantChannel.findMany({
+      where: { tenantId: session.tenantId, deletedAt: null },
+      select: { id: true, type: true },
+    }),
   ]);
+
+  const channelLabels: Record<string, string> = {
+    whatsapp: 'WhatsApp (Chatwoot)',
+    whatsapp_qr: 'WhatsApp QR (Baileys)',
+    webchat: 'Webchat',
+  };
+
+  const availableChannels = channels.map((ch) => ({
+    value: ch.type,
+    label: channelLabels[ch.type] ?? ch.type,
+  }));
 
   const professionalsData = professionals.map((p) => ({
     id: p.id,
@@ -91,7 +106,9 @@ export default async function CalendarioServiciosPage() {
               slotBufferMinutes: config.slotBufferMinutes,
               minAdvanceHours: config.minAdvanceHours,
               maxAdvanceDays: config.maxAdvanceDays,
+              reminderChannel: config.reminderChannel,
             } : undefined}
+            availableChannels={availableChannels}
           />
         </section>
       </div>

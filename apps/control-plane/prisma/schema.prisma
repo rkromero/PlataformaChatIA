@@ -337,6 +337,7 @@ model CalendarConfig {
   slotBufferMinutes Int      @default(15) @map("slot_buffer_minutes")
   minAdvanceHours   Int      @default(2) @map("min_advance_hours")
   maxAdvanceDays    Int      @default(30) @map("max_advance_days")
+  reminderChannel   String?  @map("reminder_channel")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
