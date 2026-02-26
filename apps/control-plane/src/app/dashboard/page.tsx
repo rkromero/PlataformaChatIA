@@ -107,7 +107,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <Link
-            href="/dashboard/plan"
+            href="/dashboard/configuracion"
             className="flex-shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-500"
           >
             Elegir plan
@@ -133,7 +133,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <Link
-            href="/dashboard/plan"
+            href="/dashboard/configuracion"
             className="flex-shrink-0 rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-500"
           >
             Elegir plan ahora
@@ -145,7 +145,7 @@ export default async function DashboardPage() {
       <div className="card mb-6">
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Mensajes este mes</p>
-          <Link href="/dashboard/plan" className="text-xs font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400">
+          <Link href="/dashboard/configuracion" className="text-xs font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400">
             Ver plan →
           </Link>
         </div>
@@ -158,7 +158,7 @@ export default async function DashboardPage() {
         </div>
         {usagePercent >= 100 && (
           <p className="mt-2 text-xs font-medium text-red-500">
-            Límite alcanzado — <Link href="/dashboard/plan" className="underline">Upgrade tu plan</Link>
+            Límite alcanzado — <Link href="/dashboard/configuracion" className="underline">Upgrade tu plan</Link>
           </p>
         )}
         {usagePercent >= 80 && usagePercent < 100 && (

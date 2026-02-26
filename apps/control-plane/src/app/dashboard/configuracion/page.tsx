@@ -1,15 +1,12 @@
 import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-
-const ROLE_LABELS: Record<string, string> = {
-  super_admin: 'Super Admin',
-  owner: 'Owner',
-  admin: 'Admin',
-  agent: 'Agente',
-};
+import { isAdmin } from '@/lib/agent-filter';
+import { getPlanLimits, getCurrentPeriod, PLAN_LIMITS, isTrialExpired, getTrialDaysLeft } from '@chat-platform/shared/plans';
+import { SettingsShell } from './settings-shell';
+import type { AccountData, PlanUsageData, RoutingData } from './types';
 
 function formatDate(value: Date | null | undefined) {
-  if (!value) return 'N/D';
+  if (!value) return null;
   return new Intl.DateTimeFormat('es-AR', {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -18,8 +15,9 @@ function formatDate(value: Date | null | undefined) {
 
 export default async function ConfiguracionPage() {
   const session = await requireSession();
+  const canManage = isAdmin(session);
 
-  const [tenant, owner] = await Promise.all([
+  const [tenant, owner, rules, agents, usageRecord, channelCount, userCount] = await Promise.all([
     prisma.tenant.findUnique({
       where: { id: session.tenantId },
       select: {
@@ -32,11 +30,7 @@ export default async function ConfiguracionPage() {
         updatedAt: true,
         trialEndsAt: true,
         aiSettings: {
-          select: {
-            enabled: true,
-            model: true,
-            updatedAt: true,
-          },
+          select: { enabled: true, model: true, updatedAt: true },
         },
       },
     }),
@@ -45,85 +39,91 @@ export default async function ConfiguracionPage() {
       orderBy: { createdAt: 'asc' },
       select: { name: true, email: true },
     }),
+    canManage
+      ? prisma.routingRule.findMany({
+          where: { tenantId: session.tenantId },
+          orderBy: { priority: 'asc' },
+          include: { assignedAgent: { select: { id: true, name: true, email: true } } },
+        })
+      : Promise.resolve([]),
+    canManage
+      ? prisma.tenantUser.findMany({
+          where: { tenantId: session.tenantId, deletedAt: null },
+          select: { id: true, name: true, email: true, role: true },
+          orderBy: { email: 'asc' },
+        })
+      : Promise.resolve([]),
+    prisma.usageRecord.findUnique({
+      where: { tenantId_period: { tenantId: session.tenantId, period: getCurrentPeriod() } },
+    }),
+    prisma.tenantChannel.count({ where: { tenantId: session.tenantId } }),
+    prisma.tenantUser.count({ where: { tenantId: session.tenantId } }),
   ]);
 
-  const negocio = tenant?.name?.trim() || 'ChatPlatform';
-  const ownerName = owner?.name?.trim() || owner?.email || 'No definido';
+  const limits = getPlanLimits(tenant?.plan ?? 'trial');
+  const messagesUsed = usageRecord?.messages ?? 0;
+  const isTrial = tenant?.plan === 'trial';
+  const expired = isTrial && isTrialExpired(tenant?.trialEndsAt ?? null);
+  const daysLeft = isTrial ? getTrialDaysLeft(tenant?.trialEndsAt ?? null) : 0;
+
+  const accountData: AccountData = {
+    tenantId: tenant?.id || session.tenantId,
+    tenantName: tenant?.name?.trim() || 'ChatPlatform',
+    plan: tenant?.plan || 'N/D',
+    status: tenant?.status || 'N/D',
+    onboardingCompleted: tenant?.onboardingCompleted ?? false,
+    aiEnabled: tenant?.aiSettings?.enabled ?? false,
+    aiModel: tenant?.aiSettings?.model || null,
+    trialEndsAt: formatDate(tenant?.trialEndsAt),
+    lastUpdated: formatDate(tenant?.aiSettings?.updatedAt || tenant?.updatedAt),
+    ownerName: owner?.name?.trim() || owner?.email || 'No definido',
+    ownerEmail: owner?.email || 'Sin email',
+    sessionEmail: session.email,
+    sessionRole: session.role,
+  };
+
+  const planData: PlanUsageData = {
+    currentPlan: tenant?.plan ?? 'trial',
+    planName: limits.name,
+    isTrial,
+    isTrialExpired: expired,
+    trialDaysLeft: daysLeft,
+    messagesUsed,
+    messagesLimit: limits.messagesPerMonth,
+    messagesPercent: Math.min((messagesUsed / limits.messagesPerMonth) * 100, 100),
+    channelCount,
+    channelLimit: limits.maxChannels,
+    userCount,
+    userLimit: limits.maxUsers,
+    plans: PLAN_LIMITS,
+  };
+
+  const routingData: RoutingData = {
+    rules: rules.map((r) => ({
+      id: r.id,
+      name: r.name,
+      type: r.type,
+      conditionsJson: r.conditionsJson as Record<string, unknown>,
+      assignedAgentId: r.assignedAgentId,
+      assignedAgentName: ('assignedAgent' in r && r.assignedAgent)
+        ? (r.assignedAgent.name || r.assignedAgent.email || null)
+        : null,
+      priority: r.priority,
+      isActive: r.isActive,
+    })),
+    agents: agents.map((a) => ({
+      id: a.id,
+      name: a.name ?? '',
+      email: a.email,
+      role: a.role,
+    })),
+  };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Configuración</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Datos principales de tu negocio, owner y estado de configuración.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <section className="card">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Información del negocio</h2>
-          <dl className="mt-4 space-y-3">
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Nombre del negocio</dt>
-              <dd className="text-sm font-medium">{negocio}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Owner</dt>
-              <dd className="text-sm font-medium">{ownerName}</dd>
-              <dd className="text-xs text-gray-500 dark:text-gray-400">{owner?.email || 'Sin email definido'}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Mi sesión</dt>
-              <dd className="text-sm font-medium">{session.email}</dd>
-              <dd className="text-xs text-gray-500 dark:text-gray-400">{ROLE_LABELS[session.role] ?? session.role}</dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="card">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Datos de configuración</h2>
-          <dl className="mt-4 space-y-3">
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Tenant ID</dt>
-              <dd className="text-sm font-mono">{tenant?.id || session.tenantId}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Plan</dt>
-              <dd className="text-sm font-medium capitalize">{tenant?.plan || 'N/D'}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Estado</dt>
-              <dd className="text-sm font-medium capitalize">{tenant?.status || 'N/D'}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Onboarding</dt>
-              <dd className="text-sm font-medium">{tenant?.onboardingCompleted ? 'Completado' : 'Pendiente'}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">IA habilitada</dt>
-              <dd className="text-sm font-medium">{tenant?.aiSettings?.enabled ? 'Sí' : 'No'}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Modelo IA</dt>
-              <dd className="text-sm font-medium">{tenant?.aiSettings?.model || 'N/D'}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Fin de trial</dt>
-              <dd className="text-sm font-medium">{formatDate(tenant?.trialEndsAt)}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Última actualización</dt>
-              <dd className="text-sm font-medium">
-                {formatDate(tenant?.aiSettings?.updatedAt || tenant?.updatedAt)}
-              </dd>
-            </div>
-          </dl>
-        </section>
-      </div>
-
-      <p className="mt-6 text-xs text-gray-500 dark:text-gray-400">
-        Si querés cambiar reglas de IA y horarios, podés hacerlo desde <span className="font-medium">Mi Bot</span>.
-      </p>
-    </div>
+    <SettingsShell
+      accountData={accountData}
+      planData={planData}
+      routingData={routingData}
+    />
   );
 }

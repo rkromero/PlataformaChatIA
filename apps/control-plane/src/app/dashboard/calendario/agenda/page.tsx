@@ -4,6 +4,17 @@ import { prisma } from '@/lib/db';
 import { hasModule } from '@/lib/modules';
 import { redirect } from 'next/navigation';
 
+function getLocalHour(date: Date, tz: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour: 'numeric', hourCycle: 'h23',
+  }).formatToParts(date);
+  return Number(parts.find((p) => p.type === 'hour')?.value ?? 0);
+}
+
+function formatTimeInTz(date: Date, tz: string): string {
+  return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: tz });
+}
+
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-amber-200 dark:bg-amber-500/30 border-amber-400',
   confirmed: 'bg-emerald-200 dark:bg-emerald-500/30 border-emerald-400',
@@ -34,11 +45,18 @@ export default async function AgendaPage({
   const session = await requireSession();
   const params = await searchParams;
 
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: session.tenantId },
-    select: { modulesJson: true },
-  });
+  const [tenant, calendarConfig] = await Promise.all([
+    prisma.tenant.findUnique({
+      where: { id: session.tenantId },
+      select: { modulesJson: true },
+    }),
+    prisma.calendarConfig.findUnique({
+      where: { tenantId: session.tenantId },
+      select: { timezone: true },
+    }),
+  ]);
   if (!hasModule(tenant?.modulesJson, 'calendar')) redirect('/dashboard');
+  const tz = calendarConfig?.timezone ?? 'America/Argentina/Buenos_Aires';
 
   const baseDate = params.week ? new Date(params.week) : new Date();
   const monday = getMonday(baseDate);
@@ -139,7 +157,7 @@ export default async function AgendaPage({
               </div>
               {days.map((_, dayIdx) => {
                 const dayAppts = appointmentsByDay[dayIdx].filter((a) => {
-                  const h = a.startAt.getHours();
+                  const h = getLocalHour(a.startAt, tz);
                   return h === hour;
                 });
 
@@ -158,7 +176,7 @@ export default async function AgendaPage({
                           title={`${appt.clientName} - ${appt.service.name} (${appt.professional.name || appt.professional.email})`}
                         >
                           <span className="font-semibold">
-                            {appt.startAt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                            {formatTimeInTz(appt.startAt, tz)}
                           </span>
                           <br />
                           <span className="truncate">{appt.clientName}</span>

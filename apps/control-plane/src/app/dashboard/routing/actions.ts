@@ -38,7 +38,7 @@ export async function createRuleAction(_prev: unknown, formData: FormData) {
     },
   });
 
-  revalidatePath('/dashboard/routing');
+  revalidatePath('/dashboard/configuracion');
   return { success: true };
 }
 
@@ -62,7 +62,7 @@ export async function updateRuleAction(ruleId: string, _prev: unknown, formData:
     },
   });
 
-  revalidatePath('/dashboard/routing');
+  revalidatePath('/dashboard/configuracion');
   return { success: true };
 }
 
@@ -74,7 +74,7 @@ export async function deleteRuleAction(ruleId: string) {
     where: { id: ruleId, tenantId: session.tenantId },
   });
 
-  revalidatePath('/dashboard/routing');
+  revalidatePath('/dashboard/configuracion');
 }
 
 export async function assignAgentAction(leadId: string, agentId: string | null) {

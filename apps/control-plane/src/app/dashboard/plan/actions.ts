@@ -29,6 +29,6 @@ export async function changePlanAction(_prev: unknown, formData: FormData) {
     },
   });
 
-  revalidatePath('/dashboard/plan');
+  revalidatePath('/dashboard/configuracion');
   return { success: true, message: `Plan actualizado a ${newPlan}` };
 }

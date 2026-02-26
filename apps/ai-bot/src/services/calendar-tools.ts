@@ -1,5 +1,6 @@
 import { prisma } from '../lib/db.js';
 import type { ChatCompletionTool } from 'openai/resources/chat/completions';
+import { localToUtc } from '@chat-platform/shared/timezone';
 
 // ── OpenAI tool definitions ──
 
@@ -194,8 +195,8 @@ async function checkAvailability(
   }
 
   const dayOfWeek = new Date(dateStr + 'T12:00:00').getDay();
-  const dayStart = new Date(dateStr + 'T00:00:00.000Z');
-  const dayEnd = new Date(dateStr + 'T23:59:59.999Z');
+  const dayStart = localToUtc(dateStr, '00:00', tz);
+  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
 
   const result: Array<{ professional_id: string; professional_name: string; slots: string[] }> = [];
 
@@ -234,6 +235,7 @@ async function checkAvailability(
       buffer,
       existing,
       blocked.map((b) => ({ startAt: b.startAt, endAt: b.endAt })),
+      tz,
     );
 
     if (slots.length > 0) {
@@ -271,7 +273,10 @@ async function bookAppointment(
   });
   if (!service) return JSON.stringify({ error: 'Servicio no encontrado.' });
 
-  const startAt = new Date(`${dateStr}T${timeStr}:00.000Z`);
+  const config = await prisma.calendarConfig.findUnique({ where: { tenantId: ctx.tenantId } });
+  const tz = config?.timezone ?? 'America/Argentina/Buenos_Aires';
+
+  const startAt = localToUtc(dateStr, timeStr, tz);
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
 
   const [overlap, blocked] = await Promise.all([
@@ -369,7 +374,10 @@ async function rescheduleAppointment(
     return JSON.stringify({ error: 'No se puede reprogramar un turno cancelado.' });
   }
 
-  const newStart = new Date(`${newDate}T${newTime}:00.000Z`);
+  const config = await prisma.calendarConfig.findUnique({ where: { tenantId: ctx.tenantId } });
+  const tz = config?.timezone ?? 'America/Argentina/Buenos_Aires';
+
+  const newStart = localToUtc(newDate, newTime, tz);
   const newEnd = new Date(newStart.getTime() + appt.service.durationMinutes * 60_000);
 
   const [overlap, blocked] = await Promise.all([
@@ -463,6 +471,7 @@ function generateSlots(
   bufferMin: number,
   booked: Array<{ startAt: Date; endAt: Date }>,
   blocked: Array<{ startAt: Date; endAt: Date }>,
+  timezone: string,
 ): string[] {
   const slots: string[] = [];
   const step = durationMin + bufferMin;
@@ -482,7 +491,7 @@ function generateSlots(
       if (m < breakEndMin && m + durationMin > breakStartMin) continue;
     }
 
-    const slotStart = new Date(`${dateStr}T${pad(m)}:00.000Z`);
+    const slotStart = localToUtc(dateStr, pad(m), timezone);
     const slotEnd = new Date(slotStart.getTime() + durationMin * 60_000);
 
     const isBooked = booked.some((b) => b.startAt < slotEnd && b.endAt > slotStart);

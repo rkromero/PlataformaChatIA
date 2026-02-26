@@ -10,7 +10,8 @@
     "./crypto": "./dist/crypto.js",
     "./env": "./dist/env.js",
     "./types": "./dist/types.js",
-    "./plans": "./dist/plans.js"
+    "./plans": "./dist/plans.js",
+    "./timezone": "./dist/timezone.js"
   },
   "scripts": {
     "build": "tsc",

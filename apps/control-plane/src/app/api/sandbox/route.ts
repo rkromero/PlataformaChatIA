@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { hasModule } from '@/lib/modules';
+import { localToUtc } from '@chat-platform/shared/timezone';
 
 function getOpenAIKey(): string {
   return process.env[String('OPENAI_API_KEY')] ?? '';
@@ -380,6 +381,7 @@ async function checkAvailability(
 
   const config = await prisma.calendarConfig.findUnique({ where: { tenantId } });
   const buffer = config?.slotBufferMinutes ?? 15;
+  const tz = config?.timezone ?? 'America/Argentina/Buenos_Aires';
 
   const professionals = await prisma.calendarProfessionalService.findMany({
     where: { serviceId: service.id, ...(prefProfId ? { professionalId: prefProfId } : {}) },
@@ -390,8 +392,8 @@ async function checkAvailability(
   }
 
   const dayOfWeek = new Date(dateStr + 'T12:00:00').getDay();
-  const dayStart = new Date(dateStr + 'T00:00:00.000Z');
-  const dayEnd = new Date(dateStr + 'T23:59:59.999Z');
+  const dayStart = localToUtc(dateStr, '00:00', tz);
+  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
 
   const result: Array<{ professional_id: string; professional_name: string; slots: string[] }> = [];
 
@@ -412,13 +414,14 @@ async function checkAvailability(
       }),
     ]);
 
-    console.log('[Sandbox check_availability]', { profId, dateStr, blockedCount: blocked.length, existingCount: existing.length, blocked: blocked.map(b => ({ start: b.startAt.toISOString(), end: b.endAt.toISOString(), reason: b.reason })) });
+    console.log('[Sandbox check_availability]', { profId, dateStr, tz, blockedCount: blocked.length, existingCount: existing.length });
 
     const slots = generateSlots(
       dateStr, schedule.startTime, schedule.endTime,
       schedule.breakStart, schedule.breakEnd,
       service.durationMinutes, buffer,
       existing, blocked.map((b) => ({ startAt: b.startAt, endAt: b.endAt })),
+      tz,
     );
 
     if (slots.length > 0) {
@@ -451,7 +454,10 @@ async function bookAppointment(
   const professional = await resolveProfessional(tenantId, service.id, args);
   if (!professional) return JSON.stringify({ error: 'No hay profesionales asignados a este servicio.' });
 
-  const startAt = new Date(`${dateStr}T${timeStr}:00.000Z`);
+  const config = await prisma.calendarConfig.findUnique({ where: { tenantId } });
+  const tz = config?.timezone ?? 'America/Argentina/Buenos_Aires';
+
+  const startAt = localToUtc(dateStr, timeStr, tz);
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
 
   const [overlap, blocked] = await Promise.all([
@@ -534,7 +540,10 @@ async function rescheduleAppointment(
   const appointment = await resolveAppointment(tenantId, args);
   if (!appointment) return JSON.stringify({ error: 'Turno no encontrado o ya cancelado.' });
 
-  const newStart = new Date(`${newDate}T${newTime}:00.000Z`);
+  const config = await prisma.calendarConfig.findUnique({ where: { tenantId } });
+  const tz = config?.timezone ?? 'America/Argentina/Buenos_Aires';
+
+  const newStart = localToUtc(newDate, newTime, tz);
   const newEnd = new Date(newStart.getTime() + appointment.service.durationMinutes * 60_000);
 
   const [overlap, blocked] = await Promise.all([
@@ -593,6 +602,7 @@ function generateSlots(
   durationMin: number, bufferMin: number,
   booked: Array<{ startAt: Date; endAt: Date }>,
   blocked: Array<{ startAt: Date; endAt: Date }>,
+  timezone: string,
 ): string[] {
   const slots: string[] = [];
   const step = durationMin + bufferMin;
@@ -605,7 +615,7 @@ function generateSlots(
 
   for (let m = dayStartMin; m + durationMin <= dayEndMin; m += step) {
     if (breakStartMin !== null && breakEndMin !== null && m < breakEndMin && m + durationMin > breakStartMin) continue;
-    const slotStart = new Date(`${dateStr}T${pad(m)}:00.000Z`);
+    const slotStart = localToUtc(dateStr, pad(m), timezone);
     const slotEnd = new Date(slotStart.getTime() + durationMin * 60_000);
     if (booked.some((b) => b.startAt < slotEnd && b.endAt > slotStart)) continue;
     if (blocked.some((b) => b.startAt < slotEnd && b.endAt > slotStart)) continue;

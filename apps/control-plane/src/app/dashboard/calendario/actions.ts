@@ -5,11 +5,17 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
+import { datetimeLocalToUtc } from '@chat-platform/shared/timezone';
 
 const CALENDAR_PATH = '/dashboard/calendario';
 
 function revalidateCalendar() {
   revalidatePath(CALENDAR_PATH, 'layout');
+}
+
+async function getTenantTimezone(tenantId: string): Promise<string> {
+  const config = await prisma.calendarConfig.findUnique({ where: { tenantId }, select: { timezone: true } });
+  return config?.timezone ?? 'America/Argentina/Buenos_Aires';
 }
 
 // ── Schemas ────────────────────────────────────────────────────
@@ -218,16 +224,13 @@ export async function createAppointmentAction(
   const session = await requireSession();
 
   const rawStartAt = formData.get('startAt') as string;
-  const startAtIso = rawStartAt?.includes('T') && !rawStartAt.includes('Z')
-    ? `${rawStartAt}:00.000Z`
-    : rawStartAt;
 
   const parsed = appointmentSchema.safeParse({
     serviceId: formData.get('serviceId'),
     professionalId: formData.get('professionalId'),
     clientName: formData.get('clientName'),
     clientPhone: formData.get('clientPhone') || undefined,
-    startAt: startAtIso,
+    startAt: rawStartAt,
     notes: formData.get('notes') || undefined,
   });
 
@@ -240,7 +243,8 @@ export async function createAppointmentAction(
   });
   if (!service) return { error: 'Servicio no encontrado' };
 
-  const startAt = new Date(parsed.data.startAt);
+  const tz = await getTenantTimezone(session.tenantId);
+  const startAt = datetimeLocalToUtc(parsed.data.startAt, tz);
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
 
   const [overlap, blocked] = await Promise.all([
@@ -363,13 +367,11 @@ export async function createBlockedTimeAction(
 
   const rawStart = formData.get('startAt') as string;
   const rawEnd = formData.get('endAt') as string;
-  const startAtIso = rawStart?.includes('T') && !rawStart.includes('Z') ? `${rawStart}:00.000Z` : rawStart;
-  const endAtIso = rawEnd?.includes('T') && !rawEnd.includes('Z') ? `${rawEnd}:00.000Z` : rawEnd;
 
   const parsed = blockedTimeSchema.safeParse({
     professionalId: formData.get('professionalId'),
-    startAt: startAtIso,
-    endAt: endAtIso,
+    startAt: rawStart,
+    endAt: rawEnd,
     reason: formData.get('reason') || null,
   });
 
@@ -382,11 +384,13 @@ export async function createBlockedTimeAction(
   });
   if (!professional) return { error: 'Profesional no encontrado' };
 
+  const tz = await getTenantTimezone(session.tenantId);
+
   await prisma.calendarBlockedTime.create({
     data: {
       professionalId: parsed.data.professionalId,
-      startAt: new Date(parsed.data.startAt),
-      endAt: new Date(parsed.data.endAt),
+      startAt: datetimeLocalToUtc(parsed.data.startAt, tz),
+      endAt: datetimeLocalToUtc(parsed.data.endAt, tz),
       reason: parsed.data.reason ?? null,
     },
   });
@@ -431,13 +435,10 @@ export async function rescheduleAppointmentAction(
   const session = await requireSession();
 
   const rawStartAt = formData.get('startAt') as string;
-  const startAtIso = rawStartAt?.includes('T') && !rawStartAt.includes('Z')
-    ? `${rawStartAt}:00.000Z`
-    : rawStartAt;
 
   const parsed = rescheduleSchema.safeParse({
     id: formData.get('id'),
-    startAt: startAtIso,
+    startAt: rawStartAt,
   });
 
   if (!parsed.success) {
@@ -453,7 +454,8 @@ export async function rescheduleAppointmentAction(
     return { error: 'No se puede reprogramar un turno cancelado o completado' };
   }
 
-  const newStart = new Date(parsed.data.startAt);
+  const tz = await getTenantTimezone(session.tenantId);
+  const newStart = datetimeLocalToUtc(parsed.data.startAt, tz);
   const newEnd = new Date(newStart.getTime() + appt.service.durationMinutes * 60_000);
 
   const [overlap, blocked] = await Promise.all([

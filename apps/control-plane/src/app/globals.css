@@ -68,8 +68,22 @@
   @media (prefers-reduced-motion: reduce) {
     .animate-spin,
     .animate-bounce,
-    .animate-pulse {
+    .animate-pulse,
+    .animate-slide-in-right {
       animation: none !important;
+    }
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 200ms ease-out;
+  }
+
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
     }
   }
 }
