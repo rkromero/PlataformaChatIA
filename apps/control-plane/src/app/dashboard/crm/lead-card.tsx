@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { updateLeadNotesAction, deleteLeadAction } from './actions';
 import { assignAgentAction } from '../routing/actions';
 import { SendTemplateButton } from './send-template';
@@ -29,6 +29,7 @@ export function LeadCard({
   agents,
   isAdmin,
 }: LeadCardProps) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [notes, setNotes] = useState(lead.notes ?? '');
   const [, startTransition] = useTransition();
@@ -65,6 +66,12 @@ export function LeadCard({
     });
   }
 
+  function handleCardClick(e: React.MouseEvent) {
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a, select, input, textarea, [data-stop-nav]')) return;
+    router.push(`/dashboard/crm/${lead.id}`);
+  }
+
   const timeAgo = getTimeAgo(lead.updatedAt);
 
   return (
@@ -72,29 +79,26 @@ export function LeadCard({
       draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      className={`cursor-grab rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-all active:cursor-grabbing dark:border-gray-700 dark:bg-gray-900 ${
-        isDragging ? 'rotate-2 opacity-50 shadow-lg' : 'hover:shadow-md'
+      onClick={handleCardClick}
+      className={`cursor-pointer rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-all dark:border-gray-700 dark:bg-gray-900 ${
+        isDragging ? 'rotate-2 opacity-50 shadow-lg' : 'hover:border-brand-300 hover:shadow-md dark:hover:border-brand-600'
       }`}
     >
       {/* Header */}
       <div className="flex items-start gap-2">
-        <Link
-          href={`/dashboard/crm/${lead.id}`}
-          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 transition-colors hover:bg-brand-200 dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500/20"
-          title="Ver perfil"
-        >
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
           {initial}
-        </Link>
+        </div>
         <div className="min-w-0 flex-1">
-          <Link href={`/dashboard/crm/${lead.id}`} className="truncate text-sm font-medium hover:text-brand-600 dark:hover:text-brand-400">
+          <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
             {displayName}
-          </Link>
+          </p>
           {lead.phone && lead.contactName && (
             <p className="truncate text-xs text-gray-500">{lead.phone}</p>
           )}
         </div>
         <button
-          onClick={() => setExpanded(!expanded)}
+          onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
           className="flex-shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
         >
           <svg className={`h-3.5 w-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -122,7 +126,7 @@ export function LeadCard({
       <p className="mt-2 text-[10px] text-gray-400">{timeAgo}</p>
 
       {expanded && (
-        <div className="mt-3 space-y-2 border-t border-gray-100 pt-3 dark:border-gray-800">
+        <div className="mt-3 space-y-2 border-t border-gray-100 pt-3 dark:border-gray-800" data-stop-nav>
           {/* Agent assignment */}
           {isAdmin && agents.length > 0 && (
             <div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import {
   updateLeadFieldAction,
@@ -11,6 +11,7 @@ import {
   deleteTaskAction,
 } from './actions';
 import { assignAgentAction } from '../../routing/actions';
+import { SendTemplateButton } from '../send-template';
 
 interface Lead {
   id: string;
@@ -25,6 +26,7 @@ interface Lead {
   assignedAgentName: string | null;
   createdAt: string;
   updatedAt: string;
+  chatwootConversationId: number | null;
 }
 
 interface Task {
@@ -37,7 +39,7 @@ interface Task {
 }
 
 interface MessageItem {
-  id: string;
+  id: string | number;
   direction: string;
   content: string;
   senderName: string | null;
@@ -68,7 +70,7 @@ const TAG_COLORS = [
   'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400',
 ];
 
-export function LeadProfile({ lead, tasks, messages, stageLabels, agents, isAdmin }: Props) {
+export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabels, agents, isAdmin }: Props) {
   const [notes, setNotes] = useState(lead.notes ?? '');
   const [newTag, setNewTag] = useState('');
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -76,8 +78,77 @@ export function LeadProfile({ lead, tasks, messages, stageLabels, agents, isAdmi
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  const [chatMessages, setChatMessages] = useState<MessageItem[]>(initialMessages);
+  const [chatInput, setChatInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const isChatwoot = lead.source === 'chatwoot';
+
   const displayName = lead.contactName || lead.phone || 'Contacto';
   const initial = (lead.contactName?.[0] || lead.phone?.[0] || '#').toUpperCase();
+
+  const scrollToBottom = useCallback(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages, scrollToBottom]);
+
+  async function refreshMessages() {
+    if (!isChatwoot) return;
+    setRefreshing(true);
+    try {
+      const res = await fetch(`/api/chat?leadId=${lead.id}`);
+      const data = await res.json();
+      if (data.messages?.length) {
+        const mapped: MessageItem[] = data.messages.map((m: { id: number; content: string; type: string; sender: string; timestamp: number }) => ({
+          id: m.id,
+          direction: m.type === 'incoming' ? 'incoming' : 'outgoing',
+          content: m.content,
+          senderName: m.sender,
+          timestamp: new Date(m.timestamp * 1000).toISOString(),
+        }));
+        setChatMessages(mapped);
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
+  async function handleSendMessage(e: React.FormEvent) {
+    e.preventDefault();
+    const text = chatInput.trim();
+    if (!text || sending) return;
+
+    setChatInput('');
+    setSending(true);
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadId: lead.id, message: text }),
+      });
+
+      if (res.ok) {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            direction: 'outgoing',
+            content: text,
+            senderName: 'Vos',
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+      }
+    } finally {
+      setSending(false);
+    }
+  }
 
   function handleSaveNotes() {
     startTransition(() => { updateLeadFieldAction(lead.id, 'notes', notes); });
@@ -303,7 +374,7 @@ export function LeadProfile({ lead, tasks, messages, stageLabels, agents, isAdmi
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-gray-300" />
-                <span>{messages.length} mensaje{messages.length !== 1 ? 's' : ''} registrados</span>
+                <span>{chatMessages.length} mensaje{chatMessages.length !== 1 ? 's' : ''} registrados</span>
               </div>
               {lead.assignedAgentName && (
                 <div className="flex items-center gap-2">
@@ -315,18 +386,39 @@ export function LeadProfile({ lead, tasks, messages, stageLabels, agents, isAdmi
           </div>
         </div>
 
-        {/* Right column: Messages */}
+        {/* Right column: Conversation with chat input */}
         <div className="card flex flex-col lg:col-span-2" style={{ maxHeight: 'calc(100vh - 12rem)' }}>
-          <h3 className="mb-3 text-xs font-semibold uppercase text-gray-400">
-            Conversación ({messages.length} mensajes)
-          </h3>
+          {/* Conversation header */}
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase text-gray-400">
+              Conversación ({chatMessages.length} mensajes)
+            </h3>
+            <div className="flex items-center gap-2">
+              <SendTemplateButton leadId={lead.id} hasPhone={!!lead.phone} />
+              {isChatwoot && (
+                <button
+                  onClick={refreshMessages}
+                  disabled={refreshing}
+                  className="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                  title="Actualizar mensajes"
+                >
+                  <svg className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+                  </svg>
+                  Actualizar
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Messages */}
           <div className="flex-1 space-y-2 overflow-y-auto pr-1">
-            {messages.length === 0 ? (
+            {chatMessages.length === 0 ? (
               <p className="py-8 text-center text-sm text-gray-400">
                 Este contacto aún no tiene mensajes registrados
               </p>
             ) : (
-              messages.map((msg) => (
+              chatMessages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.direction === 'incoming' ? 'justify-start' : 'justify-end'}`}>
                   <div
                     className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${
@@ -344,7 +436,55 @@ export function LeadProfile({ lead, tasks, messages, stageLabels, agents, isAdmi
                 </div>
               ))
             )}
+            <div ref={bottomRef} />
           </div>
+
+          {/* Chat input */}
+          {isChatwoot ? (
+            <form onSubmit={handleSendMessage} className="mt-3 flex gap-2 border-t border-gray-200 pt-3 dark:border-gray-700">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Escribir mensaje como agente..."
+                disabled={sending}
+                className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+              />
+              <button
+                type="submit"
+                disabled={sending || !chatInput.trim()}
+                className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
+              >
+                {sending ? (
+                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                ) : (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                  </svg>
+                )}
+                Enviar
+              </button>
+            </form>
+          ) : (
+            <div className="mt-3 flex items-center gap-2 border-t border-gray-200 pt-3 text-xs text-gray-400 dark:border-gray-700">
+              <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+              </svg>
+              <span>
+                Para enviar mensajes directos, usá una plantilla o contactalo vía WhatsApp.
+                {lead.phone && (
+                  <a
+                    href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-1 font-medium text-emerald-600 hover:text-emerald-500"
+                  >
+                    Abrir WhatsApp
+                  </a>
+                )}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>

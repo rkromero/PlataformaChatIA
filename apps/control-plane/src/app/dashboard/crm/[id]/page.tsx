@@ -61,6 +61,7 @@ export default async function LeadProfilePage({
         assignedAgentName: lead.assignedAgent?.name || lead.assignedAgent?.email || null,
         createdAt: lead.createdAt.toISOString(),
         updatedAt: lead.updatedAt.toISOString(),
+        chatwootConversationId: lead.chatwootConversationId,
       }}
       tasks={lead.tasks.map((t) => ({
         id: t.id,
