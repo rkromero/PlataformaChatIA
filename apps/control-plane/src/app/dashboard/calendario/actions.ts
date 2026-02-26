@@ -8,6 +8,10 @@ import { Prisma } from '@prisma/client';
 
 const CALENDAR_PATH = '/dashboard/calendario';
 
+function revalidateCalendar() {
+  revalidatePath(CALENDAR_PATH, 'layout');
+}
+
 // ── Schemas ────────────────────────────────────────────────────
 
 const serviceSchema = z.object({
@@ -82,7 +86,7 @@ export async function createCalendarServiceAction(
     },
   });
 
-  revalidatePath(CALENDAR_PATH);
+  revalidateCalendar();
   return { success: true };
 }
 
@@ -117,7 +121,7 @@ export async function updateCalendarServiceAction(
     },
   });
 
-  revalidatePath(CALENDAR_PATH);
+  revalidateCalendar();
   return { success: true };
 }
 
@@ -133,7 +137,7 @@ export async function deleteCalendarServiceAction(
     where: { id, tenantId: session.tenantId },
   });
 
-  revalidatePath(CALENDAR_PATH);
+  revalidateCalendar();
   return { success: true };
 }
 
@@ -173,7 +177,7 @@ export async function saveScheduleAction(
     ),
   ]);
 
-  revalidatePath(CALENDAR_PATH);
+  revalidateCalendar();
   return { success: true };
 }
 
@@ -201,7 +205,7 @@ export async function saveProfessionalServicesAction(
     ),
   ]);
 
-  revalidatePath(CALENDAR_PATH);
+  revalidateCalendar();
   return { success: true };
 }
 
@@ -265,7 +269,7 @@ export async function createAppointmentAction(
     },
   });
 
-  revalidatePath(CALENDAR_PATH);
+  revalidateCalendar();
   return { success: true };
 }
 
@@ -289,7 +293,7 @@ export async function updateAppointmentStatusAction(
     data: { status: parsed.data.status },
   });
 
-  revalidatePath(CALENDAR_PATH);
+  revalidateCalendar();
   return { success: true };
 }
 
@@ -326,7 +330,7 @@ export async function saveCalendarConfigAction(
     update: parsed.data,
   });
 
-  revalidatePath(CALENDAR_PATH);
+  revalidateCalendar();
   return { success: true };
 }
 
@@ -375,7 +379,7 @@ export async function createBlockedTimeAction(
     },
   });
 
-  revalidatePath(CALENDAR_PATH);
+  revalidateCalendar();
   return { success: true };
 }
 
@@ -397,7 +401,7 @@ export async function deleteBlockedTimeAction(
 
   await prisma.calendarBlockedTime.delete({ where: { id } });
 
-  revalidatePath(CALENDAR_PATH);
+  revalidateCalendar();
   return { success: true };
 }
 
@@ -456,6 +460,6 @@ export async function rescheduleAppointmentAction(
     data: { startAt: newStart, endAt: newEnd, status: 'pending' },
   });
 
-  revalidatePath(CALENDAR_PATH);
+  revalidateCalendar();
   return { success: true };
 }
