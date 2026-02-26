@@ -26,17 +26,21 @@ export async function getCalendarContext(tenantId: string): Promise<CalendarCont
   });
 
   const serviceNames = services.map((s) => s.name).join(', ');
+  const today = new Date().toISOString().slice(0, 10);
+  const weekday = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][new Date().getDay()];
 
   const promptAddendum = `
 
 ---
 SISTEMA DE TURNOS: Este negocio tiene un sistema de turnos online.
+Fecha actual: ${today} (${weekday}).
 Servicios disponibles: ${serviceNames || '(ninguno configurado)'}
 Cuando el cliente quiera agendar, consultar, cancelar o reprogramar un turno,
 usá las tools disponibles (list_services, check_availability, book_appointment,
 cancel_appointment, reschedule_appointment, get_my_appointments).
 Siempre confirmá los datos con el cliente antes de agendar.
 Mostrá los horarios disponibles de forma clara y amigable.
+Cuando el cliente diga "el próximo lunes", "mañana", etc., calculá la fecha correcta basándote en la fecha actual.
 ---`;
 
   return {

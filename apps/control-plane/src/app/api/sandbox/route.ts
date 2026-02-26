@@ -74,7 +74,10 @@ export async function POST(request: NextRequest) {
     });
     const serviceNames = services.map((s) => s.name).join(', ');
 
-    systemPrompt += `\n\n---\nSISTEMA DE TURNOS: Este negocio tiene un sistema de turnos online.\nServicios disponibles: ${serviceNames || '(ninguno configurado)'}\nCuando el cliente quiera agendar, consultar, cancelar o reprogramar un turno, usá las tools disponibles.\nSiempre confirmá los datos con el cliente antes de agendar.\nMostrá los horarios disponibles de forma clara y amigable.\n---`;
+    const today = new Date().toISOString().slice(0, 10);
+    const weekday = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][new Date().getDay()];
+
+    systemPrompt += `\n\n---\nSISTEMA DE TURNOS: Este negocio tiene un sistema de turnos online.\nFecha actual: ${today} (${weekday}).\nServicios disponibles: ${serviceNames || '(ninguno configurado)'}\nCuando el cliente quiera agendar, consultar, cancelar o reprogramar un turno, usá las tools disponibles.\nSiempre confirmá los datos con el cliente antes de agendar.\nMostrá los horarios disponibles de forma clara y amigable.\nCuando el cliente diga "el próximo lunes", "mañana", etc., calculá la fecha correcta basándote en la fecha actual.\n---`;
 
     tools = calendarToolDefs;
   }
@@ -87,13 +90,14 @@ export async function POST(request: NextRequest) {
 
   try {
     let reply = '';
+    let lastAssistantText = '';
     let rounds = 0;
 
     while (rounds <= MAX_TOOL_ROUNDS) {
       const openaiBody: Record<string, unknown> = {
         model: settings.model,
         messages,
-        max_tokens: 400,
+        max_tokens: 600,
       };
       if (tools && tools.length > 0) {
         openaiBody.tools = tools;
@@ -111,19 +115,41 @@ export async function POST(request: NextRequest) {
 
       if (!res.ok) {
         const text = await res.text();
-        console.error('OpenAI error:', res.status, text);
+        console.error('OpenAI error (round', rounds, '):', res.status, text);
+        if (lastAssistantText) {
+          return NextResponse.json({ reply: lastAssistantText });
+        }
         return NextResponse.json({ error: 'Error al generar respuesta de IA' }, { status: 502 });
       }
 
       const data = await res.json();
       const choice = data.choices?.[0];
-      const toolCalls = choice?.message?.tool_calls;
+      const msg = choice?.message;
+      const toolCalls = msg?.tool_calls;
+
+      if (msg?.content) {
+        lastAssistantText = msg.content;
+      }
 
       if (toolCalls && toolCalls.length > 0) {
-        messages.push(choice.message);
+        const sanitized: Record<string, unknown> = {
+          role: 'assistant',
+          tool_calls: toolCalls.map((tc: { id: string; type: string; function: { name: string; arguments: string } }) => ({
+            id: tc.id,
+            type: tc.type,
+            function: { name: tc.function.name, arguments: tc.function.arguments },
+          })),
+        };
+        if (msg.content) sanitized.content = msg.content;
+        messages.push(sanitized);
 
         for (const tc of toolCalls) {
-          const args = JSON.parse(tc.function.arguments || '{}');
+          let args: Record<string, unknown> = {};
+          try {
+            args = JSON.parse(tc.function.arguments || '{}');
+          } catch {
+            console.error('Failed to parse tool arguments:', tc.function.arguments);
+          }
           const result = await executeCalendarTool(
             tc.function.name,
             args,
@@ -140,12 +166,12 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      reply = choice?.message?.content ?? 'No se pudo generar una respuesta.';
+      reply = msg?.content ?? 'No se pudo generar una respuesta.';
       break;
     }
 
     if (!reply) {
-      reply = 'Lo siento, no pude procesar la solicitud.';
+      reply = lastAssistantText || 'Lo siento, no pude procesar la solicitud.';
     }
 
     return NextResponse.json({ reply });
@@ -205,6 +231,36 @@ const calendarToolDefs = [
   {
     type: 'function',
     function: {
+      name: 'cancel_appointment',
+      description: 'Cancela un turno existente por su ID.',
+      parameters: {
+        type: 'object',
+        properties: {
+          appointment_id: { type: 'string', description: 'UUID del turno.' },
+        },
+        required: ['appointment_id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'reschedule_appointment',
+      description: 'Reprograma un turno existente a una nueva fecha y hora.',
+      parameters: {
+        type: 'object',
+        properties: {
+          appointment_id: { type: 'string', description: 'UUID del turno.' },
+          new_date: { type: 'string', description: 'Nueva fecha YYYY-MM-DD.' },
+          new_time: { type: 'string', description: 'Nueva hora HH:MM (24h).' },
+        },
+        required: ['appointment_id', 'new_date', 'new_time'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'get_my_appointments',
       description: 'Obtiene los próximos turnos agendados.',
       parameters: { type: 'object', properties: {}, required: [] },
@@ -226,6 +282,10 @@ async function executeCalendarTool(
       return checkAvailability(tenantId, args);
     case 'book_appointment':
       return bookAppointment(tenantId, args);
+    case 'cancel_appointment':
+      return cancelAppointment(tenantId, args);
+    case 'reschedule_appointment':
+      return rescheduleAppointment(tenantId, args);
     case 'get_my_appointments':
       return getAppointments(tenantId);
     default:
@@ -299,6 +359,8 @@ async function checkAvailability(
       }),
     ]);
 
+    console.log('[Sandbox check_availability]', { profId, dateStr, blockedCount: blocked.length, existingCount: existing.length, blocked: blocked.map(b => ({ start: b.startAt.toISOString(), end: b.endAt.toISOString(), reason: b.reason })) });
+
     const slots = generateSlots(
       dateStr, schedule.startTime, schedule.endTime,
       schedule.breakStart, schedule.breakEnd,
@@ -364,6 +426,66 @@ async function bookAppointment(
     date: dateStr,
     time: timeStr,
   });
+}
+
+async function cancelAppointment(
+  tenantId: string,
+  args: Record<string, unknown>,
+): Promise<string> {
+  const appointmentId = args.appointment_id as string;
+  const appointment = await prisma.appointment.findFirst({
+    where: { id: appointmentId, tenantId, status: { notIn: ['cancelled', 'completed'] } },
+  });
+  if (!appointment) return JSON.stringify({ error: 'Turno no encontrado o ya cancelado.' });
+
+  await prisma.appointment.update({
+    where: { id: appointmentId },
+    data: { status: 'cancelled' },
+  });
+
+  return JSON.stringify({ success: true, message: 'Turno cancelado correctamente.' });
+}
+
+async function rescheduleAppointment(
+  tenantId: string,
+  args: Record<string, unknown>,
+): Promise<string> {
+  const appointmentId = args.appointment_id as string;
+  const newDate = args.new_date as string;
+  const newTime = args.new_time as string;
+
+  const appointment = await prisma.appointment.findFirst({
+    where: { id: appointmentId, tenantId, status: { notIn: ['cancelled', 'completed'] } },
+    include: { service: true },
+  });
+  if (!appointment) return JSON.stringify({ error: 'Turno no encontrado o ya cancelado.' });
+
+  const newStart = new Date(`${newDate}T${newTime}:00.000Z`);
+  const newEnd = new Date(newStart.getTime() + appointment.service.durationMinutes * 60_000);
+
+  const [overlap, blocked] = await Promise.all([
+    prisma.appointment.findFirst({
+      where: {
+        professionalId: appointment.professionalId,
+        id: { not: appointmentId },
+        status: { notIn: ['cancelled'] },
+        startAt: { lt: newEnd },
+        endAt: { gt: newStart },
+      },
+    }),
+    prisma.calendarBlockedTime.findFirst({
+      where: { professionalId: appointment.professionalId, startAt: { lt: newEnd }, endAt: { gt: newStart } },
+    }),
+  ]);
+  if (overlap) return JSON.stringify({ error: 'El nuevo horario ya está ocupado.' });
+  if (blocked) return JSON.stringify({ error: `El profesional no está disponible${blocked.reason ? `: ${blocked.reason}` : ''}.` });
+
+  await prisma.appointment.update({
+    where: { id: appointmentId },
+    data: { startAt: newStart, endAt: newEnd },
+  });
+
+  return JSON.stringify({ success: true, new_date: newDate, new_time: newTime });
 }
 
 async function getAppointments(tenantId: string): Promise<string> {
