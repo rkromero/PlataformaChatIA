@@ -76,12 +76,12 @@ export function BlockedTimes({ professionals, blockedTimes }: Props) {
 
           <div>
             <label className="label">Desde</label>
-            <input name="startAt" type="datetime-local" required className="input" />
+            <input name="startAt" type="datetime-local" step="900" required className="input" />
           </div>
 
           <div>
             <label className="label">Hasta</label>
-            <input name="endAt" type="datetime-local" required className="input" />
+            <input name="endAt" type="datetime-local" step="900" required className="input" />
           </div>
         </div>
 

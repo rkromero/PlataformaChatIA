@@ -70,6 +70,7 @@ function RescheduleButton({ appointmentId, currentStart }: { appointmentId: stri
       <input
         type="datetime-local"
         name="startAt"
+        step="900"
         defaultValue={defaultValue}
         className="rounded border border-gray-300 px-1.5 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-800"
       />

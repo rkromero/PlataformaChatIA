@@ -75,7 +75,7 @@ export function NewAppointmentForm({
 
       <div>
         <label htmlFor="startAt" className="label">Fecha y hora</label>
-        <input id="startAt" name="startAt" type="datetime-local" required className="input" />
+        <input id="startAt" name="startAt" type="datetime-local" step="900" required className="input" />
       </div>
 
       <div>

@@ -295,6 +295,7 @@ function ProfessionalEditor({
                   <div className="flex flex-1 items-center gap-1.5">
                     <input
                       type="time"
+                      step="900"
                       value={entry.startTime}
                       onChange={(e) => updateEntry(idx, 'startTime', e.target.value)}
                       className="w-[5.5rem] rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
@@ -302,6 +303,7 @@ function ProfessionalEditor({
                     <span className="text-xs text-gray-400">a</span>
                     <input
                       type="time"
+                      step="900"
                       value={entry.endTime}
                       onChange={(e) => updateEntry(idx, 'endTime', e.target.value)}
                       className="w-[5.5rem] rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
