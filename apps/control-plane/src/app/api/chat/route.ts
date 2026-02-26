@@ -196,6 +196,7 @@ async function sendViaWhatsAppQr(
 
     await prisma.message.create({
       data: {
+        tenantId: lead.tenantId,
         conversationLinkId: leadId,
         direction: 'outgoing',
         content: text,
