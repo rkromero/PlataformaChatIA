@@ -17,6 +17,7 @@ export async function syncTemplatesAction() {
   try {
     const count = await syncTemplatesFromMeta(session.tenantId);
     revalidatePath('/dashboard/templates');
+    revalidatePath('/dashboard/channels');
     return { success: true, count };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Error desconocido';
@@ -71,6 +72,7 @@ export async function createTemplateAction(_prev: unknown, formData: FormData) {
     });
 
     revalidatePath('/dashboard/templates');
+    revalidatePath('/dashboard/channels');
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Error desconocido';
@@ -115,4 +117,5 @@ export async function deleteTemplateAction(templateId: string) {
   });
 
   revalidatePath('/dashboard/templates');
+  revalidatePath('/dashboard/channels');
 }

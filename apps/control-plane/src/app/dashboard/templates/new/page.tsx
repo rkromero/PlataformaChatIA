@@ -12,7 +12,7 @@ export default function NewTemplatePage() {
     return (
       <div className="mx-auto max-w-lg">
         <Breadcrumbs items={[
-          { label: 'Plantillas', href: '/dashboard/templates' },
+          { label: 'Canales', href: '/dashboard/channels' },
           { label: 'Nueva plantilla' },
         ]} />
         <div className="card text-center">
@@ -23,8 +23,8 @@ export default function NewTemplatePage() {
           </div>
           <p className="font-medium">Plantilla enviada a Meta para revisión</p>
           <p className="mt-1 text-sm text-gray-500">Puede tardar entre minutos y 24 horas en ser aprobada.</p>
-          <Link href="/dashboard/templates" className="mt-4 inline-block text-sm font-medium text-brand-600">
-            ← Volver a plantillas
+          <Link href="/dashboard/channels" className="mt-4 inline-block text-sm font-medium text-brand-600">
+            ← Volver a canales
           </Link>
         </div>
       </div>
@@ -35,7 +35,7 @@ export default function NewTemplatePage() {
     <div className="mx-auto max-w-lg">
       <div className="mb-6">
         <Breadcrumbs items={[
-          { label: 'Plantillas', href: '/dashboard/templates' },
+          { label: 'Canales', href: '/dashboard/channels' },
           { label: 'Nueva plantilla' },
         ]} />
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Nueva plantilla</h1>
