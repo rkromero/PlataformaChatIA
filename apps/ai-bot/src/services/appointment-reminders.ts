@@ -3,8 +3,7 @@ import { logger } from '../lib/logger.js';
 import { sendMessage as sendBaileysMessage } from './baileys-manager.js';
 import { sendMessage as sendChatwootMessage } from './chatwoot.js';
 
-const REMINDER_ADVANCE_MS = 60 * 60 * 1000; // 1 hour before
-const CHECK_INTERVAL_MS = 5 * 60 * 1000; // every 5 minutes
+const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 
 export function startReminderLoop() {
   logger.info('Appointment reminder loop started');
@@ -22,14 +21,85 @@ export function startReminderLoop() {
 }
 
 async function processReminders() {
-  const now = new Date();
-  const windowEnd = new Date(now.getTime() + REMINDER_ADVANCE_MS);
+  const configs = await prisma.calendarConfig.findMany({
+    where: { reminderChannel: { not: null } },
+    select: {
+      tenantId: true,
+      reminderChannel: true,
+      reminderMinutes1: true,
+      reminderMinutes2: true,
+    },
+  });
 
-  const appointments = await prisma.appointment.findMany({
+  for (const config of configs) {
+    await processReminder1(config);
+    if (config.reminderMinutes2 != null) {
+      await processReminder2(config);
+    }
+  }
+}
+
+interface ReminderConfig {
+  tenantId: string;
+  reminderChannel: string | null;
+  reminderMinutes1: number;
+  reminderMinutes2: number | null;
+}
+
+async function processReminder1(config: ReminderConfig) {
+  const now = new Date();
+  const windowEnd = new Date(now.getTime() + config.reminderMinutes1 * 60_000);
+
+  const appointments = await findAppointments(config.tenantId, now, windowEnd, 'reminderSentAt');
+  if (appointments.length === 0) return;
+
+  const label = formatMinutes(config.reminderMinutes1);
+  logger.info({ count: appointments.length, tenantId: config.tenantId, advance: label }, 'Processing reminder 1');
+
+  for (const appt of appointments) {
+    const sent = await sendReminder(appt, config.reminderChannel!, label);
+    if (sent) {
+      await prisma.appointment.update({
+        where: { id: appt.id },
+        data: { reminderSentAt: new Date() },
+      });
+    }
+  }
+}
+
+async function processReminder2(config: ReminderConfig) {
+  const now = new Date();
+  const windowEnd = new Date(now.getTime() + config.reminderMinutes2! * 60_000);
+
+  const appointments = await findAppointments(config.tenantId, now, windowEnd, 'reminder2SentAt');
+  if (appointments.length === 0) return;
+
+  const label = formatMinutes(config.reminderMinutes2!);
+  logger.info({ count: appointments.length, tenantId: config.tenantId, advance: label }, 'Processing reminder 2');
+
+  for (const appt of appointments) {
+    const sent = await sendReminder(appt, config.reminderChannel!, label);
+    if (sent) {
+      await prisma.appointment.update({
+        where: { id: appt.id },
+        data: { reminder2SentAt: new Date() },
+      });
+    }
+  }
+}
+
+async function findAppointments(
+  tenantId: string,
+  now: Date,
+  windowEnd: Date,
+  sentField: 'reminderSentAt' | 'reminder2SentAt',
+) {
+  return prisma.appointment.findMany({
     where: {
+      tenantId,
       status: { in: ['pending', 'confirmed'] },
       startAt: { gt: now, lte: windowEnd },
-      reminderSentAt: null,
+      [sentField]: null,
     },
     include: {
       service: { select: { name: true } },
@@ -39,7 +109,6 @@ async function processReminders() {
           id: true,
           name: true,
           chatwootAccountId: true,
-          calendarConfig: { select: { reminderChannel: true } },
         },
       },
       conversationLink: {
@@ -52,70 +121,50 @@ async function processReminders() {
       },
     },
   });
+}
 
-  if (appointments.length === 0) return;
+type AppointmentWithRelations = Awaited<ReturnType<typeof findAppointments>>[number];
 
-  logger.info({ count: appointments.length }, 'Processing appointment reminders');
+async function sendReminder(
+  appt: AppointmentWithRelations,
+  channel: string,
+  advanceLabel: string,
+): Promise<boolean> {
+  try {
+    const timeStr = appt.startAt.toISOString().slice(11, 16);
+    const dateStr = appt.startAt.toISOString().slice(0, 10);
+    const profName = appt.professional.name || 'tu profesional';
 
-  for (const appt of appointments) {
-    try {
-      const channel = appt.tenant.calendarConfig?.reminderChannel ?? null;
+    const message = [
+      `📅 *Recordatorio de turno*`,
+      ``,
+      `Hola ${appt.clientName}, te recordamos tu turno en ${advanceLabel}:`,
+      `• Servicio: ${appt.service.name}`,
+      `• Profesional: ${profName}`,
+      `• Fecha: ${dateStr}`,
+      `• Hora: ${timeStr}`,
+      ``,
+      `Si necesitás cancelar o reprogramar, avisanos por este medio.`,
+      `¡Te esperamos! — ${appt.tenant.name}`,
+    ].join('\n');
 
-      if (!channel) {
-        logger.debug({ appointmentId: appt.id }, 'Reminders disabled for tenant, skipping');
-        continue;
-      }
-
-      const timeStr = appt.startAt.toISOString().slice(11, 16);
-      const dateStr = appt.startAt.toISOString().slice(0, 10);
-      const profName = appt.professional.name || 'tu profesional';
-
-      const message = [
-        `📅 *Recordatorio de turno*`,
-        ``,
-        `Hola ${appt.clientName}, te recordamos tu turno:`,
-        `• Servicio: ${appt.service.name}`,
-        `• Profesional: ${profName}`,
-        `• Fecha: ${dateStr}`,
-        `• Hora: ${timeStr}`,
-        ``,
-        `Si necesitás cancelar o reprogramar, avisanos por este medio.`,
-        `¡Te esperamos! — ${appt.tenant.name}`,
-      ].join('\n');
-
-      let sent = false;
-
-      if (channel === 'whatsapp_qr') {
-        sent = await trySendViaBaileys(appt, message);
-      } else if (channel === 'whatsapp') {
-        sent = await trySendViaChatwoot(appt, message);
-      }
-
-      if (sent) {
-        await prisma.appointment.update({
-          where: { id: appt.id },
-          data: { reminderSentAt: new Date() },
-        });
-        logger.info({ appointmentId: appt.id, channel }, 'Reminder sent');
-      } else {
-        logger.warn({ appointmentId: appt.id, channel }, 'Could not send reminder');
-      }
-    } catch (err) {
-      logger.error({ err, appointmentId: appt.id }, 'Error processing reminder');
+    if (channel === 'whatsapp_qr') {
+      return await trySendViaBaileys(appt, message);
+    } else if (channel === 'whatsapp') {
+      return await trySendViaChatwoot(appt, message);
     }
+    return false;
+  } catch (err) {
+    logger.error({ err, appointmentId: appt.id }, 'Error sending reminder');
+    return false;
   }
 }
 
-async function trySendViaBaileys(
-  appt: AppointmentWithRelations,
-  message: string,
-): Promise<boolean> {
+async function trySendViaBaileys(appt: AppointmentWithRelations, message: string): Promise<boolean> {
   const chatId =
     appt.conversationLink?.wahaChatId ??
     (appt.clientPhone
-      ? appt.clientPhone.includes('@')
-        ? appt.clientPhone
-        : `${appt.clientPhone}@s.whatsapp.net`
+      ? appt.clientPhone.includes('@') ? appt.clientPhone : `${appt.clientPhone}@s.whatsapp.net`
       : null);
 
   if (!chatId) return false;
@@ -129,16 +178,8 @@ async function trySendViaBaileys(
   }
 }
 
-async function trySendViaChatwoot(
-  appt: AppointmentWithRelations,
-  message: string,
-): Promise<boolean> {
-  if (
-    !appt.conversationLink?.chatwootConversationId ||
-    !appt.tenant.chatwootAccountId
-  ) {
-    return false;
-  }
+async function trySendViaChatwoot(appt: AppointmentWithRelations, message: string): Promise<boolean> {
+  if (!appt.conversationLink?.chatwootConversationId || !appt.tenant.chatwootAccountId) return false;
 
   try {
     await sendChatwootMessage(
@@ -153,23 +194,8 @@ async function trySendViaChatwoot(
   }
 }
 
-type AppointmentWithRelations = {
-  id: string;
-  clientName: string;
-  clientPhone: string | null;
-  startAt: Date;
-  service: { name: string };
-  professional: { name: string };
-  tenant: {
-    id: string;
-    name: string;
-    chatwootAccountId: number | null;
-    calendarConfig: { reminderChannel: string | null } | null;
-  };
-  conversationLink: {
-    id: string;
-    wahaChatId: string | null;
-    chatwootConversationId: number;
-    source: string;
-  } | null;
-};
+function formatMinutes(mins: number): string {
+  if (mins >= 1440) return `${Math.round(mins / 1440)} día${mins >= 2880 ? 's' : ''}`;
+  if (mins >= 60) return `${Math.round(mins / 60)} hora${mins >= 120 ? 's' : ''}`;
+  return `${mins} minutos`;
+}

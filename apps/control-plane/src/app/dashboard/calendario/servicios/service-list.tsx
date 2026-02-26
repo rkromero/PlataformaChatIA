@@ -1,7 +1,13 @@
 'use client';
 
-import { useActionState } from 'react';
-import { deleteCalendarServiceAction } from '../actions';
+import { useActionState, useState } from 'react';
+import { deleteCalendarServiceAction, updateCalendarServiceAction } from '../actions';
+
+const COLORS = [
+  '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
+  '#f97316', '#eab308', '#22c55e', '#14b8a6',
+  '#06b6d4', '#3b82f6',
+];
 
 interface ServiceItem {
   id: string;
@@ -32,6 +38,79 @@ function DeleteButton({ serviceId }: { serviceId: string }) {
   );
 }
 
+function EditableService({ service }: { service: ServiceItem }) {
+  const [editing, setEditing] = useState(false);
+  const [selectedColor, setSelectedColor] = useState(service.color);
+  const [state, action, pending] = useActionState(updateCalendarServiceAction, null);
+
+  if (!editing) {
+    return (
+      <div className="card flex items-center gap-3">
+        <div className="h-8 w-2 rounded-full" style={{ backgroundColor: service.color }} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium">{service.name}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {service.durationMinutes} min
+            {service.price != null ? ` · $${service.price.toLocaleString('es-AR')}` : ''}
+          </p>
+        </div>
+        <button
+          onClick={() => setEditing(true)}
+          className="rounded p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+          aria-label="Editar servicio"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+          </svg>
+        </button>
+        <DeleteButton serviceId={service.id} />
+      </div>
+    );
+  }
+
+  return (
+    <form
+      action={async (formData) => {
+        await action(formData);
+        setEditing(false);
+      }}
+      className="card space-y-3"
+    >
+      <input type="hidden" name="id" value={service.id} />
+      <input type="hidden" name="color" value={selectedColor} />
+      <div className="grid gap-3 sm:grid-cols-[1fr,100px,100px]">
+        <input name="name" type="text" required defaultValue={service.name} className="input" placeholder="Nombre" />
+        <input name="durationMinutes" type="number" required min={15} max={480} step={5} defaultValue={service.durationMinutes} className="input" placeholder="Min" />
+        <input name="price" type="number" min={0} step={0.01} defaultValue={service.price ?? ''} className="input" placeholder="Precio" />
+      </div>
+      <div className="flex items-center gap-1.5">
+        {COLORS.map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => setSelectedColor(c)}
+            className={`h-6 w-6 rounded-full border-2 transition-transform ${
+              selectedColor === c
+                ? 'scale-110 border-white shadow-lg'
+                : 'border-transparent opacity-60 hover:opacity-100'
+            }`}
+            style={{ backgroundColor: c }}
+          />
+        ))}
+      </div>
+      {state?.error && <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>}
+      <div className="flex gap-2">
+        <button type="submit" disabled={pending} className="btn-primary text-sm">
+          {pending ? 'Guardando...' : 'Guardar'}
+        </button>
+        <button type="button" onClick={() => setEditing(false)} className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export function ServiceList({ services }: { services: ServiceItem[] }) {
   if (services.length === 0) {
     return <p className="text-sm text-gray-500 dark:text-gray-400">Sin servicios creados.</p>;
@@ -40,17 +119,7 @@ export function ServiceList({ services }: { services: ServiceItem[] }) {
   return (
     <div className="space-y-2">
       {services.map((s) => (
-        <div key={s.id} className="card flex items-center gap-3">
-          <div className="h-8 w-2 rounded-full" style={{ backgroundColor: s.color }} />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium">{s.name}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {s.durationMinutes} min
-              {s.price != null ? ` · $${s.price.toLocaleString('es-AR')}` : ''}
-            </p>
-          </div>
-          <DeleteButton serviceId={s.id} />
-        </div>
+        <EditableService key={s.id} service={s} />
       ))}
     </div>
   );

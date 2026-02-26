@@ -37,6 +37,8 @@ const calendarConfigSchema = z.object({
   minAdvanceHours: z.coerce.number().int().min(0).max(168),
   maxAdvanceDays: z.coerce.number().int().min(1).max(365),
   reminderChannel: z.string().nullable().optional(),
+  reminderMinutes1: z.coerce.number().int().min(15).max(2880),
+  reminderMinutes2: z.coerce.number().int().min(15).max(2880).nullable().optional(),
 });
 
 const scheduleEntrySchema = z.object({
@@ -307,6 +309,8 @@ export async function saveCalendarConfigAction(
     minAdvanceHours: formData.get('minAdvanceHours'),
     maxAdvanceDays: formData.get('maxAdvanceDays'),
     reminderChannel: rawChannel === '' || rawChannel === 'none' ? null : rawChannel,
+    reminderMinutes1: formData.get('reminderMinutes1'),
+    reminderMinutes2: formData.get('reminderMinutes2') || null,
   });
 
   if (!parsed.success) {
@@ -320,6 +324,136 @@ export async function saveCalendarConfigAction(
       ...parsed.data,
     },
     update: parsed.data,
+  });
+
+  revalidatePath(CALENDAR_PATH);
+  return { success: true };
+}
+
+// ── Blocked Times ───────────────────────────────────────────────
+
+const blockedTimeSchema = z.object({
+  professionalId: z.string().uuid(),
+  startAt: z.string().min(1, 'Fecha inicio requerida'),
+  endAt: z.string().min(1, 'Fecha fin requerida'),
+  reason: z.string().optional().nullable(),
+});
+
+export async function createBlockedTimeAction(
+  _prev: unknown,
+  formData: FormData,
+) {
+  const session = await requireSession();
+
+  const rawStart = formData.get('startAt') as string;
+  const rawEnd = formData.get('endAt') as string;
+  const startAtIso = rawStart?.includes('T') && !rawStart.includes('Z') ? `${rawStart}:00.000Z` : rawStart;
+  const endAtIso = rawEnd?.includes('T') && !rawEnd.includes('Z') ? `${rawEnd}:00.000Z` : rawEnd;
+
+  const parsed = blockedTimeSchema.safeParse({
+    professionalId: formData.get('professionalId'),
+    startAt: startAtIso,
+    endAt: endAtIso,
+    reason: formData.get('reason') || null,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.errors.map((e) => e.message).join(', ') };
+  }
+
+  const professional = await prisma.tenantUser.findFirst({
+    where: { id: parsed.data.professionalId, tenantId: session.tenantId },
+  });
+  if (!professional) return { error: 'Profesional no encontrado' };
+
+  await prisma.calendarBlockedTime.create({
+    data: {
+      professionalId: parsed.data.professionalId,
+      startAt: new Date(parsed.data.startAt),
+      endAt: new Date(parsed.data.endAt),
+      reason: parsed.data.reason ?? null,
+    },
+  });
+
+  revalidatePath(CALENDAR_PATH);
+  return { success: true };
+}
+
+export async function deleteBlockedTimeAction(
+  _prev: unknown,
+  formData: FormData,
+) {
+  const session = await requireSession();
+  const id = formData.get('id') as string;
+  if (!id) return { error: 'ID requerido' };
+
+  const blocked = await prisma.calendarBlockedTime.findUnique({
+    where: { id },
+    include: { professional: { select: { tenantId: true } } },
+  });
+  if (!blocked || blocked.professional.tenantId !== session.tenantId) {
+    return { error: 'Bloqueo no encontrado' };
+  }
+
+  await prisma.calendarBlockedTime.delete({ where: { id } });
+
+  revalidatePath(CALENDAR_PATH);
+  return { success: true };
+}
+
+// ── Reschedule Appointment ──────────────────────────────────────
+
+const rescheduleSchema = z.object({
+  id: z.string().uuid(),
+  startAt: z.string().datetime({ message: 'Fecha inválida' }),
+});
+
+export async function rescheduleAppointmentAction(
+  _prev: unknown,
+  formData: FormData,
+) {
+  const session = await requireSession();
+
+  const rawStartAt = formData.get('startAt') as string;
+  const startAtIso = rawStartAt?.includes('T') && !rawStartAt.includes('Z')
+    ? `${rawStartAt}:00.000Z`
+    : rawStartAt;
+
+  const parsed = rescheduleSchema.safeParse({
+    id: formData.get('id'),
+    startAt: startAtIso,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.errors.map((e) => e.message).join(', ') };
+  }
+
+  const appt = await prisma.appointment.findFirst({
+    where: { id: parsed.data.id, tenantId: session.tenantId },
+    include: { service: true },
+  });
+  if (!appt) return { error: 'Turno no encontrado' };
+  if (appt.status === 'cancelled' || appt.status === 'completed') {
+    return { error: 'No se puede reprogramar un turno cancelado o completado' };
+  }
+
+  const newStart = new Date(parsed.data.startAt);
+  const newEnd = new Date(newStart.getTime() + appt.service.durationMinutes * 60_000);
+
+  const overlap = await prisma.appointment.findFirst({
+    where: {
+      professionalId: appt.professionalId,
+      id: { not: appt.id },
+      status: { notIn: ['cancelled'] },
+      startAt: { lt: newEnd },
+      endAt: { gt: newStart },
+    },
+  });
+  if (overlap) return { error: 'El nuevo horario ya está ocupado' };
+
+  await prisma.appointment.update({
+    where: { id: appt.id },
+    data: { startAt: newStart, endAt: newEnd, status: 'pending' },
   });
 
   revalidatePath(CALENDAR_PATH);

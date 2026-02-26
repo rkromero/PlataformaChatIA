@@ -8,6 +8,17 @@ interface ChannelOption {
   label: string;
 }
 
+const REMINDER_OPTIONS = [
+  { value: 15, label: '15 minutos' },
+  { value: 30, label: '30 minutos' },
+  { value: 60, label: '1 hora' },
+  { value: 120, label: '2 horas' },
+  { value: 240, label: '4 horas' },
+  { value: 480, label: '8 horas' },
+  { value: 1440, label: '1 día' },
+  { value: 2880, label: '2 días' },
+];
+
 interface Props {
   config?: {
     timezone: string;
@@ -15,6 +26,8 @@ interface Props {
     minAdvanceHours: number;
     maxAdvanceDays: number;
     reminderChannel: string | null;
+    reminderMinutes1: number;
+    reminderMinutes2: number | null;
   };
   availableChannels: ChannelOption[];
 }
@@ -75,26 +88,63 @@ export function CalendarConfigForm({ config, availableChannels }: Props) {
         </div>
       </div>
 
-      <div>
-        <label htmlFor="reminderChannel" className="label">Canal de recordatorios</label>
-        <select
-          id="reminderChannel"
-          name="reminderChannel"
-          defaultValue={config?.reminderChannel ?? 'none'}
-          className="input"
-        >
-          <option value="none">Desactivado</option>
-          {availableChannels.map((ch) => (
-            <option key={ch.value} value={ch.value}>
-              {ch.label}
-            </option>
-          ))}
-        </select>
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Seleccioná por qué canal enviar los recordatorios automáticos (1 hora antes del turno).
-          Solo se muestran los canales que tenés configurados.
+      <fieldset className="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+        <legend className="px-2 text-sm font-semibold">Recordatorios automáticos</legend>
+
+        <div>
+          <label htmlFor="reminderChannel" className="label">Canal de envío</label>
+          <select
+            id="reminderChannel"
+            name="reminderChannel"
+            defaultValue={config?.reminderChannel ?? 'none'}
+            className="input"
+          >
+            <option value="none">Desactivado</option>
+            {availableChannels.map((ch) => (
+              <option key={ch.value} value={ch.value}>
+                {ch.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="reminderMinutes1" className="label">Primer recordatorio</label>
+            <select
+              id="reminderMinutes1"
+              name="reminderMinutes1"
+              defaultValue={config?.reminderMinutes1 ?? 60}
+              className="input"
+            >
+              {REMINDER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label} antes
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="reminderMinutes2" className="label">Segundo recordatorio (opcional)</label>
+            <select
+              id="reminderMinutes2"
+              name="reminderMinutes2"
+              defaultValue={config?.reminderMinutes2 ?? ''}
+              className="input"
+            >
+              <option value="">Sin segundo recordatorio</option>
+              {REMINDER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label} antes
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Solo se muestran los canales que tenés configurados. Si el canal es &quot;Desactivado&quot;, no se envían recordatorios.
         </p>
-      </div>
+      </fieldset>
 
       {state?.error && (
         <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>

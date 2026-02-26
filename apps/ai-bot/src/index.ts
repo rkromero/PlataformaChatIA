@@ -5,6 +5,7 @@ import { webhookRoutes } from './routes/webhook.js';
 import { baileysApiRoutes } from './routes/baileys-api.js';
 import { reconnectActiveSessions } from './services/baileys-manager.js';
 import { startReminderLoop } from './services/appointment-reminders.js';
+import { startNoShowDetector } from './services/noshow-detector.js';
 
 const app = Fastify({ logger: false });
 
@@ -23,6 +24,7 @@ async function start() {
     );
 
     startReminderLoop();
+    startNoShowDetector();
   } catch (err) {
     logger.fatal(err, 'Failed to start');
     process.exit(1);

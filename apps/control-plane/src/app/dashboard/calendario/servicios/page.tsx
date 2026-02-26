@@ -6,6 +6,7 @@ import { ServiceList } from './service-list';
 import { ServiceForm } from './service-form';
 import { ProfessionalConfig } from './professional-config';
 import { CalendarConfigForm } from './calendar-config-form';
+import { BlockedTimes } from './blocked-times';
 
 export default async function CalendarioServiciosPage() {
   const session = await requireSession();
@@ -16,7 +17,7 @@ export default async function CalendarioServiciosPage() {
   });
   if (!hasModule(tenant?.modulesJson, 'calendar')) redirect('/dashboard');
 
-  const [services, professionals, config, channels] = await Promise.all([
+  const [services, professionals, config, channels, blockedTimes] = await Promise.all([
     prisma.calendarService.findMany({
       where: { tenantId: session.tenantId },
       orderBy: { name: 'asc' },
@@ -38,6 +39,14 @@ export default async function CalendarioServiciosPage() {
     prisma.tenantChannel.findMany({
       where: { tenantId: session.tenantId, deletedAt: null },
       select: { id: true, type: true },
+    }),
+    prisma.calendarBlockedTime.findMany({
+      where: {
+        professional: { tenantId: session.tenantId },
+        endAt: { gte: new Date() },
+      },
+      include: { professional: { select: { name: true, email: true } } },
+      orderBy: { startAt: 'asc' },
     }),
   ]);
 
@@ -63,6 +72,14 @@ export default async function CalendarioServiciosPage() {
       breakStart: s.breakStart,
       breakEnd: s.breakEnd,
     })),
+  }));
+
+  const blockedTimesData = blockedTimes.map((bt) => ({
+    id: bt.id,
+    professionalName: bt.professional.name || bt.professional.email,
+    startAt: bt.startAt.toISOString(),
+    endAt: bt.endAt.toISOString(),
+    reason: bt.reason,
   }));
 
   return (
@@ -99,6 +116,17 @@ export default async function CalendarioServiciosPage() {
         </section>
 
         <section>
+          <h2 className="mb-3 text-lg font-semibold">Bloqueos de horario</h2>
+          <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+            Bloqueá horarios por vacaciones, feriados o ausencias de un profesional.
+          </p>
+          <BlockedTimes
+            professionals={professionalsData.map((p) => ({ id: p.id, label: p.label }))}
+            blockedTimes={blockedTimesData}
+          />
+        </section>
+
+        <section>
           <h2 className="mb-3 text-lg font-semibold">Ajustes generales</h2>
           <CalendarConfigForm
             config={config ? {
@@ -107,6 +135,8 @@ export default async function CalendarioServiciosPage() {
               minAdvanceHours: config.minAdvanceHours,
               maxAdvanceDays: config.maxAdvanceDays,
               reminderChannel: config.reminderChannel,
+              reminderMinutes1: config.reminderMinutes1,
+              reminderMinutes2: config.reminderMinutes2,
             } : undefined}
             availableChannels={availableChannels}
           />

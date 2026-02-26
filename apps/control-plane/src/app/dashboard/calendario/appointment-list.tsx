@@ -1,7 +1,7 @@
 'use client';
 
-import { useActionState } from 'react';
-import { updateAppointmentStatusAction } from './actions';
+import { useActionState, useState } from 'react';
+import { updateAppointmentStatusAction, rescheduleAppointmentAction } from './actions';
 
 interface AppointmentItem {
   id: string;
@@ -47,6 +47,43 @@ function StatusButton({ appointmentId, status, label }: { appointmentId: string;
   );
 }
 
+function RescheduleButton({ appointmentId, currentStart }: { appointmentId: string; currentStart: string }) {
+  const [open, setOpen] = useState(false);
+  const [state, action, pending] = useActionState(rescheduleAppointmentAction, null);
+
+  const defaultValue = currentStart.slice(0, 16);
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="rounded px-2 py-1 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10"
+      >
+        Reprogramar
+      </button>
+    );
+  }
+
+  return (
+    <form action={async (fd) => { await action(fd); setOpen(false); }} className="flex items-center gap-1">
+      <input type="hidden" name="id" value={appointmentId} />
+      <input
+        type="datetime-local"
+        name="startAt"
+        defaultValue={defaultValue}
+        className="rounded border border-gray-300 px-1.5 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-800"
+      />
+      <button type="submit" disabled={pending} className="rounded bg-brand-600 px-2 py-0.5 text-xs text-white hover:bg-brand-700">
+        {pending ? '...' : 'OK'}
+      </button>
+      <button type="button" onClick={() => setOpen(false)} className="rounded px-1.5 py-0.5 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+        ✕
+      </button>
+      {state?.error && <span className="text-xs text-red-500">{state.error}</span>}
+    </form>
+  );
+}
+
 export function AppointmentList({ appointments, statusLabels }: Props) {
   if (appointments.length === 0) {
     return (
@@ -65,6 +102,7 @@ export function AppointmentList({ appointments, statusLabels }: Props) {
         const showDate = date !== lastDate;
         lastDate = date;
         const statusInfo = statusLabels[apt.status] ?? { label: apt.status, color: 'bg-gray-100 text-gray-600' };
+        const canReschedule = apt.status === 'pending' || apt.status === 'confirmed';
 
         return (
           <div key={apt.id}>
@@ -96,7 +134,10 @@ export function AppointmentList({ appointments, statusLabels }: Props) {
                   <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{apt.notes}</p>
                 )}
               </div>
-              <div className="flex flex-shrink-0 gap-1">
+              <div className="flex flex-shrink-0 flex-wrap items-center gap-1">
+                {canReschedule && (
+                  <RescheduleButton appointmentId={apt.id} currentStart={apt.startAt} />
+                )}
                 {apt.status === 'pending' && (
                   <>
                     <StatusButton appointmentId={apt.id} status="confirmed" label="Confirmar" />

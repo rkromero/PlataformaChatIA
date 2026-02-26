@@ -273,6 +273,8 @@ model CalendarConfig {
   minAdvanceHours   Int      @default(2) @map("min_advance_hours")
   maxAdvanceDays    Int      @default(30) @map("max_advance_days")
   reminderChannel   String?  @map("reminder_channel")
+  reminderMinutes1  Int      @default(60) @map("reminder_minutes_1")
+  reminderMinutes2  Int?     @map("reminder_minutes_2")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -367,6 +369,7 @@ model Appointment {
   source             AppointmentSource @default(manual)
   notes              String?           @db.Text
   reminderSentAt     DateTime?         @map("reminder_sent_at")
+  reminder2SentAt    DateTime?         @map("reminder2_sent_at")
   createdAt          DateTime          @default(now()) @map("created_at")
   updatedAt          DateTime          @updatedAt @map("updated_at")
 
