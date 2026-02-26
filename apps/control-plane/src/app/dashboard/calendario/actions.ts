@@ -243,16 +243,28 @@ export async function createAppointmentAction(
   const startAt = new Date(parsed.data.startAt);
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
 
-  const overlap = await prisma.appointment.findFirst({
-    where: {
-      professionalId: parsed.data.professionalId,
-      status: { not: 'cancelled' },
-      startAt: { lt: endAt },
-      endAt: { gt: startAt },
-    },
-  });
+  const [overlap, blocked] = await Promise.all([
+    prisma.appointment.findFirst({
+      where: {
+        professionalId: parsed.data.professionalId,
+        status: { not: 'cancelled' },
+        startAt: { lt: endAt },
+        endAt: { gt: startAt },
+      },
+    }),
+    prisma.calendarBlockedTime.findFirst({
+      where: {
+        professionalId: parsed.data.professionalId,
+        startAt: { lt: endAt },
+        endAt: { gt: startAt },
+      },
+    }),
+  ]);
   if (overlap) {
     return { error: 'Ya existe una cita en ese horario para este profesional' };
+  }
+  if (blocked) {
+    return { error: `El profesional tiene un bloqueo en ese horario${blocked.reason ? `: ${blocked.reason}` : ''}` };
   }
 
   await prisma.appointment.create({
@@ -444,16 +456,28 @@ export async function rescheduleAppointmentAction(
   const newStart = new Date(parsed.data.startAt);
   const newEnd = new Date(newStart.getTime() + appt.service.durationMinutes * 60_000);
 
-  const overlap = await prisma.appointment.findFirst({
-    where: {
-      professionalId: appt.professionalId,
-      id: { not: appt.id },
-      status: { notIn: ['cancelled'] },
-      startAt: { lt: newEnd },
-      endAt: { gt: newStart },
-    },
-  });
+  const [overlap, blocked] = await Promise.all([
+    prisma.appointment.findFirst({
+      where: {
+        professionalId: appt.professionalId,
+        id: { not: appt.id },
+        status: { notIn: ['cancelled'] },
+        startAt: { lt: newEnd },
+        endAt: { gt: newStart },
+      },
+    }),
+    prisma.calendarBlockedTime.findFirst({
+      where: {
+        professionalId: appt.professionalId,
+        startAt: { lt: newEnd },
+        endAt: { gt: newStart },
+      },
+    }),
+  ]);
   if (overlap) return { error: 'El nuevo horario ya está ocupado' };
+  if (blocked) {
+    return { error: `El profesional tiene un bloqueo en ese horario${blocked.reason ? `: ${blocked.reason}` : ''}` };
+  }
 
   await prisma.appointment.update({
     where: { id: appt.id },
