@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { agentLeadFilter } from '@/lib/agent-filter';
+import { sendText } from '@/lib/waha-api';
 
 function getChatwootConfig() {
   const url = process.env[String('CW_PLATFORM_URL')] || process.env[String('CHATWOOT_BASE_URL')] || '';
@@ -19,15 +20,53 @@ export async function GET(request: NextRequest) {
   const filter = agentLeadFilter(session);
   const lead = await prisma.conversationLink.findFirst({
     where: { id: leadId, tenantId: session.tenantId, ...filter },
-    select: { chatwootConversationId: true, source: true, tenant: { select: { chatwootAccountId: true } } },
+    select: {
+      chatwootConversationId: true,
+      source: true,
+      wahaChatId: true,
+      phone: true,
+      tenant: { select: { chatwootAccountId: true } },
+    },
   });
 
-  if (!lead || !lead.tenant.chatwootAccountId || lead.source !== 'chatwoot') {
+  if (!lead) return NextResponse.json({ messages: [], linked: false });
+
+  if (lead.source === 'chatwoot') {
+    return getChatwootMessages(lead);
+  }
+
+  if (lead.source === 'whatsapp_qr') {
+    const dbMessages = await prisma.message.findMany({
+      where: { conversationLinkId: leadId },
+      orderBy: { timestamp: 'asc' },
+      take: 50,
+    });
+
+    const messages = dbMessages.map((m) => ({
+      id: m.id,
+      content: m.content,
+      type: m.direction === 'incoming' ? 'incoming' : 'outgoing',
+      sender: m.senderName ?? (m.direction === 'incoming' ? 'Cliente' : 'Bot/Agente'),
+      timestamp: Math.floor(m.timestamp.getTime() / 1000),
+    }));
+
+    return NextResponse.json({ messages, linked: true, channel: 'whatsapp_qr' });
+  }
+
+  return NextResponse.json({ messages: [], linked: false });
+}
+
+async function getChatwootMessages(lead: {
+  chatwootConversationId: number | null;
+  source: string;
+  tenant: { chatwootAccountId: number | null };
+}) {
+  if (!lead.tenant.chatwootAccountId) {
     return NextResponse.json({ messages: [], linked: false });
   }
 
   const { url, token } = getChatwootConfig();
-  if (!url || !token) return NextResponse.json({ messages: [], linked: true });
+  if (!url || !token) return NextResponse.json({ messages: [], linked: true, channel: 'chatwoot' });
 
   try {
     const res = await fetch(
@@ -35,7 +74,7 @@ export async function GET(request: NextRequest) {
       { headers: { api_access_token: token } },
     );
 
-    if (!res.ok) return NextResponse.json({ messages: [], linked: true });
+    if (!res.ok) return NextResponse.json({ messages: [], linked: true, channel: 'chatwoot' });
 
     const data = await res.json();
     const messages = ((data.payload ?? []) as Array<{
@@ -46,7 +85,7 @@ export async function GET(request: NextRequest) {
       sender?: { name?: string; type?: string };
     }>)
       .filter((m) => m.content)
-      .slice(-30)
+      .slice(-50)
       .map((m) => ({
         id: m.id,
         content: m.content,
@@ -55,9 +94,9 @@ export async function GET(request: NextRequest) {
         timestamp: m.created_at,
       }));
 
-    return NextResponse.json({ messages, linked: true });
+    return NextResponse.json({ messages, linked: true, channel: 'chatwoot' });
   } catch {
-    return NextResponse.json({ messages: [], linked: true });
+    return NextResponse.json({ messages: [], linked: true, channel: 'chatwoot' });
   }
 }
 
@@ -75,10 +114,36 @@ export async function POST(request: NextRequest) {
   const postFilter = agentLeadFilter(session);
   const lead = await prisma.conversationLink.findFirst({
     where: { id: leadId, tenantId: session.tenantId, ...postFilter },
-    select: { chatwootConversationId: true, source: true, tenant: { select: { chatwootAccountId: true } } },
+    select: {
+      chatwootConversationId: true,
+      source: true,
+      wahaChatId: true,
+      phone: true,
+      tenantId: true,
+      tenant: { select: { chatwootAccountId: true } },
+    },
   });
 
-  if (!lead || !lead.tenant.chatwootAccountId || lead.source !== 'chatwoot') {
+  if (!lead) {
+    return NextResponse.json({ error: 'Lead no encontrado' }, { status: 404 });
+  }
+
+  if (lead.source === 'chatwoot') {
+    return sendViaChatwoot(lead, message.trim());
+  }
+
+  if (lead.source === 'whatsapp_qr') {
+    return sendViaWhatsAppQr(lead, message.trim(), leadId);
+  }
+
+  return NextResponse.json({ error: 'Canal no soportado para envío directo' }, { status: 400 });
+}
+
+async function sendViaChatwoot(
+  lead: { chatwootConversationId: number | null; tenant: { chatwootAccountId: number | null } },
+  text: string,
+) {
+  if (!lead.tenant.chatwootAccountId) {
     return NextResponse.json({ error: 'Lead no vinculado a conversación' }, { status: 400 });
   }
 
@@ -97,7 +162,7 @@ export async function POST(request: NextRequest) {
           api_access_token: token,
         },
         body: JSON.stringify({
-          content: message.trim(),
+          content: text,
           message_type: 'outgoing',
           private: false,
         }),
@@ -105,12 +170,43 @@ export async function POST(request: NextRequest) {
     );
 
     if (!res.ok) {
-      const text = await res.text();
-      return NextResponse.json({ error: `Chatwoot error: ${text}` }, { status: 502 });
+      const body = await res.text();
+      return NextResponse.json({ error: `Chatwoot error: ${body}` }, { status: 502 });
     }
 
     return NextResponse.json({ ok: true });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Error de conexión con Chatwoot' }, { status: 502 });
+  }
+}
+
+async function sendViaWhatsAppQr(
+  lead: { tenantId: string; wahaChatId: string | null; phone: string | null },
+  text: string,
+  leadId: string,
+) {
+  const chatId = lead.wahaChatId ?? (lead.phone ? `${lead.phone.replace(/[^0-9]/g, '')}@s.whatsapp.net` : null);
+
+  if (!chatId) {
+    return NextResponse.json({ error: 'No se encontró el chatId del contacto' }, { status: 400 });
+  }
+
+  try {
+    await sendText(lead.tenantId, chatId, text);
+
+    await prisma.message.create({
+      data: {
+        conversationLinkId: leadId,
+        direction: 'outgoing',
+        content: text,
+        senderName: 'Agente',
+        timestamp: new Date(),
+      },
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Error al enviar';
+    return NextResponse.json({ error: msg }, { status: 502 });
   }
 }

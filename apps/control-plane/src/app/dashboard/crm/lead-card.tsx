@@ -198,7 +198,7 @@ export function LeadCard({
             />
           </div>
 
-          <LeadChat leadId={lead.id} isLinked={lead.source === 'chatwoot'} />
+          <LeadChat leadId={lead.id} isLinked={lead.source === 'chatwoot' || lead.source === 'whatsapp_qr'} />
         </div>
       )}
     </div>

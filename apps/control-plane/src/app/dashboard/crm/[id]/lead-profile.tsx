@@ -84,7 +84,8 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
   const [refreshing, setRefreshing] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const isChatwoot = lead.source === 'chatwoot';
+  const canChat = lead.source === 'chatwoot' || lead.source === 'whatsapp_qr';
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const displayName = lead.contactName || lead.phone || 'Contacto';
   const initial = (lead.contactName?.[0] || lead.phone?.[0] || '#').toUpperCase();
@@ -98,7 +99,7 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
   }, [chatMessages, scrollToBottom]);
 
   async function refreshMessages() {
-    if (!isChatwoot) return;
+    if (!canChat) return;
     setRefreshing(true);
     try {
       const res = await fetch(`/api/chat?leadId=${lead.id}`);
@@ -125,6 +126,7 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
 
     setChatInput('');
     setSending(true);
+    setSendError(null);
 
     try {
       const res = await fetch('/api/chat', {
@@ -144,7 +146,12 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
             timestamp: new Date().toISOString(),
           },
         ]);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSendError(data.error || 'Error al enviar el mensaje');
       }
+    } catch {
+      setSendError('Error de conexión');
     } finally {
       setSending(false);
     }
@@ -395,7 +402,7 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
             </h3>
             <div className="flex items-center gap-2">
               <SendTemplateButton leadId={lead.id} hasPhone={!!lead.phone} />
-              {isChatwoot && (
+              {canChat && (
                 <button
                   onClick={refreshMessages}
                   disabled={refreshing}
@@ -440,48 +447,43 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
           </div>
 
           {/* Chat input */}
-          {isChatwoot ? (
-            <form onSubmit={handleSendMessage} className="mt-3 flex gap-2 border-t border-gray-200 pt-3 dark:border-gray-700">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Escribir mensaje como agente..."
-                disabled={sending}
-                className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-              />
-              <button
-                type="submit"
-                disabled={sending || !chatInput.trim()}
-                className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
-              >
-                {sending ? (
-                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                ) : (
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                  </svg>
-                )}
-                Enviar
-              </button>
-            </form>
+          {canChat ? (
+            <div className="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700">
+              {sendError && (
+                <p className="mb-2 text-xs text-red-500">{sendError}</p>
+              )}
+              <form onSubmit={handleSendMessage} className="flex gap-2">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Escribir mensaje..."
+                  disabled={sending}
+                  className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                />
+                <button
+                  type="submit"
+                  disabled={sending || !chatInput.trim()}
+                  className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
+                >
+                  {sending ? (
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  ) : (
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                    </svg>
+                  )}
+                  Enviar
+                </button>
+              </form>
+            </div>
           ) : (
             <div className="mt-3 flex items-center gap-2 border-t border-gray-200 pt-3 text-xs text-gray-400 dark:border-gray-700">
               <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
               </svg>
               <span>
-                Para enviar mensajes directos, usá una plantilla o contactalo vía WhatsApp.
-                {lead.phone && (
-                  <a
-                    href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-1 font-medium text-emerald-600 hover:text-emerald-500"
-                  >
-                    Abrir WhatsApp
-                  </a>
-                )}
+                Este contacto fue creado manualmente. Usá una plantilla para iniciar la conversación.
               </span>
             </div>
           )}

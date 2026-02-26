@@ -106,7 +106,7 @@ export function LeadChat({ leadId, isLinked }: { leadId: string; isLinked: boole
 
       {!linked ? (
         <div className="p-3 text-center text-[11px] text-gray-400">
-          Este lead aún no tiene conversación. Enviá una plantilla y esperá a que responda.
+          Este lead aún no tiene conversación. Enviá una plantilla para iniciar.
         </div>
       ) : (
         <>
@@ -151,7 +151,7 @@ export function LeadChat({ leadId, isLinked }: { leadId: string; isLinked: boole
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Escribir como agente..."
+              placeholder="Escribir mensaje..."
               className="flex-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] focus:border-brand-400 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
               disabled={sending}
             />
