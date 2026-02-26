@@ -196,15 +196,16 @@ const calendarToolDefs = [
     type: 'function',
     function: {
       name: 'check_availability',
-      description: 'Consulta horarios disponibles para un servicio en una fecha.',
+      description: 'Consulta horarios disponibles para un servicio en una fecha. Podés usar service_id o service_name.',
       parameters: {
         type: 'object',
         properties: {
-          service_id: { type: 'string', description: 'UUID del servicio.' },
+          service_id: { type: 'string', description: 'UUID del servicio (si lo tenés).' },
+          service_name: { type: 'string', description: 'Nombre del servicio (alternativa a service_id).' },
           date: { type: 'string', description: 'Fecha YYYY-MM-DD.' },
           professional_id: { type: 'string', description: 'UUID del profesional (opcional).' },
         },
-        required: ['service_id', 'date'],
+        required: ['date'],
       },
     },
   },
@@ -212,19 +213,21 @@ const calendarToolDefs = [
     type: 'function',
     function: {
       name: 'book_appointment',
-      description: 'Agenda un nuevo turno para el cliente.',
+      description: 'Agenda un nuevo turno. Podés usar service_name en vez de service_id, y professional_name en vez de professional_id. Si no indicás profesional, se asigna automáticamente.',
       parameters: {
         type: 'object',
         properties: {
-          service_id: { type: 'string', description: 'UUID del servicio.' },
-          professional_id: { type: 'string', description: 'UUID del profesional.' },
+          service_id: { type: 'string', description: 'UUID del servicio (si lo tenés).' },
+          service_name: { type: 'string', description: 'Nombre del servicio (alternativa a service_id).' },
+          professional_id: { type: 'string', description: 'UUID del profesional (si lo tenés).' },
+          professional_name: { type: 'string', description: 'Nombre del profesional (alternativa a professional_id).' },
           date: { type: 'string', description: 'Fecha YYYY-MM-DD.' },
           time: { type: 'string', description: 'Hora HH:MM (24h).' },
           client_name: { type: 'string', description: 'Nombre del cliente.' },
           client_phone: { type: 'string', description: 'Teléfono (opcional).' },
           notes: { type: 'string', description: 'Notas (opcional).' },
         },
-        required: ['service_id', 'professional_id', 'date', 'time', 'client_name'],
+        required: ['date', 'time', 'client_name'],
       },
     },
   },
@@ -232,13 +235,14 @@ const calendarToolDefs = [
     type: 'function',
     function: {
       name: 'cancel_appointment',
-      description: 'Cancela un turno existente por su ID.',
+      description: 'Cancela un turno existente. Podés usar appointment_id o client_name para buscarlo.',
       parameters: {
         type: 'object',
         properties: {
-          appointment_id: { type: 'string', description: 'UUID del turno.' },
+          appointment_id: { type: 'string', description: 'UUID del turno (si lo tenés).' },
+          client_name: { type: 'string', description: 'Nombre del cliente para buscar su turno (alternativa).' },
         },
-        required: ['appointment_id'],
+        required: [],
       },
     },
   },
@@ -246,15 +250,16 @@ const calendarToolDefs = [
     type: 'function',
     function: {
       name: 'reschedule_appointment',
-      description: 'Reprograma un turno existente a una nueva fecha y hora.',
+      description: 'Reprograma un turno existente. Podés usar appointment_id o client_name para buscarlo.',
       parameters: {
         type: 'object',
         properties: {
-          appointment_id: { type: 'string', description: 'UUID del turno.' },
+          appointment_id: { type: 'string', description: 'UUID del turno (si lo tenés).' },
+          client_name: { type: 'string', description: 'Nombre del cliente para buscar su turno (alternativa).' },
           new_date: { type: 'string', description: 'Nueva fecha YYYY-MM-DD.' },
           new_time: { type: 'string', description: 'Nueva hora HH:MM (24h).' },
         },
-        required: ['appointment_id', 'new_date', 'new_time'],
+        required: ['new_date', 'new_time'],
       },
     },
   },
@@ -293,6 +298,57 @@ async function executeCalendarTool(
   }
 }
 
+async function resolveService(tenantId: string, args: Record<string, unknown>) {
+  const serviceId = args.service_id as string | undefined;
+  const serviceName = args.service_name as string | undefined;
+
+  if (serviceId) {
+    const svc = await prisma.calendarService.findFirst({ where: { id: serviceId, tenantId, isActive: true } });
+    if (svc) return svc;
+  }
+
+  if (serviceName) {
+    const svc = await prisma.calendarService.findFirst({
+      where: { tenantId, isActive: true, name: { contains: serviceName, mode: 'insensitive' } },
+    });
+    if (svc) return svc;
+  }
+
+  if (!serviceId && !serviceName) {
+    const all = await prisma.calendarService.findMany({ where: { tenantId, isActive: true }, take: 1 });
+    return all[0] ?? null;
+  }
+
+  return null;
+}
+
+async function resolveProfessional(tenantId: string, serviceId: string, args: Record<string, unknown>) {
+  const profId = args.professional_id as string | undefined;
+  const profName = args.professional_name as string | undefined;
+
+  if (profId) {
+    const ps = await prisma.calendarProfessionalService.findFirst({
+      where: { serviceId, professionalId: profId },
+      include: { professional: { select: { id: true, name: true } } },
+    });
+    if (ps) return ps.professional;
+  }
+
+  if (profName) {
+    const ps = await prisma.calendarProfessionalService.findFirst({
+      where: { serviceId, professional: { name: { contains: profName, mode: 'insensitive' } } },
+      include: { professional: { select: { id: true, name: true } } },
+    });
+    if (ps) return ps.professional;
+  }
+
+  const first = await prisma.calendarProfessionalService.findFirst({
+    where: { serviceId },
+    include: { professional: { select: { id: true, name: true } } },
+  });
+  return first?.professional ?? null;
+}
+
 async function listServices(tenantId: string): Promise<string> {
   const services = await prisma.calendarService.findMany({
     where: { tenantId, isActive: true },
@@ -316,20 +372,17 @@ async function checkAvailability(
   tenantId: string,
   args: Record<string, unknown>,
 ): Promise<string> {
-  const serviceId = args.service_id as string;
   const dateStr = args.date as string;
   const prefProfId = args.professional_id as string | undefined;
 
-  const service = await prisma.calendarService.findFirst({
-    where: { id: serviceId, tenantId, isActive: true },
-  });
-  if (!service) return JSON.stringify({ error: 'Servicio no encontrado.' });
+  const service = await resolveService(tenantId, args);
+  if (!service) return JSON.stringify({ error: 'Servicio no encontrado. Usá list_services para ver los disponibles.' });
 
   const config = await prisma.calendarConfig.findUnique({ where: { tenantId } });
   const buffer = config?.slotBufferMinutes ?? 15;
 
   const professionals = await prisma.calendarProfessionalService.findMany({
-    where: { serviceId, ...(prefProfId ? { professionalId: prefProfId } : {}) },
+    where: { serviceId: service.id, ...(prefProfId ? { professionalId: prefProfId } : {}) },
     include: { professional: { select: { id: true, name: true } } },
   });
   if (professionals.length === 0) {
@@ -387,34 +440,33 @@ async function bookAppointment(
   tenantId: string,
   args: Record<string, unknown>,
 ): Promise<string> {
-  const serviceId = args.service_id as string;
-  const profId = args.professional_id as string;
   const dateStr = args.date as string;
   const timeStr = args.time as string;
   const clientName = (args.client_name as string) || 'Cliente Sandbox';
   const notes = (args.notes as string) || null;
 
-  const service = await prisma.calendarService.findFirst({
-    where: { id: serviceId, tenantId, isActive: true },
-  });
-  if (!service) return JSON.stringify({ error: 'Servicio no encontrado.' });
+  const service = await resolveService(tenantId, args);
+  if (!service) return JSON.stringify({ error: 'Servicio no encontrado. Usá list_services para ver los disponibles.' });
+
+  const professional = await resolveProfessional(tenantId, service.id, args);
+  if (!professional) return JSON.stringify({ error: 'No hay profesionales asignados a este servicio.' });
 
   const startAt = new Date(`${dateStr}T${timeStr}:00.000Z`);
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
 
   const [overlap, blocked] = await Promise.all([
     prisma.appointment.findFirst({
-      where: { professionalId: profId, status: { notIn: ['cancelled'] }, startAt: { lt: endAt }, endAt: { gt: startAt } },
+      where: { professionalId: professional.id, status: { notIn: ['cancelled'] }, startAt: { lt: endAt }, endAt: { gt: startAt } },
     }),
     prisma.calendarBlockedTime.findFirst({
-      where: { professionalId: profId, startAt: { lt: endAt }, endAt: { gt: startAt } },
+      where: { professionalId: professional.id, startAt: { lt: endAt }, endAt: { gt: startAt } },
     }),
   ]);
   if (overlap) return JSON.stringify({ error: 'Ese horario ya está ocupado.' });
   if (blocked) return JSON.stringify({ error: `El profesional no está disponible${blocked.reason ? `: ${blocked.reason}` : ''}.` });
 
   const appointment = await prisma.appointment.create({
-    data: { tenantId, serviceId, professionalId: profId, clientName, startAt, endAt, source: 'chat_ai', notes },
+    data: { tenantId, serviceId: service.id, professionalId: professional.id, clientName, startAt, endAt, source: 'chat_ai', notes },
     include: { service: { select: { name: true } }, professional: { select: { name: true } } },
   });
 
@@ -428,18 +480,44 @@ async function bookAppointment(
   });
 }
 
+async function resolveAppointment(tenantId: string, args: Record<string, unknown>) {
+  const appointmentId = args.appointment_id as string | undefined;
+  const clientName = args.client_name as string | undefined;
+
+  if (appointmentId) {
+    const a = await prisma.appointment.findFirst({
+      where: { id: appointmentId, tenantId, status: { notIn: ['cancelled', 'completed'] } },
+      include: { service: true },
+    });
+    if (a) return a;
+  }
+
+  if (clientName) {
+    const a = await prisma.appointment.findFirst({
+      where: {
+        tenantId,
+        clientName: { contains: clientName, mode: 'insensitive' },
+        status: { notIn: ['cancelled', 'completed'] },
+        startAt: { gte: new Date() },
+      },
+      include: { service: true },
+      orderBy: { startAt: 'asc' },
+    });
+    if (a) return a;
+  }
+
+  return null;
+}
+
 async function cancelAppointment(
   tenantId: string,
   args: Record<string, unknown>,
 ): Promise<string> {
-  const appointmentId = args.appointment_id as string;
-  const appointment = await prisma.appointment.findFirst({
-    where: { id: appointmentId, tenantId, status: { notIn: ['cancelled', 'completed'] } },
-  });
+  const appointment = await resolveAppointment(tenantId, args);
   if (!appointment) return JSON.stringify({ error: 'Turno no encontrado o ya cancelado.' });
 
   await prisma.appointment.update({
-    where: { id: appointmentId },
+    where: { id: appointment.id },
     data: { status: 'cancelled' },
   });
 
@@ -450,14 +528,10 @@ async function rescheduleAppointment(
   tenantId: string,
   args: Record<string, unknown>,
 ): Promise<string> {
-  const appointmentId = args.appointment_id as string;
   const newDate = args.new_date as string;
   const newTime = args.new_time as string;
 
-  const appointment = await prisma.appointment.findFirst({
-    where: { id: appointmentId, tenantId, status: { notIn: ['cancelled', 'completed'] } },
-    include: { service: true },
-  });
+  const appointment = await resolveAppointment(tenantId, args);
   if (!appointment) return JSON.stringify({ error: 'Turno no encontrado o ya cancelado.' });
 
   const newStart = new Date(`${newDate}T${newTime}:00.000Z`);
@@ -467,7 +541,7 @@ async function rescheduleAppointment(
     prisma.appointment.findFirst({
       where: {
         professionalId: appointment.professionalId,
-        id: { not: appointmentId },
+        id: { not: appointment.id },
         status: { notIn: ['cancelled'] },
         startAt: { lt: newEnd },
         endAt: { gt: newStart },
@@ -481,7 +555,7 @@ async function rescheduleAppointment(
   if (blocked) return JSON.stringify({ error: `El profesional no está disponible${blocked.reason ? `: ${blocked.reason}` : ''}.` });
 
   await prisma.appointment.update({
-    where: { id: appointmentId },
+    where: { id: appointment.id },
     data: { startAt: newStart, endAt: newEnd },
   });
 
