@@ -23,6 +23,7 @@ interface Props {
     removeOpeningSigns: boolean;
     splitLongMessages: boolean;
     messageWindowSeconds: number;
+    disableReactionReplies: boolean;
   };
 }
 
@@ -257,6 +258,23 @@ export function AiSettingsForm({ action, settings }: Props) {
             </div>
             <label className="relative inline-flex cursor-pointer items-center">
               <input type="checkbox" name="splitLongMessages" defaultChecked={settings.splitLongMessages} className="peer sr-only" />
+              <div className="h-6 w-11 rounded-full bg-gray-600 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:duration-200 after:content-[''] peer-checked:bg-brand-600 peer-checked:after:translate-x-full" />
+            </label>
+          </div>
+
+          {/* Disable reaction replies */}
+          <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-gray-100">Desactivar respuestas a reacciones</p>
+                <Tooltip text="WhatsApp puede enviar reacciones como mensajes comunes. Si esta opción está activa, el bot ignora mensajes que sean solo emoji y estén respondiendo a un mensaje anterior." />
+              </div>
+              <p className="mt-0.5 text-xs text-gray-500">
+                Evita que el bot responda a mensajes de reacción como 👍, ❤️ o 😂 cuando son reply a un mensaje anterior.
+              </p>
+            </div>
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input type="checkbox" name="disableReactionReplies" defaultChecked={settings.disableReactionReplies} className="peer sr-only" />
               <div className="h-6 w-11 rounded-full bg-gray-600 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:duration-200 after:content-[''] peer-checked:bg-brand-600 peer-checked:after:translate-x-full" />
             </label>
           </div>

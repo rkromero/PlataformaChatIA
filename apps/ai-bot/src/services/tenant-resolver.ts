@@ -15,6 +15,7 @@ interface TenantWithSettings {
     removeOpeningSigns: boolean;
     splitLongMessages: boolean;
     messageWindowSeconds: number;
+    disableReactionReplies: boolean;
   } | null;
 }
 

@@ -79,6 +79,7 @@ async function handleWebhook(body: Record<string, unknown>) {
 
   const inbox = body.inbox as { id: number } | undefined;
   const content = (body.content as string) ?? '';
+  const contentAttributes = (body.content_attributes ?? {}) as Record<string, unknown>;
 
   const tenant = await resolveTenant(account.id, inbox?.id);
   if (!tenant) {
@@ -178,6 +179,18 @@ async function handleWebhook(body: Record<string, unknown>) {
 
   if (!effectiveContent && imageBase64Urls.length === 0) {
     log.info('No text, audio, or images to process, skipping');
+    return;
+  }
+
+  const isReplyToMessage = Boolean(
+    contentAttributes.in_reply_to || contentAttributes.in_reply_to_external_id,
+  );
+  if (
+    settings.disableReactionReplies &&
+    isReplyToMessage &&
+    isEmojiOnly(effectiveContent)
+  ) {
+    log.info({ conversationId: conversation.id }, 'Skipping reaction-like reply message');
     return;
   }
 
@@ -371,4 +384,11 @@ async function syncLeadInBackground(params: {
     lastMessage,
     crmLeadId,
   });
+}
+
+function isEmojiOnly(text: string): boolean {
+  const compact = text.trim().replace(/\s+/g, '');
+  if (!compact) return false;
+  const stripped = compact.replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{1F3FB}-\u{1F3FF}]/gu, '');
+  return stripped.length === 0;
 }

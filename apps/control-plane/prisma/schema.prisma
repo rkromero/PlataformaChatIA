@@ -144,6 +144,7 @@ model AiSettings {
   removeOpeningSigns   Boolean  @default(false) @map("remove_opening_signs")
   splitLongMessages    Boolean  @default(false) @map("split_long_messages")
   messageWindowSeconds Int      @default(4) @map("message_window_seconds")
+  disableReactionReplies Boolean @default(false) @map("disable_reaction_replies")
   updatedAt            DateTime @updatedAt @map("updated_at")
 
   tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)

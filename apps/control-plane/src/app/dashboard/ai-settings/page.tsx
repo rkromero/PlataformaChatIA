@@ -115,6 +115,7 @@ export default async function AiSettingsPage({
             removeOpeningSigns: settings.removeOpeningSigns,
             splitLongMessages: settings.splitLongMessages,
             messageWindowSeconds: settings.messageWindowSeconds,
+            disableReactionReplies: settings.disableReactionReplies,
           }}
         />
       ) : (

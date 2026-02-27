@@ -22,6 +22,7 @@ export const aiSettingsSchema = z.object({
   removeOpeningSigns: z.boolean(),
   splitLongMessages: z.boolean(),
   messageWindowSeconds: z.coerce.number().int().min(0, 'Mínimo 0 segundos').max(60, 'Máximo 60 segundos').default(4),
+  disableReactionReplies: z.boolean(),
 });
 
 export const channelSchema = z.object({

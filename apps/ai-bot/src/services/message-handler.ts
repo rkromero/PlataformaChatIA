@@ -24,11 +24,12 @@ interface IncomingMessageParams {
   chatId: string;
   messageText: string;
   contactName: string | null;
+  isReplyToMessage?: boolean;
   sendReply: (text: string) => Promise<void>;
 }
 
 export async function handleIncomingMessage(params: IncomingMessageParams) {
-  const { tenantId, chatId, messageText, contactName, sendReply } = params;
+  const { tenantId, chatId, messageText, contactName, isReplyToMessage, sendReply } = params;
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
@@ -39,6 +40,15 @@ export async function handleIncomingMessage(params: IncomingMessageParams) {
 
   const settings = tenant.aiSettings;
   if (!settings?.enabled) return;
+  if (
+    settings.disableReactionReplies &&
+    isReplyToMessage &&
+    isEmojiOnly(messageText)
+  ) {
+    const log = tenantLogger(tenantId);
+    log.info({ chatId }, 'Skipping reaction-like reply message');
+    return;
+  }
 
   const debounceMs = (settings.messageWindowSeconds ?? 4) * 1000;
   const bufferKey = `waqr:${tenantId}:${chatId}`;
@@ -267,6 +277,13 @@ async function saveMessage(
 
 function chatIdToPhone(chatId: string): string {
   return chatId.replace(/@.*$/, '');
+}
+
+function isEmojiOnly(text: string): boolean {
+  const compact = text.trim().replace(/\s+/g, '');
+  if (!compact) return false;
+  const stripped = compact.replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{1F3FB}-\u{1F3FF}]/gu, '');
+  return stripped.length === 0;
 }
 
 async function syncLeadInBackground(params: {
