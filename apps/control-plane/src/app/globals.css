@@ -17,6 +17,18 @@
     @apply bg-[#0d0f14] text-gray-100 leading-relaxed;
   }
 
+  /* Force dark readable native select menus across browsers/OS */
+  select {
+    color-scheme: dark;
+  }
+
+  select,
+  select option,
+  select optgroup {
+    background-color: #13151b;
+    color: #e5e7eb;
+  }
+
   *:focus-visible {
     @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-[#0d0f14];
   }
