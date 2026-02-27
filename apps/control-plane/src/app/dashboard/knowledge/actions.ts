@@ -33,6 +33,7 @@ export async function createKnowledgeEntryAction(_prev: unknown, formData: FormD
   });
 
   revalidatePath('/dashboard/knowledge');
+  revalidatePath('/dashboard/ai-settings');
   return { success: true };
 }
 
@@ -56,6 +57,7 @@ export async function updateKnowledgeEntryAction(_prev: unknown, formData: FormD
   });
 
   revalidatePath('/dashboard/knowledge');
+  revalidatePath('/dashboard/ai-settings');
   return { success: true };
 }
 
@@ -75,6 +77,7 @@ export async function toggleKnowledgeEntryAction(id: string) {
   }
 
   revalidatePath('/dashboard/knowledge');
+  revalidatePath('/dashboard/ai-settings');
 }
 
 export async function deleteKnowledgeEntryAction(id: string) {
@@ -86,6 +89,7 @@ export async function deleteKnowledgeEntryAction(id: string) {
   });
 
   revalidatePath('/dashboard/knowledge');
+  revalidatePath('/dashboard/ai-settings');
 }
 
 const uploadSchema = z.object({
@@ -163,6 +167,7 @@ export async function uploadKnowledgeFileAction(_prev: unknown, formData: FormDa
   });
 
   revalidatePath('/dashboard/knowledge');
+  revalidatePath('/dashboard/ai-settings');
   return { success: true, message: `Importación completa: ${cappedEntries.length} entrada(s) creada(s)` };
 }
 
@@ -212,5 +217,6 @@ export async function importKnowledgeUrlAction(_prev: unknown, formData: FormDat
   });
 
   revalidatePath('/dashboard/knowledge');
+  revalidatePath('/dashboard/ai-settings');
   return { success: true, message: `Sitio escaneado: ${cappedEntries.length} entrada(s) importada(s)` };
 }

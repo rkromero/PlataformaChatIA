@@ -22,7 +22,7 @@ export default async function EditKnowledgePage({
   return (
     <div>
       <Link
-        href="/dashboard/knowledge"
+        href="/dashboard/ai-settings?tab=knowledge"
         className="mb-3 inline-flex items-center gap-1 text-sm text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
