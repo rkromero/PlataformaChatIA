@@ -7,6 +7,7 @@ import { NewLeadButton } from './new-lead-button';
 import { FunnelMetrics } from './funnel-metrics';
 import { EmptyState } from '@/components/empty-state';
 import Link from 'next/link';
+import { LOSS_REASON_LABELS } from './loss-reasons';
 
 const STAGES = [
   { key: 'new', label: 'Nuevos', color: 'bg-blue-500' },
@@ -47,6 +48,7 @@ export default async function CrmPage() {
         assignedAgentId: true,
         leadScore: true,
         leadTemperature: true,
+        lossReason: true,
         createdAt: true,
         updatedAt: true,
         assignedAgent: { select: { id: true, name: true, email: true } },
@@ -58,6 +60,14 @@ export default async function CrmPage() {
   const sortedLeads = leadScoringEnabled
     ? [...leads].sort((a, b) => b.leadScore - a.leadScore || (b.updatedAt.getTime() - a.updatedAt.getTime()))
     : leads;
+  const lostLeads = sortedLeads.filter((lead) => lead.stage === 'lost');
+  const lossReasonStats = Object.entries(
+    lostLeads.reduce<Record<string, number>>((acc, lead) => {
+      const reason = lead.lossReason ?? 'other';
+      acc[reason] = (acc[reason] ?? 0) + 1;
+      return acc;
+    }, {}),
+  ).sort((a, b) => b[1] - a[1]);
 
   const totalLeads = leads.length;
   const wonLeads = leads.filter((l) => l.stage === 'won').length;
@@ -110,6 +120,27 @@ export default async function CrmPage() {
         avgCycleTime={avgCycleTime}
       />
 
+      {lossReasonStats.length > 0 && (
+        <div className="card mb-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-100">Motivos de pérdida</h3>
+            <span className="text-xs text-gray-400">{lostLeads.length} perdidos</span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {lossReasonStats.map(([reason, count]) => (
+              <div key={reason} className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+                <p className="text-xs text-gray-400">
+                  {LOSS_REASON_LABELS[reason] ?? 'Otro motivo'}
+                </p>
+                <p className="mt-0.5 text-sm font-semibold text-gray-100">
+                  {count} ({Math.round((count / lostLeads.length) * 100)}%)
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {sortedLeads.length === 0 ? (
         <div className="flex-1 overflow-hidden p-1">
           <EmptyState
@@ -142,6 +173,7 @@ export default async function CrmPage() {
             assignedAgentName: l.assignedAgent?.name || l.assignedAgent?.email || null,
             leadScore: l.leadScore,
             leadTemperature: l.leadTemperature,
+            lossReason: l.lossReason,
             createdAt: l.createdAt.toISOString(),
             updatedAt: l.updatedAt.toISOString(),
           }))}

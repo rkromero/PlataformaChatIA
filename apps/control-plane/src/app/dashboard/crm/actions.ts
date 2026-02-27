@@ -7,6 +7,7 @@ import { agentLeadFilter, isAdmin } from '@/lib/agent-filter';
 import { routeLead } from '@/lib/routing-engine';
 import type { LeadStage } from '@prisma/client';
 import { z } from 'zod';
+import { LOSS_REASONS } from './loss-reasons';
 
 const newLeadSchema = z.object({
   contactName: z.string().min(1, 'El nombre es obligatorio').max(200),
@@ -53,16 +54,46 @@ export async function createLeadAction(_prev: unknown, formData: FormData) {
   return { success: true };
 }
 
-export async function moveLeadAction(leadId: string, stage: string) {
+const lossReasonSchema = z.enum(
+  LOSS_REASONS.map((item) => item.value) as [string, ...string[]],
+);
+
+export async function moveLeadAction(
+  leadId: string,
+  stage: string,
+  lossReason?: string,
+  lossReasonDetail?: string,
+) {
   const session = await requireSession();
   const filter = agentLeadFilter(session);
 
+  if (stage === 'lost') {
+    const parsedReason = lossReasonSchema.safeParse(lossReason);
+    if (!parsedReason.success) {
+      return { error: 'Debes seleccionar un motivo de pérdida.' };
+    }
+  }
+
+  const data: Record<string, unknown> = {
+    stage: stage as LeadStage,
+  };
+  if (stage === 'lost') {
+    data.lossReason = lossReason;
+    data.lossReasonDetail = lossReasonDetail?.trim() ? lossReasonDetail.trim() : null;
+    data.lostAt = new Date();
+  } else {
+    data.lossReason = null;
+    data.lossReasonDetail = null;
+    data.lostAt = null;
+  }
+
   await prisma.conversationLink.updateMany({
     where: { id: leadId, tenantId: session.tenantId, ...filter },
-    data: { stage: stage as LeadStage },
+    data,
   });
 
   revalidatePath('/dashboard/crm');
+  return { success: true };
 }
 
 export async function updateLeadNotesAction(leadId: string, notes: string) {

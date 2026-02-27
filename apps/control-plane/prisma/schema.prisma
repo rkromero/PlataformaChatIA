@@ -198,6 +198,9 @@ model ConversationLink {
   assignedAgentId        String?            @map("assigned_agent_id") @db.Uuid
   leadScore              Int                @default(0) @map("lead_score")
   leadTemperature        String             @default("cold") @map("lead_temperature")
+  lossReason             String?            @map("loss_reason")
+  lossReasonDetail       String?            @map("loss_reason_detail") @db.Text
+  lostAt                 DateTime?          @map("lost_at")
   createdAt              DateTime           @default(now()) @map("created_at")
   updatedAt              DateTime           @updatedAt @map("updated_at")
   deletedAt              DateTime?          @map("deleted_at")
@@ -214,6 +217,7 @@ model ConversationLink {
   @@index([tenantId, source])
   @@index([tenantId, assignedAgentId])
   @@index([tenantId, leadScore])
+  @@index([tenantId, stage, lossReason])
   @@map("conversation_links")
 }
 

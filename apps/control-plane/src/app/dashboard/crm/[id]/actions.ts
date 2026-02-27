@@ -5,6 +5,8 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { agentLeadFilter } from '@/lib/agent-filter';
 import type { LeadStage } from '@prisma/client';
+import { z } from 'zod';
+import { LOSS_REASONS } from '../loss-reasons';
 
 function revalidateLead(id: string) {
   revalidatePath(`/dashboard/crm/${id}`);
@@ -25,16 +27,52 @@ async function findOwnedLead(leadId: string) {
 
 export async function updateLeadFieldAction(
   leadId: string,
-  field: 'contactName' | 'phone' | 'notes' | 'stage',
+  field: 'contactName' | 'phone' | 'notes',
   value: string,
 ) {
   await findOwnedLead(leadId);
 
   const data: Record<string, unknown> = {};
-  if (field === 'stage') {
-    data.stage = value as LeadStage;
+  data[field] = value || null;
+
+  await prisma.conversationLink.update({
+    where: { id: leadId },
+    data,
+  });
+
+  revalidateLead(leadId);
+}
+
+const lossReasonSchema = z.enum(
+  LOSS_REASONS.map((item) => item.value) as [string, ...string[]],
+);
+
+export async function updateLeadStageAction(
+  leadId: string,
+  stage: string,
+  lossReason?: string,
+  lossReasonDetail?: string,
+) {
+  await findOwnedLead(leadId);
+
+  if (stage === 'lost') {
+    const parsedReason = lossReasonSchema.safeParse(lossReason);
+    if (!parsedReason.success) {
+      return { error: 'Debes seleccionar un motivo de pérdida.' };
+    }
+  }
+
+  const data: Record<string, unknown> = {
+    stage: stage as LeadStage,
+  };
+  if (stage === 'lost') {
+    data.lossReason = lossReason;
+    data.lossReasonDetail = lossReasonDetail?.trim() ? lossReasonDetail.trim() : null;
+    data.lostAt = new Date();
   } else {
-    data[field] = value || null;
+    data.lossReason = null;
+    data.lossReasonDetail = null;
+    data.lostAt = null;
   }
 
   await prisma.conversationLink.update({
@@ -43,6 +81,7 @@ export async function updateLeadFieldAction(
   });
 
   revalidateLead(leadId);
+  return { success: true };
 }
 
 export async function addTagAction(leadId: string, tag: string) {

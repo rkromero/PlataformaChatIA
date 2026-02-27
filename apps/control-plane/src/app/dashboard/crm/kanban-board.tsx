@@ -3,6 +3,7 @@
 import { useState, useTransition, useCallback } from 'react';
 import { moveLeadAction } from './actions';
 import { LeadCard } from './lead-card';
+import { LOSS_REASONS } from './loss-reasons';
 
 const INITIAL_VISIBLE = 20;
 const LOAD_MORE_STEP = 20;
@@ -20,6 +21,7 @@ export interface Lead {
   assignedAgentName: string | null;
   leadScore: number;
   leadTemperature: string;
+  lossReason: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -54,6 +56,10 @@ export function KanbanBoard({
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
   const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
+  const [lossModalLeadId, setLossModalLeadId] = useState<string | null>(null);
+  const [lossReason, setLossReason] = useState<string>(LOSS_REASONS[0].value);
+  const [lossReasonDetail, setLossReasonDetail] = useState('');
+  const [lossError, setLossError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   const getVisibleCount = useCallback(
@@ -91,16 +97,52 @@ export function KanbanBoard({
       return;
     }
 
-    setLeads((prev) =>
-      prev.map((l) => (l.id === draggedId ? { ...l, stage: stageKey } : l)),
-    );
+    if (stageKey === 'lost') {
+      setLossModalLeadId(draggedId);
+      setLossReason(LOSS_REASONS[0].value);
+      setLossReasonDetail('');
+      setLossError(null);
+      setDraggedId(null);
+      setDragOverStage(null);
+      return;
+    }
 
-    startTransition(() => {
-      moveLeadAction(draggedId, stageKey);
-    });
+    commitStageChange(draggedId, stageKey);
 
     setDraggedId(null);
     setDragOverStage(null);
+  }
+
+  function commitStageChange(
+    leadId: string,
+    stageKey: string,
+    reason?: string,
+    detail?: string,
+  ) {
+    const previousLeads = leads;
+    setLeads((prev) =>
+      prev.map((l) => (l.id === leadId ? { ...l, stage: stageKey } : l)),
+    );
+
+    startTransition(async () => {
+      const result = await moveLeadAction(leadId, stageKey, reason, detail);
+      if (result?.error) {
+        setLeads(previousLeads);
+        setLossError(result.error);
+      }
+    });
+  }
+
+  function submitLossReason() {
+    if (!lossModalLeadId) return;
+    if (!lossReason) {
+      setLossError('Debes seleccionar un motivo de pérdida.');
+      return;
+    }
+    commitStageChange(lossModalLeadId, 'lost', lossReason, lossReasonDetail);
+    setLossModalLeadId(null);
+    setLossReasonDetail('');
+    setLossError(null);
   }
 
   function handleDragEnd() {
@@ -109,8 +151,9 @@ export function KanbanBoard({
   }
 
   return (
-    <div className="grid flex-1 grid-cols-6 gap-2 pb-2">
-      {stages.map((stage) => {
+    <>
+      <div className="grid flex-1 grid-cols-6 gap-2 pb-2">
+        {stages.map((stage) => {
         const stageLeads = leads.filter((l) => l.stage === stage.key);
         const isDragOver = dragOverStage === stage.key;
 
@@ -163,7 +206,68 @@ export function KanbanBoard({
             </div>
           </div>
         );
-      })}
-    </div>
+        })}
+      </div>
+
+      {lossModalLeadId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-xl border border-white/[0.06] bg-surface-2 p-5 shadow-xl">
+            <h3 className="text-sm font-semibold text-gray-100">Motivo de pérdida obligatorio</h3>
+            <p className="mt-1 text-xs text-gray-400">
+              Para mover el lead a perdido, selecciona un motivo.
+            </p>
+
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-300">Motivo</label>
+                <select
+                  value={lossReason}
+                  onChange={(e) => setLossReason(e.target.value)}
+                  className="input"
+                >
+                  {LOSS_REASONS.map((reason) => (
+                    <option key={reason.value} value={reason.value}>
+                      {reason.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-300">Detalle (opcional)</label>
+                <textarea
+                  value={lossReasonDetail}
+                  onChange={(e) => setLossReasonDetail(e.target.value)}
+                  rows={3}
+                  className="input"
+                  placeholder="Ej: Se fue con otro proveedor por menor precio."
+                />
+              </div>
+            </div>
+
+            {lossError && (
+              <p className="mt-3 rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-400">
+                {lossError}
+              </p>
+            )}
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setLossModalLeadId(null);
+                  setLossError(null);
+                }}
+                className="btn-secondary text-sm"
+              >
+                Cancelar
+              </button>
+              <button onClick={submitLossReason} className="btn-primary text-sm">
+                Guardar motivo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

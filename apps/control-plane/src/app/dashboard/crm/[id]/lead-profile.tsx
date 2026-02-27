@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import {
   updateLeadFieldAction,
+  updateLeadStageAction,
   addTagAction,
   removeTagAction,
   createTaskAction,
@@ -12,6 +13,7 @@ import {
 } from './actions';
 import { assignAgentAction } from '../../routing/actions';
 import { SendTemplateButton } from '../send-template';
+import { LOSS_REASONS } from '../loss-reasons';
 
 interface Lead {
   id: string;
@@ -77,6 +79,11 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
   const [newTaskDate, setNewTaskDate] = useState('');
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [currentStage, setCurrentStage] = useState(lead.stage);
+  const [lossModalOpen, setLossModalOpen] = useState(false);
+  const [lossReason, setLossReason] = useState(LOSS_REASONS[0].value);
+  const [lossReasonDetail, setLossReasonDetail] = useState('');
+  const [lossError, setLossError] = useState<string | null>(null);
 
   const [chatMessages, setChatMessages] = useState<MessageItem[]>(initialMessages);
   const [chatInput, setChatInput] = useState('');
@@ -162,7 +169,29 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
   }
 
   function handleStageChange(stage: string) {
-    startTransition(() => { updateLeadFieldAction(lead.id, 'stage', stage); });
+    if (stage === 'lost') {
+      setLossModalOpen(true);
+      setLossError(null);
+      return;
+    }
+    setCurrentStage(stage);
+    startTransition(() => { updateLeadStageAction(lead.id, stage); });
+  }
+
+  function submitLostStage() {
+    if (!lossReason) {
+      setLossError('Debes seleccionar un motivo de pérdida.');
+      return;
+    }
+    setCurrentStage('lost');
+    setLossModalOpen(false);
+    setLossError(null);
+    startTransition(async () => {
+      const result = await updateLeadStageAction(lead.id, 'lost', lossReason, lossReasonDetail);
+      if (result?.error) {
+        setCurrentStage(lead.stage);
+      }
+    });
   }
 
   function handleAddTag(e: React.FormEvent) {
@@ -230,7 +259,7 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
           </div>
         </div>
         <select
-          value={lead.stage}
+          value={currentStage}
           onChange={(e) => handleStageChange(e.target.value)}
           className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium dark:border-gray-700 dark:bg-gray-800"
         >
@@ -489,6 +518,63 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
           )}
         </div>
       </div>
+      {lossModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-xl border border-white/[0.06] bg-surface-2 p-5 shadow-xl">
+            <h3 className="text-sm font-semibold text-gray-100">Motivo de pérdida obligatorio</h3>
+            <p className="mt-1 text-xs text-gray-400">Selecciona el motivo para marcar este lead como perdido.</p>
+
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-300">Motivo</label>
+                <select
+                  value={lossReason}
+                  onChange={(e) => setLossReason(e.target.value)}
+                  className="input"
+                >
+                  {LOSS_REASONS.map((reason) => (
+                    <option key={reason.value} value={reason.value}>
+                      {reason.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-300">Detalle (opcional)</label>
+                <textarea
+                  value={lossReasonDetail}
+                  onChange={(e) => setLossReasonDetail(e.target.value)}
+                  rows={3}
+                  className="input"
+                  placeholder="Agrega contexto adicional..."
+                />
+              </div>
+            </div>
+
+            {lossError && (
+              <p className="mt-3 rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-400">
+                {lossError}
+              </p>
+            )}
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setLossModalOpen(false);
+                  setLossError(null);
+                }}
+                className="btn-secondary text-sm"
+              >
+                Cancelar
+              </button>
+              <button onClick={submitLostStage} className="btn-primary text-sm">
+                Guardar motivo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
