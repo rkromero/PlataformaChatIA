@@ -198,6 +198,7 @@ async function handleWebhook(body: Record<string, unknown>) {
   }
 
   const hasMedia = imageBase64Urls.length > 0 || !!audioAttachment;
+  const debounceMs = (settings.messageWindowSeconds ?? 4) * 1000;
 
   if (hasMedia) {
     await processAiReply({
@@ -217,13 +218,13 @@ async function handleWebhook(body: Record<string, unknown>) {
       } catch (err) {
         log.error({ err }, 'Error processing buffered Chatwoot message');
       }
-    });
+    }, debounceMs);
   }
 }
 
 async function processAiReply(params: {
   tenant: { id: string; plan: string };
-  settings: { model: string; systemPrompt: string; removeOpeningSigns: boolean; splitLongMessages: boolean };
+  settings: { model: string; systemPrompt: string; removeOpeningSigns: boolean; splitLongMessages: boolean; messageWindowSeconds: number };
   log: ReturnType<typeof tenantLogger>;
   account: { id: number };
   conversation: { id: number };

@@ -22,6 +22,7 @@ interface Props {
     handoffTag: string;
     removeOpeningSigns: boolean;
     splitLongMessages: boolean;
+    messageWindowSeconds: number;
   };
 }
 
@@ -194,41 +195,69 @@ export function AiSettingsForm({ action, settings }: Props) {
       {/* Row 4: Message Processing Options */}
       <div className="card">
         <div className="mb-5 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 dark:bg-sky-500/10">
-            <svg className="h-4 w-4 text-sky-600 dark:text-sky-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/10">
+            <svg className="h-4 w-4 text-sky-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Opciones de mensaje</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Configurá cómo se procesan las respuestas del bot</p>
+            <h3 className="text-sm font-semibold text-gray-100">Opciones de mensaje</h3>
+            <p className="text-xs text-gray-500">Configurá cómo se procesan las respuestas del bot</p>
           </div>
         </div>
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
+          {/* Message Window */}
+          <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-gray-100">Ventana de segundos entre mensajes</p>
+                  <Tooltip text="La cantidad de segundos que el bot esperará para responder. Todos los mensajes enviados dentro de ese rango de tiempo se combinan en uno solo y el chatbot responde a todos juntos." />
+                </div>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  Si el cliente envía varios mensajes seguidos, el bot espera esta cantidad de segundos antes de responder a todos juntos.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  name="messageWindowSeconds"
+                  defaultValue={settings.messageWindowSeconds}
+                  min={0}
+                  max={60}
+                  className="input w-20 text-center tabular-nums"
+                />
+                <span className="text-sm text-gray-500">seg</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Remove opening signs */}
+          <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Desactivar signos de apertura</p>
-              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-sm font-medium text-gray-100">Desactivar signos de apertura</p>
+              <p className="mt-0.5 text-xs text-gray-500">
                 Elimina los signos de apertura &lsquo;&iquest;&rsquo; y &lsquo;&iexcl;&rsquo; de las respuestas generadas por el bot
               </p>
             </div>
             <label className="relative inline-flex cursor-pointer items-center">
               <input type="checkbox" name="removeOpeningSigns" defaultChecked={settings.removeOpeningSigns} className="peer sr-only" />
-              <div className="h-6 w-11 rounded-full bg-gray-300 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:duration-200 after:content-[''] peer-checked:bg-brand-600 peer-checked:after:translate-x-full dark:bg-gray-600" />
+              <div className="h-6 w-11 rounded-full bg-gray-600 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:duration-200 after:content-[''] peer-checked:bg-brand-600 peer-checked:after:translate-x-full" />
             </label>
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
+          {/* Split long messages */}
+          <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Dividir mensajes largos en partes</p>
-              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-sm font-medium text-gray-100">Dividir mensajes largos en partes</p>
+              <p className="mt-0.5 text-xs text-gray-500">
                 Envía múltiples mensajes en lugar de uno solo si el mensaje es demasiado largo. Si está habilitada, el mensaje contará como uno solo al momento de calcular el costo.
               </p>
             </div>
             <label className="relative inline-flex cursor-pointer items-center">
               <input type="checkbox" name="splitLongMessages" defaultChecked={settings.splitLongMessages} className="peer sr-only" />
-              <div className="h-6 w-11 rounded-full bg-gray-300 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:duration-200 after:content-[''] peer-checked:bg-brand-600 peer-checked:after:translate-x-full dark:bg-gray-600" />
+              <div className="h-6 w-11 rounded-full bg-gray-600 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:duration-200 after:content-[''] peer-checked:bg-brand-600 peer-checked:after:translate-x-full" />
             </label>
           </div>
         </div>

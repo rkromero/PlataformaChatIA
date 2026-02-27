@@ -1,6 +1,6 @@
 import { logger } from '../lib/logger.js';
 
-const DEBOUNCE_MS = 4_000;
+const DEFAULT_DEBOUNCE_MS = 4_000;
 
 interface PendingBatch {
   texts: string[];
@@ -9,14 +9,11 @@ interface PendingBatch {
 
 const pending = new Map<string, PendingBatch>();
 
-/**
- * Buffers incoming messages per conversation key.
- * Waits DEBOUNCE_MS after the last message, then calls onReady with combined text.
- */
 export function bufferMessage(
   key: string,
   text: string,
   onReady: (combinedText: string) => void,
+  debounceMs = DEFAULT_DEBOUNCE_MS,
 ): void {
   const existing = pending.get(key);
 
@@ -28,14 +25,14 @@ export function bufferMessage(
       const combined = existing.texts.join('\n');
       logger.debug({ key, count: existing.texts.length }, 'Buffer flushed, processing combined message');
       onReady(combined);
-    }, DEBOUNCE_MS);
+    }, debounceMs);
   } else {
     const batch: PendingBatch = {
       texts: [text],
       timer: setTimeout(() => {
         pending.delete(key);
         onReady(batch.texts.join('\n'));
-      }, DEBOUNCE_MS),
+      }, debounceMs),
     };
     pending.set(key, batch);
   }

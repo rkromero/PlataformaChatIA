@@ -16,13 +16,14 @@ export async function saveAiSettingsAction(_prev: unknown, formData: FormData) {
     handoffTag: formData.get('handoffTag'),
     removeOpeningSigns: formData.get('removeOpeningSigns') === 'on',
     splitLongMessages: formData.get('splitLongMessages') === 'on',
+    messageWindowSeconds: formData.get('messageWindowSeconds'),
   });
 
   if (!parsed.success) {
     return { error: parsed.error.errors.map((e) => e.message).join(', ') };
   }
 
-  const { enabled, model, systemPrompt, handoffKeywords, handoffTag, removeOpeningSigns, splitLongMessages } = parsed.data;
+  const { enabled, model, systemPrompt, handoffKeywords, handoffTag, removeOpeningSigns, splitLongMessages, messageWindowSeconds } = parsed.data;
 
   const keywords = handoffKeywords
     .split(',')
@@ -38,6 +39,7 @@ export async function saveAiSettingsAction(_prev: unknown, formData: FormData) {
       handoffRulesJson: { keywords, handoffTag },
       removeOpeningSigns,
       splitLongMessages,
+      messageWindowSeconds,
     },
   });
 

@@ -14,6 +14,7 @@ interface TenantWithSettings {
     handoffRulesJson: unknown;
     removeOpeningSigns: boolean;
     splitLongMessages: boolean;
+    messageWindowSeconds: number;
   } | null;
 }
 

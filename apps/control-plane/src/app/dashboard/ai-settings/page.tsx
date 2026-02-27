@@ -114,6 +114,7 @@ export default async function AiSettingsPage({
             handoffTag: handoffRules.handoffTag,
             removeOpeningSigns: settings.removeOpeningSigns,
             splitLongMessages: settings.splitLongMessages,
+            messageWindowSeconds: settings.messageWindowSeconds,
           }}
         />
       ) : (

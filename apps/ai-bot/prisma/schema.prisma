@@ -76,6 +76,7 @@ model AiSettings {
   businessHoursJson    Json?    @map("business_hours_json") @db.JsonB
   removeOpeningSigns   Boolean  @default(false) @map("remove_opening_signs")
   splitLongMessages    Boolean  @default(false) @map("split_long_messages")
+  messageWindowSeconds Int      @default(4) @map("message_window_seconds")
   updatedAt            DateTime @map("updated_at")
 
   tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)

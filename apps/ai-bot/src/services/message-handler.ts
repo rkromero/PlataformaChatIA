@@ -15,9 +15,9 @@ import type { HandoffRules } from '@chat-platform/shared/types';
 import { getCalendarContext } from './calendar-context.js';
 import { executeCalendarTool } from './calendar-tools.js';
 import { transformReply } from '../lib/message-transform.js';
+import { bufferMessage } from './message-buffer.js';
 
 const MAX_TOOL_ROUNDS = 3;
-const processingLocks = new Set<string>();
 
 interface IncomingMessageParams {
   tenantId: string;
@@ -29,20 +29,30 @@ interface IncomingMessageParams {
 
 export async function handleIncomingMessage(params: IncomingMessageParams) {
   const { tenantId, chatId, messageText, contactName, sendReply } = params;
-  const lockKey = `${tenantId}:${chatId}`;
 
-  if (processingLocks.has(lockKey)) {
-    const log = tenantLogger(tenantId);
-    log.info({ chatId }, 'Skipping duplicate processing, already in progress');
-    return;
-  }
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    include: { aiSettings: true },
+  });
 
-  processingLocks.add(lockKey);
-  try {
-    await processMessage(params);
-  } finally {
-    processingLocks.delete(lockKey);
-  }
+  if (!tenant || tenant.status !== 'active') return;
+
+  const settings = tenant.aiSettings;
+  if (!settings?.enabled) return;
+
+  const debounceMs = (settings.messageWindowSeconds ?? 4) * 1000;
+  const bufferKey = `waqr:${tenantId}:${chatId}`;
+
+  bufferMessage(bufferKey, messageText, async (combinedText) => {
+    try {
+      await processMessage({
+        tenantId, chatId, messageText: combinedText, contactName, sendReply,
+      });
+    } catch (err) {
+      const log = tenantLogger(tenantId);
+      log.error({ err, chatId }, 'Error processing buffered WhatsApp QR message');
+    }
+  }, debounceMs);
 }
 
 async function processMessage(params: IncomingMessageParams) {

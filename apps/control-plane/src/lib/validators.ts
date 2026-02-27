@@ -21,6 +21,7 @@ export const aiSettingsSchema = z.object({
   handoffTag: z.string().min(1).default('human_handoff'),
   removeOpeningSigns: z.boolean(),
   splitLongMessages: z.boolean(),
+  messageWindowSeconds: z.coerce.number().int().min(0, 'Mínimo 0 segundos').max(60, 'Máximo 60 segundos').default(4),
 });
 
 export const channelSchema = z.object({
