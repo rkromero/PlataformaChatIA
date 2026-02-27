@@ -294,6 +294,7 @@ export default async function AnalyticsPage({
       sentMessages: metrics.sentMessages,
     };
   });
+  const sortedAgentRows = [...agentRows].sort((a, b) => b.sentMessages - a.sentMessages);
 
   return (
     <div>
@@ -387,43 +388,87 @@ export default async function AnalyticsPage({
           </form>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-white/10 text-xs uppercase tracking-wide text-gray-400">
-                <th className="px-3 py-2">Agente</th>
-                <th className="px-3 py-2">Resp. prom. (min)</th>
-                <th className="px-3 py-2">SLA primera resp.</th>
-                <th className="px-3 py-2">% Leads ganados</th>
-                <th className="px-3 py-2">Resolución prom. (hs)</th>
-                <th className="px-3 py-2">Mensajes/día</th>
-                <th className="px-3 py-2">Tasa seguimiento</th>
-              </tr>
-            </thead>
-            <tbody>
-              {agentRows.map((row) => (
-                <tr key={row.id} className="border-b border-white/[0.06]">
-                  <td className="px-3 py-2 font-medium text-gray-100">{row.name}</td>
-                  <td className="px-3 py-2 text-gray-300">{row.avgResponseMinutes.toFixed(1)}</td>
-                  <td className="px-3 py-2 text-gray-300">{row.slaRate.toFixed(1)}%</td>
-                  <td className="px-3 py-2 text-gray-300">{row.winRate.toFixed(1)}%</td>
-                  <td className="px-3 py-2 text-gray-300">{row.avgResolutionHours.toFixed(1)}</td>
-                  <td className="px-3 py-2 text-gray-300">
-                    {row.messagesPerDay.toFixed(1)}
-                    <span className="ml-1 text-xs text-gray-500">({row.sentMessages} total)</span>
-                  </td>
-                  <td className="px-3 py-2 text-gray-300">{row.followUpRate.toFixed(1)}%</td>
-                </tr>
-              ))}
-              {agentRows.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-3 py-6 text-center text-sm text-gray-500">
-                    No hay agentes activos para mostrar.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {sortedAgentRows.map((row) => (
+            <article
+              key={row.id}
+              className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 transition-colors hover:border-white/[0.14]"
+            >
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-100">{row.name}</h3>
+                  <p className="mt-0.5 text-xs text-gray-400">
+                    {row.sentMessages} mensajes enviados en el período
+                  </p>
+                </div>
+                <span className="rounded-full border border-brand-500/30 bg-brand-500/10 px-2 py-0.5 text-xs font-medium text-brand-300">
+                  {row.messagesPerDay.toFixed(1)} msg/día
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2">
+                  <p className="text-[11px] text-gray-400">Resp. promedio</p>
+                  <p className="mt-1 text-base font-semibold tabular-nums text-gray-100">
+                    {row.avgResponseMinutes.toFixed(1)} min
+                  </p>
+                </div>
+                <div className="rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2">
+                  <p className="text-[11px] text-gray-400">Resolución</p>
+                  <p className="mt-1 text-base font-semibold tabular-nums text-gray-100">
+                    {row.avgResolutionHours.toFixed(1)} hs
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 space-y-2">
+                <div>
+                  <div className="mb-1 flex items-center justify-between text-[11px] text-gray-400">
+                    <span>SLA primera respuesta</span>
+                    <span className="font-medium text-gray-200">{row.slaRate.toFixed(1)}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                    <div
+                      className="h-full rounded-full bg-brand-500"
+                      style={{ width: `${Math.min(Math.max(row.slaRate, 0), 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-1 flex items-center justify-between text-[11px] text-gray-400">
+                    <span>Leads ganados</span>
+                    <span className="font-medium text-gray-200">{row.winRate.toFixed(1)}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                    <div
+                      className="h-full rounded-full bg-emerald-500"
+                      style={{ width: `${Math.min(Math.max(row.winRate, 0), 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-1 flex items-center justify-between text-[11px] text-gray-400">
+                    <span>Tasa de seguimiento</span>
+                    <span className="font-medium text-gray-200">{row.followUpRate.toFixed(1)}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                    <div
+                      className="h-full rounded-full bg-amber-500"
+                      style={{ width: `${Math.min(Math.max(row.followUpRate, 0), 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+
+          {sortedAgentRows.length === 0 && (
+            <div className="col-span-full rounded-xl border border-dashed border-white/[0.1] bg-white/[0.02] px-4 py-8 text-center text-sm text-gray-500">
+              No hay agentes activos para mostrar.
+            </div>
+          )}
         </div>
       </div>
     </div>
