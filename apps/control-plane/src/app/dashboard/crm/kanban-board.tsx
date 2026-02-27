@@ -41,12 +41,14 @@ interface KanbanBoardProps {
   leads: Lead[];
   stages: Stage[];
   isAdmin: boolean;
+  showLeadScore: boolean;
 }
 
 export function KanbanBoard({
   leads: initialLeads,
   stages,
   isAdmin,
+  showLeadScore,
 }: KanbanBoardProps) {
   const [leads, setLeads] = useState(initialLeads);
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -146,6 +148,7 @@ export function KanbanBoard({
                   onDragStart={() => handleDragStart(lead.id)}
                   onDragEnd={handleDragEnd}
                   isAdmin={isAdmin}
+                  showLeadScore={showLeadScore}
                 />
               ))}
               {stageLeads.length > getVisibleCount(stage.key) && (

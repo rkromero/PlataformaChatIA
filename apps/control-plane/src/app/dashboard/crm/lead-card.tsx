@@ -11,6 +11,7 @@ interface LeadCardProps {
   onDragStart: () => void;
   onDragEnd: () => void;
   isAdmin: boolean;
+  showLeadScore: boolean;
 }
 
 export function LeadCard({
@@ -19,6 +20,7 @@ export function LeadCard({
   onDragStart,
   onDragEnd,
   isAdmin,
+  showLeadScore,
 }: LeadCardProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -42,7 +44,7 @@ export function LeadCard({
 
   const timeAgo = getTimeAgo(lead.updatedAt);
   const assignedInitials = getInitials(lead.assignedAgentName);
-  const scoreLabel = getScoreLabel(lead.leadTemperature, lead.leadScore);
+  const scoreLabel = showLeadScore ? getScoreLabel(lead.leadTemperature, lead.leadScore) : null;
 
   return (
     <div
@@ -96,9 +98,11 @@ export function LeadCard({
 
       <div className="mt-2 flex items-center justify-between">
         <p className="text-[10px] text-gray-400">{timeAgo}</p>
-        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${scoreLabel.className}`}>
-          {scoreLabel.text}
-        </span>
+        {scoreLabel ? (
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${scoreLabel.className}`}>
+            {scoreLabel.text}
+          </span>
+        ) : null}
       </div>
     </div>
   );
@@ -130,18 +134,18 @@ function getTimeAgo(dateStr: string): string {
 function getScoreLabel(temperature: string, score: number): { text: string; className: string } {
   if (temperature === 'hot') {
     return {
-      text: `Hot ${score}`,
+      text: `Caliente ${score}`,
       className: 'bg-rose-500/15 text-rose-400',
     };
   }
   if (temperature === 'warm') {
     return {
-      text: `Warm ${score}`,
+      text: `Tibio ${score}`,
       className: 'bg-amber-500/15 text-amber-400',
     };
   }
   return {
-    text: `Cold ${score}`,
+    text: `Frío ${score}`,
     className: 'bg-sky-500/15 text-sky-400',
   };
 }

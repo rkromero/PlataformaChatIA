@@ -26,10 +26,14 @@ export default async function CrmPage() {
 
   const filter = agentLeadFilter(session);
 
-  const [leads] = await Promise.all([
+  const [aiSettings, leads] = await Promise.all([
+    prisma.aiSettings.findUnique({
+      where: { tenantId: session.tenantId },
+      select: { leadScoringEnabled: true },
+    }),
     prisma.conversationLink.findMany({
       where: { tenantId: session.tenantId, ...filter },
-      orderBy: [{ leadScore: 'desc' }, { updatedAt: 'desc' }],
+      orderBy: [{ updatedAt: 'desc' }],
       take: 1000,
       select: {
         id: true,
@@ -49,6 +53,11 @@ export default async function CrmPage() {
       },
     }),
   ]);
+
+  const leadScoringEnabled = Boolean(aiSettings?.leadScoringEnabled);
+  const sortedLeads = leadScoringEnabled
+    ? [...leads].sort((a, b) => b.leadScore - a.leadScore || (b.updatedAt.getTime() - a.updatedAt.getTime()))
+    : leads;
 
   const totalLeads = leads.length;
   const wonLeads = leads.filter((l) => l.stage === 'won').length;
@@ -101,7 +110,7 @@ export default async function CrmPage() {
         avgCycleTime={avgCycleTime}
       />
 
-      {leads.length === 0 ? (
+      {sortedLeads.length === 0 ? (
         <div className="flex-1 overflow-hidden p-1">
           <EmptyState
             icon={
@@ -120,7 +129,7 @@ export default async function CrmPage() {
         </div>
       ) : (
         <KanbanBoard
-          leads={leads.map((l) => ({
+          leads={sortedLeads.map((l) => ({
             id: l.id,
             contactName: l.contactName,
             phone: l.phone,
@@ -138,6 +147,7 @@ export default async function CrmPage() {
           }))}
           stages={STAGES.map((s) => ({ ...s }))}
           isAdmin={isAdmin(session)}
+          showLeadScore={leadScoringEnabled}
         />
       )}
     </div>
