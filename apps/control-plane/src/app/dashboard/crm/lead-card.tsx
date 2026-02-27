@@ -145,7 +145,7 @@ export function LeadCard({
           )}
 
           {/* Action buttons */}
-          <div className="flex gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
             {chatwootUrl && (
               <a
                 href={chatwootUrl}

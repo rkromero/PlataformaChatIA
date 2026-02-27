@@ -111,7 +111,7 @@ export function KanbanBoard({
   }
 
   return (
-    <div className="flex flex-1 gap-3 overflow-x-auto pb-2">
+    <div className="grid flex-1 grid-cols-6 gap-2 pb-2">
       {stages.map((stage) => {
         const stageLeads = leads.filter((l) => l.stage === stage.key);
         const isDragOver = dragOverStage === stage.key;
@@ -119,7 +119,7 @@ export function KanbanBoard({
         return (
           <div
             key={stage.key}
-            className={`flex w-72 flex-shrink-0 flex-col rounded-xl border transition-colors ${
+            className={`flex min-w-0 flex-col rounded-xl border transition-colors ${
               isDragOver
                 ? 'border-brand-500 bg-brand-500/5'
                 : 'border-white/[0.06] bg-surface-2'
