@@ -18,6 +18,8 @@ export interface Lead {
   source: string;
   assignedAgentId: string | null;
   assignedAgentName: string | null;
+  leadScore: number;
+  leadTemperature: string;
   createdAt: string;
   updatedAt: string;
 }

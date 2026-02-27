@@ -78,6 +78,7 @@ model AiSettings {
   splitLongMessages    Boolean  @default(false) @map("split_long_messages")
   messageWindowSeconds Int      @default(4) @map("message_window_seconds")
   disableReactionReplies Boolean @default(false) @map("disable_reaction_replies")
+  leadScoringEnabled   Boolean  @default(false) @map("lead_scoring_enabled")
   updatedAt            DateTime @map("updated_at")
 
   tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -128,6 +129,8 @@ model ConversationLink {
   handoffActive          Boolean            @default(false) @map("handoff_active")
   source                 ConversationSource @default(chatwoot)
   assignedAgentId        String?            @map("assigned_agent_id") @db.Uuid
+  leadScore              Int                @default(0) @map("lead_score")
+  leadTemperature        String             @default("cold") @map("lead_temperature")
   createdAt              DateTime           @default(now()) @map("created_at")
   updatedAt              DateTime           @updatedAt @map("updated_at")
   deletedAt              DateTime?          @map("deleted_at")
@@ -141,6 +144,7 @@ model ConversationLink {
   @@index([tenantId, phone])
   @@index([tenantId, source])
   @@index([tenantId, assignedAgentId])
+  @@index([tenantId, leadScore])
   @@map("conversation_links")
 }
 

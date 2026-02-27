@@ -1,5 +1,8 @@
 'use client';
 
+import { useTransition } from 'react';
+import toast from 'react-hot-toast';
+import { setLeadScoringEnabledAction } from '../actions';
 import type { AccountData } from '../types';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -19,6 +22,19 @@ function InfoRow({ label, value, mono }: { label: string; value: string; mono?: 
 }
 
 export function AccountSection({ data }: { data: AccountData }) {
+  const [isPending, startTransition] = useTransition();
+
+  function handleToggleLeadScoring(enabled: boolean) {
+    startTransition(async () => {
+      const result = await setLeadScoringEnabledAction(enabled);
+      if (result?.error) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success(enabled ? 'Calificación automática activada' : 'Calificación automática desactivada');
+    });
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       {/* Business info */}
@@ -79,6 +95,27 @@ export function AccountSection({ data }: { data: AccountData }) {
         <p className="mt-4 text-xs text-gray-400">
           Para cambiar reglas de IA y horarios, podés hacerlo desde <span className="font-medium text-gray-300">Mi Bot</span>.
         </p>
+
+        <div className="mt-5 border-t border-white/[0.06] pt-5">
+          <div className="flex items-start justify-between gap-4 rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+            <div>
+              <p className="text-sm font-medium text-gray-100">Calificación automática de leads</p>
+              <p className="mt-1 text-xs text-gray-400">
+                Puntúa cada lead por intención de compra y lo clasifica en frío, tibio o caliente para priorizar ventas.
+              </p>
+            </div>
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input
+                type="checkbox"
+                className="peer sr-only"
+                defaultChecked={data.leadScoringEnabled}
+                onChange={(e) => handleToggleLeadScoring(e.target.checked)}
+                disabled={isPending}
+              />
+              <div className="h-6 w-11 rounded-full bg-gray-600 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:duration-200 after:content-[''] peer-checked:bg-brand-600 peer-checked:after:translate-x-full peer-disabled:opacity-50" />
+            </label>
+          </div>
+        </div>
       </section>
     </div>
   );

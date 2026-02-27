@@ -8,6 +8,7 @@ export interface AccountData {
   onboardingCompleted: boolean;
   aiEnabled: boolean;
   aiModel: string | null;
+  leadScoringEnabled: boolean;
   trialEndsAt: string | null;
   lastUpdated: string | null;
   ownerName: string;

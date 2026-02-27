@@ -1,5 +1,6 @@
 import { prisma } from '../lib/db.js';
 import { tenantLogger } from '../lib/logger.js';
+import { calculateLeadScore } from './lead-scoring.js';
 
 interface UpsertParams {
   tenantId: string;
@@ -21,6 +22,11 @@ export async function upsertConversationLink({
   crmLeadId,
 }: UpsertParams) {
   const log = tenantLogger(tenantId);
+  const aiSettings = await prisma.aiSettings.findUnique({
+    where: { tenantId },
+    select: { leadScoringEnabled: true },
+  });
+  const scoringEnabled = Boolean(aiSettings?.leadScoringEnabled);
 
   const existing = await prisma.conversationLink.findUnique({
     where: {
@@ -36,6 +42,11 @@ export async function upsertConversationLink({
     if (crmLeadId && !existing.crmLeadId) updateData.crmLeadId = crmLeadId;
     if (contactName && !existing.contactName) updateData.contactName = contactName;
     if (lastMessage) updateData.lastMessage = lastMessage.slice(0, 500);
+    if (lastMessage && scoringEnabled) {
+      const scoreResult = calculateLeadScore(lastMessage, existing.leadScore);
+      updateData.leadScore = scoreResult.score;
+      updateData.leadTemperature = scoreResult.temperature;
+    }
 
     if (Object.keys(updateData).length > 0) {
       await prisma.conversationLink.update({
@@ -67,10 +78,30 @@ export async function upsertConversationLink({
       });
 
       if (exactMatch) {
-        return mergeManualLead(exactMatch.id, conversationId, contactId, contactName, lastMessage, crmLeadId, log);
+        return mergeManualLead(
+          exactMatch.id,
+          exactMatch.leadScore,
+          scoringEnabled,
+          conversationId,
+          contactId,
+          contactName,
+          lastMessage,
+          crmLeadId,
+          log,
+        );
       }
     } else {
-      return mergeManualLead(manualLead.id, conversationId, contactId, contactName, lastMessage, crmLeadId, log);
+      return mergeManualLead(
+        manualLead.id,
+        manualLead.leadScore,
+        scoringEnabled,
+        conversationId,
+        contactId,
+        contactName,
+        lastMessage,
+        crmLeadId,
+        log,
+      );
     }
   }
 
@@ -83,6 +114,15 @@ export async function upsertConversationLink({
       contactName: contactName ?? null,
       lastMessage: lastMessage?.slice(0, 500) ?? null,
       crmLeadId: crmLeadId ?? null,
+      ...(scoringEnabled && lastMessage
+        ? (() => {
+            const scoreResult = calculateLeadScore(lastMessage, 0);
+            return {
+              leadScore: scoreResult.score,
+              leadTemperature: scoreResult.temperature,
+            };
+          })()
+        : {}),
     },
   });
 
@@ -92,6 +132,8 @@ export async function upsertConversationLink({
 
 async function mergeManualLead(
   manualLeadId: string,
+  previousScore: number,
+  scoringEnabled: boolean,
   conversationId: number,
   contactId: number | null | undefined,
   contactName: string | null | undefined,
@@ -108,6 +150,15 @@ async function mergeManualLead(
       lastMessage: lastMessage?.slice(0, 500) ?? undefined,
       crmLeadId: crmLeadId ?? undefined,
       source: 'chatwoot',
+      ...(scoringEnabled && lastMessage
+        ? (() => {
+            const scoreResult = calculateLeadScore(lastMessage, previousScore);
+            return {
+              leadScore: scoreResult.score,
+              leadTemperature: scoreResult.temperature,
+            };
+          })()
+        : {}),
     },
   });
 

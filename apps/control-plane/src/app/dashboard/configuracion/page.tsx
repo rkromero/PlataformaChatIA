@@ -30,7 +30,7 @@ export default async function ConfiguracionPage() {
         updatedAt: true,
         trialEndsAt: true,
         aiSettings: {
-          select: { enabled: true, model: true, updatedAt: true },
+          select: { enabled: true, model: true, leadScoringEnabled: true, updatedAt: true },
         },
       },
     }),
@@ -74,6 +74,7 @@ export default async function ConfiguracionPage() {
     onboardingCompleted: tenant?.onboardingCompleted ?? false,
     aiEnabled: tenant?.aiSettings?.enabled ?? false,
     aiModel: tenant?.aiSettings?.model || null,
+    leadScoringEnabled: tenant?.aiSettings?.leadScoringEnabled ?? false,
     trialEndsAt: formatDate(tenant?.trialEndsAt),
     lastUpdated: formatDate(tenant?.aiSettings?.updatedAt || tenant?.updatedAt),
     ownerName: owner?.name?.trim() || owner?.email || 'No definido',

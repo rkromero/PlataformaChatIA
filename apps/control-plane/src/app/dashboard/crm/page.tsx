@@ -29,7 +29,7 @@ export default async function CrmPage() {
   const [leads] = await Promise.all([
     prisma.conversationLink.findMany({
       where: { tenantId: session.tenantId, ...filter },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: [{ leadScore: 'desc' }, { updatedAt: 'desc' }],
       take: 1000,
       select: {
         id: true,
@@ -41,6 +41,8 @@ export default async function CrmPage() {
         chatwootConversationId: true,
         source: true,
         assignedAgentId: true,
+        leadScore: true,
+        leadTemperature: true,
         createdAt: true,
         updatedAt: true,
         assignedAgent: { select: { id: true, name: true, email: true } },
@@ -129,6 +131,8 @@ export default async function CrmPage() {
             source: l.source,
             assignedAgentId: l.assignedAgentId,
             assignedAgentName: l.assignedAgent?.name || l.assignedAgent?.email || null,
+            leadScore: l.leadScore,
+            leadTemperature: l.leadTemperature,
             createdAt: l.createdAt.toISOString(),
             updatedAt: l.updatedAt.toISOString(),
           }))}

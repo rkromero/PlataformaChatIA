@@ -16,6 +16,7 @@ interface TenantWithSettings {
     splitLongMessages: boolean;
     messageWindowSeconds: number;
     disableReactionReplies: boolean;
+    leadScoringEnabled: boolean;
   } | null;
 }
 
