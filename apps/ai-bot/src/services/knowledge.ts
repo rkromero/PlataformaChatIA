@@ -40,7 +40,12 @@ export async function getKnowledgeContext(
     });
   }
 
-  if (entries.length === 0) return '';
+  if (entries.length === 0) {
+    return '\n\n--- BASE DE CONOCIMIENTO ---\n' +
+      'IMPORTANTE: La base de conocimiento de este negocio está VACÍA. No tiene información cargada sobre servicios, productos, precios, menú, horarios ni ningún otro dato.\n' +
+      'NO inventes ni supongas ningún servicio, producto, tratamiento, plato ni precio. Si el cliente pregunta por algo específico, respondé: "Todavía no tengo esa información cargada, pero puedo conectarte con alguien del equipo que te ayude."\n' +
+      '--- Fin ---';
+  }
 
   const lines = entries.map(
     (e) => `[${e.category}] ${e.title}\n${e.content}`,
@@ -48,9 +53,9 @@ export async function getKnowledgeContext(
 
   return (
     '\n\n--- BASE DE CONOCIMIENTO DEL NEGOCIO ---\n' +
-    'Usá esta información para responder las consultas del cliente. ' +
-    'Si la respuesta está en esta base de conocimiento, usala. ' +
-    'Si no encontrás la respuesta acá, decile al cliente que vas a consultar con el equipo.\n\n' +
-    lines.join('\n\n')
+    'Esta es TODA la información disponible. SOLO podés usar estos datos para responder. ' +
+    'Si el cliente pregunta algo que NO está en esta lista, decile que no tenés esa info y ofrecé conectarlo con el equipo.\n\n' +
+    lines.join('\n\n') +
+    '\n--- Fin de la base de conocimiento ---'
   );
 }
