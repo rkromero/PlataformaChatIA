@@ -14,8 +14,10 @@ interface SessionInfo {
   qr: string | null;
   status: 'connecting' | 'qr' | 'connected' | 'disconnected';
   tenantId: string;
+  lastActivity: number;
 }
 
+const MAX_SESSIONS = 100;
 const sessions = new Map<string, SessionInfo>();
 
 function mapStatus(internal: string): string {
@@ -73,11 +75,29 @@ async function startSocket(
     defaultQueryTimeoutMs: 60_000,
   });
 
+  if (sessions.size >= MAX_SESSIONS) {
+    let oldest: string | null = null;
+    let oldestTime = Infinity;
+    for (const [id, s] of sessions) {
+      if (s.status !== 'connected' && s.lastActivity < oldestTime) {
+        oldest = id;
+        oldestTime = s.lastActivity;
+      }
+    }
+    if (oldest) {
+      const stale = sessions.get(oldest);
+      try { stale?.socket.end(undefined); } catch {}
+      sessions.delete(oldest);
+      log.info({ evicted: oldest }, 'Evicted stale session to stay under limit');
+    }
+  }
+
   const sessionInfo: SessionInfo = {
     socket: sock,
     qr: null,
     status: 'connecting',
     tenantId,
+    lastActivity: Date.now(),
   };
   sessions.set(tenantId, sessionInfo);
 
@@ -119,6 +139,7 @@ async function startSocket(
     if (connection === 'open') {
       sessionInfo.qr = null;
       sessionInfo.status = 'connected';
+      sessionInfo.lastActivity = Date.now();
       log.info('WhatsApp connected via Baileys');
     }
   });
@@ -140,6 +161,7 @@ async function startSocket(
 
       const chatId = msg.key.remoteJid;
       const contactName = msg.pushName || null;
+      sessionInfo.lastActivity = Date.now();
       const bufferKey = `baileys:${tenantId}:${chatId}`;
 
       bufferMessage(bufferKey, text, async (combinedText) => {

@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useCallback } from 'react';
 import { moveLeadAction } from './actions';
 import { LeadCard } from './lead-card';
+
+const INITIAL_VISIBLE = 20;
+const LOAD_MORE_STEP = 20;
 
 export interface Lead {
   id: string;
@@ -52,7 +55,20 @@ export function KanbanBoard({
   const [leads, setLeads] = useState(initialLeads);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
+  const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
   const [, startTransition] = useTransition();
+
+  const getVisibleCount = useCallback(
+    (stageKey: string) => visibleCounts[stageKey] ?? INITIAL_VISIBLE,
+    [visibleCounts],
+  );
+
+  function showMore(stageKey: string) {
+    setVisibleCounts((prev) => ({
+      ...prev,
+      [stageKey]: (prev[stageKey] ?? INITIAL_VISIBLE) + LOAD_MORE_STEP,
+    }));
+  }
 
   function handleDragStart(leadId: string) {
     setDraggedId(leadId);
@@ -126,7 +142,7 @@ export function KanbanBoard({
                   <p className="text-xs text-gray-400">Arrastrá leads acá</p>
                 </div>
               )}
-              {stageLeads.map((lead) => (
+              {stageLeads.slice(0, getVisibleCount(stage.key)).map((lead) => (
                 <LeadCard
                   key={lead.id}
                   lead={lead}
@@ -139,6 +155,15 @@ export function KanbanBoard({
                   isAdmin={isAdmin}
                 />
               ))}
+              {stageLeads.length > getVisibleCount(stage.key) && (
+                <button
+                  onClick={() => showMore(stage.key)}
+                  className="w-full rounded-lg border border-dashed border-gray-300 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:border-gray-400 hover:text-gray-700 dark:border-gray-700 dark:hover:border-gray-500 dark:hover:text-gray-300"
+                >
+                  Mostrar {Math.min(LOAD_MORE_STEP, stageLeads.length - getVisibleCount(stage.key))} más
+                  ({stageLeads.length - getVisibleCount(stage.key)} restantes)
+                </button>
+              )}
             </div>
           </div>
         );

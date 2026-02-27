@@ -18,19 +18,27 @@ export async function checkAndIncrementUsage(
   const limits = getPlanLimits(plan);
   const period = getCurrentPeriod();
 
-  const record = await prisma.usageRecord.upsert({
-    where: { tenantId_period: { tenantId, period } },
-    create: { tenantId, period, messages: 1 },
-    update: { messages: { increment: 1 } },
+  const result = await prisma.$transaction(async (tx) => {
+    const record = await tx.usageRecord.upsert({
+      where: { tenantId_period: { tenantId, period } },
+      create: { tenantId, period, messages: 1 },
+      update: { messages: { increment: 1 } },
+    });
+
+    if (record.messages > limits.messagesPerMonth) {
+      await tx.usageRecord.update({
+        where: { tenantId_period: { tenantId, period } },
+        data: { messages: { decrement: 1 } },
+      });
+      return { allowed: false, current: record.messages - 1 } as const;
+    }
+
+    return { allowed: true, current: record.messages } as const;
   });
 
-  if (record.messages > limits.messagesPerMonth) {
-    await prisma.usageRecord.update({
-      where: { tenantId_period: { tenantId, period } },
-      data: { messages: { decrement: 1 } },
-    });
+  if (!result.allowed) {
     sendUsageNotification(tenantId, period, 100);
-    return { allowed: false, current: record.messages - 1, limit: limits.messagesPerMonth };
+    return { allowed: false, current: result.current, limit: limits.messagesPerMonth };
   }
 
   const today = new Date();
@@ -41,12 +49,12 @@ export async function checkAndIncrementUsage(
     update: { messages: { increment: 1 } },
   }).catch(() => {});
 
-  const percent = Math.round((record.messages / limits.messagesPerMonth) * 100);
+  const percent = Math.round((result.current / limits.messagesPerMonth) * 100);
   if (percent >= 80) {
     sendUsageNotification(tenantId, period, percent >= 100 ? 100 : 80);
   }
 
-  return { allowed: true, current: record.messages, limit: limits.messagesPerMonth };
+  return { allowed: true, current: result.current, limit: limits.messagesPerMonth };
 }
 
 function sendUsageNotification(tenantId: string, period: string, threshold: number) {

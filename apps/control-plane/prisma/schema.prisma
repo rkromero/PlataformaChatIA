@@ -117,6 +117,7 @@ model Token {
   expiresAt DateTime  @map("expires_at")
   createdAt DateTime  @default(now()) @map("created_at")
 
+  @@index([expiresAt])
   @@map("tokens")
 }
 
@@ -238,6 +239,7 @@ model Message {
   tenant             Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   conversationLink   ConversationLink @relation(fields: [conversationLinkId], references: [id], onDelete: Cascade)
 
+  @@index([tenantId])
   @@index([conversationLinkId, timestamp])
   @@map("messages")
 }
@@ -288,6 +290,7 @@ model WhatsAppTemplate {
   tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, name, language])
+  @@index([tenantId, deletedAt])
   @@map("whatsapp_templates")
 }
 
@@ -300,6 +303,7 @@ model BaileysAuth {
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, dataKey])
+  @@index([tenantId])
   @@map("baileys_auth")
 }
 
@@ -375,6 +379,7 @@ model CalendarProfessionalService {
   service        CalendarService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@unique([professionalId, serviceId])
+  @@index([serviceId])
   @@map("calendar_professional_services")
 }
 
@@ -446,5 +451,6 @@ model Appointment {
   @@index([tenantId, startAt])
   @@index([professionalId, startAt])
   @@index([tenantId, status])
+  @@index([status, endAt])
   @@map("appointments")
 }

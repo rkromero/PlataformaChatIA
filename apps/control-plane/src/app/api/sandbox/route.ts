@@ -8,6 +8,40 @@ function getOpenAIKey(): string {
   return process.env[String('OPENAI_API_KEY')] ?? '';
 }
 
+async function fetchOpenAI(
+  body: Record<string, unknown>,
+  apiKey: string,
+  retries = 2,
+): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+    try {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (res.ok || attempt === retries) return res;
+      if (res.status === 429 || res.status >= 500) {
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
+      }
+      return res;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (attempt === retries) throw err;
+      await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -105,14 +139,7 @@ export async function POST(request: NextRequest) {
         openaiBody.tool_choice = 'auto';
       }
 
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify(openaiBody),
-      });
+      const res = await fetchOpenAI(openaiBody, apiKey);
 
       if (!res.ok) {
         const text = await res.text();

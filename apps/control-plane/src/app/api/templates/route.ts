@@ -8,8 +8,9 @@ export async function GET() {
   if (!session) return NextResponse.json([], { status: 401 });
 
   const templates = await prisma.whatsAppTemplate.findMany({
-    where: { tenantId: session.tenantId, status: 'APPROVED' },
+    where: { tenantId: session.tenantId, status: 'APPROVED', deletedAt: null },
     orderBy: { name: 'asc' },
+    take: 200,
     select: {
       id: true,
       name: true,

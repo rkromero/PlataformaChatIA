@@ -55,12 +55,9 @@ export default async function DashboardPage() {
     );
   }
 
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: session.tenantId },
-  });
-
   const period = getCurrentPeriod();
-  const [channelCount, conversationCount, usage] = await Promise.all([
+  const [tenant, channelCount, conversationCount, usage] = await Promise.all([
+    prisma.tenant.findUnique({ where: { id: session.tenantId } }),
     prisma.tenantChannel.count({ where: { tenantId: session.tenantId } }),
     prisma.conversationLink.count({ where: { tenantId: session.tenantId } }),
     prisma.usageRecord.findUnique({

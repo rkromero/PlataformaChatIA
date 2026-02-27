@@ -6,7 +6,11 @@ import type {
 } from 'openai/resources/chat/completions';
 import { env } from '../lib/env.js';
 
-const client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+const client = new OpenAI({
+  apiKey: env.OPENAI_API_KEY,
+  timeout: 30_000,
+  maxRetries: 2,
+});
 
 export interface ToolCall {
   id: string;

@@ -16,6 +16,7 @@ import { getCalendarContext } from './calendar-context.js';
 import { executeCalendarTool } from './calendar-tools.js';
 
 const MAX_TOOL_ROUNDS = 3;
+const processingLocks = new Set<string>();
 
 interface IncomingMessageParams {
   tenantId: string;
@@ -26,6 +27,24 @@ interface IncomingMessageParams {
 }
 
 export async function handleIncomingMessage(params: IncomingMessageParams) {
+  const { tenantId, chatId, messageText, contactName, sendReply } = params;
+  const lockKey = `${tenantId}:${chatId}`;
+
+  if (processingLocks.has(lockKey)) {
+    const log = tenantLogger(tenantId);
+    log.info({ chatId }, 'Skipping duplicate processing, already in progress');
+    return;
+  }
+
+  processingLocks.add(lockKey);
+  try {
+    await processMessage(params);
+  } finally {
+    processingLocks.delete(lockKey);
+  }
+}
+
+async function processMessage(params: IncomingMessageParams) {
   const { tenantId, chatId, messageText, contactName, sendReply } = params;
   const phone = chatIdToPhone(chatId);
 
@@ -95,13 +114,11 @@ export async function handleIncomingMessage(params: IncomingMessageParams) {
     where: { conversationLinkId: convLink.id },
     orderBy: { timestamp: 'desc' },
     take: 10,
+    select: { direction: true, content: true },
   });
   const history = recentMessages.reverse().map((m) => ({
-    role:
-      m.direction === 'incoming'
-        ? ('user' as const)
-        : ('assistant' as const),
-    content: m.content,
+    role: m.direction === 'incoming' ? ('user' as const) : ('assistant' as const),
+    content: m.content.length > 500 ? m.content.slice(0, 500) + '...' : m.content,
   }));
 
   const [knowledgeContext, calendarCtx] = await Promise.all([

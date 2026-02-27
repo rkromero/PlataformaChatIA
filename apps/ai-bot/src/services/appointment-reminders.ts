@@ -4,25 +4,31 @@ import { sendMessage as sendBaileysMessage } from './baileys-manager.js';
 import { sendMessage as sendChatwootMessage } from './chatwoot.js';
 
 const CHECK_INTERVAL_MS = 5 * 60 * 1000;
+let isProcessing = false;
 
 export function startReminderLoop() {
   logger.info('Appointment reminder loop started');
   setInterval(() => {
-    processReminders().catch((err) =>
-      logger.error({ err }, 'Error in reminder loop'),
-    );
+    if (isProcessing) return;
+    isProcessing = true;
+    processReminders()
+      .catch((err) => logger.error({ err }, 'Error in reminder loop'))
+      .finally(() => { isProcessing = false; });
   }, CHECK_INTERVAL_MS);
 
   setTimeout(() => {
-    processReminders().catch((err) =>
-      logger.error({ err }, 'Error in initial reminder run'),
-    );
+    if (isProcessing) return;
+    isProcessing = true;
+    processReminders()
+      .catch((err) => logger.error({ err }, 'Error in initial reminder run'))
+      .finally(() => { isProcessing = false; });
   }, 10_000);
 }
 
 async function processReminders() {
   const configs = await prisma.calendarConfig.findMany({
     where: { reminderChannel: { not: null } },
+    take: 100,
     select: {
       tenantId: true,
       reminderChannel: true,
@@ -32,10 +38,10 @@ async function processReminders() {
   });
 
   for (const config of configs) {
-    await processReminder1(config);
-    if (config.reminderMinutes2 != null) {
-      await processReminder2(config);
-    }
+    await Promise.all([
+      processReminder1(config),
+      config.reminderMinutes2 != null ? processReminder2(config) : null,
+    ]);
   }
 }
 
@@ -101,6 +107,7 @@ async function findAppointments(
       startAt: { gt: now, lte: windowEnd },
       [sentField]: null,
     },
+    take: 200,
     include: {
       service: { select: { name: true } },
       professional: { select: { name: true } },

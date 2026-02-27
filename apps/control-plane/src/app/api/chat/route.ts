@@ -69,10 +69,13 @@ async function getChatwootMessages(lead: {
   if (!url || !token) return NextResponse.json({ messages: [], linked: true, channel: 'chatwoot' });
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15_000);
     const res = await fetch(
       `${url}/api/v1/accounts/${lead.tenant.chatwootAccountId}/conversations/${lead.chatwootConversationId}/messages`,
-      { headers: { api_access_token: token } },
+      { headers: { api_access_token: token }, signal: controller.signal },
     );
+    clearTimeout(timeoutId);
 
     if (!res.ok) return NextResponse.json({ messages: [], linked: true, channel: 'chatwoot' });
 
@@ -153,6 +156,8 @@ async function sendViaChatwoot(
   }
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15_000);
     const res = await fetch(
       `${url}/api/v1/accounts/${lead.tenant.chatwootAccountId}/conversations/${lead.chatwootConversationId}/messages`,
       {
@@ -166,8 +171,10 @@ async function sendViaChatwoot(
           message_type: 'outgoing',
           private: false,
         }),
+        signal: controller.signal,
       },
     );
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       const body = await res.text();

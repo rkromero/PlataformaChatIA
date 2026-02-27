@@ -1,21 +1,26 @@
 import { prisma } from '../lib/db.js';
 import { logger } from '../lib/logger.js';
 
-const CHECK_INTERVAL_MS = 15 * 60 * 1000; // every 15 minutes
-const GRACE_PERIOD_MS = 30 * 60 * 1000; // 30 minutes after endAt
+const CHECK_INTERVAL_MS = 15 * 60 * 1000;
+const GRACE_PERIOD_MS = 30 * 60 * 1000;
+let isDetecting = false;
 
 export function startNoShowDetector() {
   logger.info('No-show detector started');
   setInterval(() => {
-    detectNoShows().catch((err) =>
-      logger.error({ err }, 'Error in no-show detector'),
-    );
+    if (isDetecting) return;
+    isDetecting = true;
+    detectNoShows()
+      .catch((err) => logger.error({ err }, 'Error in no-show detector'))
+      .finally(() => { isDetecting = false; });
   }, CHECK_INTERVAL_MS);
 
   setTimeout(() => {
-    detectNoShows().catch((err) =>
-      logger.error({ err }, 'Error in initial no-show detection'),
-    );
+    if (isDetecting) return;
+    isDetecting = true;
+    detectNoShows()
+      .catch((err) => logger.error({ err }, 'Error in initial no-show detection'))
+      .finally(() => { isDetecting = false; });
   }, 30_000);
 }
 

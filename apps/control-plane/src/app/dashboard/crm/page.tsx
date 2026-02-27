@@ -26,37 +26,38 @@ export default async function CrmPage() {
 
   const filter = agentLeadFilter(session);
 
-  const leads = await prisma.conversationLink.findMany({
-    where: { tenantId: session.tenantId, ...filter },
-    orderBy: { updatedAt: 'desc' },
-    select: {
-      id: true,
-      contactName: true,
-      phone: true,
-      lastMessage: true,
-      stage: true,
-      notes: true,
-      chatwootConversationId: true,
-      source: true,
-      assignedAgentId: true,
-      createdAt: true,
-      updatedAt: true,
-      assignedAgent: { select: { id: true, name: true, email: true } },
-    },
-  });
-
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: session.tenantId },
-    select: { chatwootAccountId: true },
-  });
-
-  const agents = isAdmin(session)
-    ? await prisma.tenantUser.findMany({
-      where: { tenantId: session.tenantId, deletedAt: null },
-      select: { id: true, name: true, email: true, role: true },
-      orderBy: { email: 'asc' },
-    })
-    : [];
+  const [leads, tenant, agents] = await Promise.all([
+    prisma.conversationLink.findMany({
+      where: { tenantId: session.tenantId, ...filter },
+      orderBy: { updatedAt: 'desc' },
+      take: 1000,
+      select: {
+        id: true,
+        contactName: true,
+        phone: true,
+        lastMessage: true,
+        stage: true,
+        notes: true,
+        chatwootConversationId: true,
+        source: true,
+        assignedAgentId: true,
+        createdAt: true,
+        updatedAt: true,
+        assignedAgent: { select: { id: true, name: true, email: true } },
+      },
+    }),
+    prisma.tenant.findUnique({
+      where: { id: session.tenantId },
+      select: { chatwootAccountId: true },
+    }),
+    isAdmin(session)
+      ? prisma.tenantUser.findMany({
+          where: { tenantId: session.tenantId, deletedAt: null },
+          select: { id: true, name: true, email: true, role: true },
+          orderBy: { email: 'asc' },
+        })
+      : ([] as { id: string; name: string; email: string; role: string }[]),
+  ]);
 
   const chatwootBaseUrl = process.env[String('CW_PLATFORM_URL')]
     || process.env[String('CHATWOOT_BASE_URL')]

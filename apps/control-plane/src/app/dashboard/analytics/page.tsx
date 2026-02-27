@@ -11,14 +11,25 @@ export default async function AnalyticsPage() {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   thirtyDaysAgo.setUTCHours(0, 0, 0, 0);
 
-  const dailyData = await prisma.dailyUsage.findMany({
-    where: {
-      tenantId: session.tenantId,
-      date: { gte: thirtyDaysAgo },
-    },
-    orderBy: { date: 'asc' },
-    select: { date: true, messages: true },
-  });
+  const period = getCurrentPeriod();
+
+  const [dailyData, monthlyUsage, tenant, conversationCount] = await Promise.all([
+    prisma.dailyUsage.findMany({
+      where: { tenantId: session.tenantId, date: { gte: thirtyDaysAgo } },
+      orderBy: { date: 'asc' },
+      select: { date: true, messages: true },
+    }),
+    prisma.usageRecord.findUnique({
+      where: { tenantId_period: { tenantId: session.tenantId, period } },
+    }),
+    prisma.tenant.findUnique({
+      where: { id: session.tenantId },
+      select: { plan: true },
+    }),
+    prisma.conversationLink.count({
+      where: { tenantId: session.tenantId },
+    }),
+  ]);
 
   const days: { date: string; messages: number }[] = [];
   for (let i = 29; i >= 0; i--) {
@@ -35,21 +46,8 @@ export default async function AnalyticsPage() {
   const avgPerDay = Math.round(totalMessages / 30);
   const peakDay = days.reduce((max, d) => (d.messages > max.messages ? d : max), days[0]);
 
-  const period = getCurrentPeriod();
-  const monthlyUsage = await prisma.usageRecord.findUnique({
-    where: { tenantId_period: { tenantId: session.tenantId, period } },
-  });
-
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: session.tenantId },
-    select: { plan: true },
-  });
   const limits = getPlanLimits(tenant?.plan ?? 'starter');
   const monthMessages = monthlyUsage?.messages ?? 0;
-
-  const conversationCount = await prisma.conversationLink.count({
-    where: { tenantId: session.tenantId },
-  });
 
   return (
     <div>
