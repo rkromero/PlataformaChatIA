@@ -15,9 +15,14 @@ export default async function AiSettingsPage({
   const params = await searchParams;
   const activeTab = params.tab === 'knowledge' ? 'knowledge' : 'settings';
 
-  const settings = await prisma.aiSettings.findUnique({
-    where: { tenantId: session.tenantId },
-  });
+  const [settings, entries] = await Promise.all([
+    prisma.aiSettings.findUnique({ where: { tenantId: session.tenantId } }),
+    prisma.knowledgeEntry.findMany({
+      where: { tenantId: session.tenantId, deletedAt: null },
+      orderBy: [{ category: 'asc' }, { createdAt: 'desc' }],
+      take: 500,
+    }),
+  ]);
 
   if (!settings) {
     return (
@@ -32,56 +37,70 @@ export default async function AiSettingsPage({
   }
 
   const handoffRules = settings.handoffRulesJson as { keywords: string[]; handoffTag: string };
-
-  const entries = await prisma.knowledgeEntry.findMany({
-    where: { tenantId: session.tenantId },
-    orderBy: [{ category: 'asc' }, { createdAt: 'desc' }],
-    take: 500,
-  });
   const enabledCount = entries.filter((e) => e.enabled).length;
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Mi Bot</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Configurá el comportamiento de tu bot y su base de conocimiento
-        </p>
+      {/* Header */}
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-500/10">
+              <svg className="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Mi Bot</h1>
+              <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                Configurá el comportamiento de tu bot y su base de conocimiento
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${settings.enabled ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20' : 'bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-500/20'}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${settings.enabled ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+            {settings.enabled ? 'Activo' : 'Pausado'}
+          </span>
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-900">
-        <Link
-          href="/dashboard/ai-settings"
-          className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors duration-150 ${
-            activeTab === 'settings'
-              ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white'
-              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-          }`}
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" />
-          </svg>
-          Configuración IA
-        </Link>
-        <Link
-          href="/dashboard/ai-settings?tab=knowledge"
-          className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors duration-150 ${
-            activeTab === 'knowledge'
-              ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white'
-              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-          }`}
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-          </svg>
-          Conocimiento
-          {entries.length > 0 && (
-            <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
-              {enabledCount}
-            </span>
-          )}
-        </Link>
+      <div className="mb-8 border-b border-gray-200 dark:border-gray-800">
+        <nav className="-mb-px flex gap-6">
+          <Link
+            href="/dashboard/ai-settings"
+            className={`flex items-center gap-2 border-b-2 pb-3 text-sm font-medium transition-colors duration-150 ${
+              activeTab === 'settings'
+                ? 'border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-200'
+            }`}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+            </svg>
+            Configuración
+          </Link>
+          <Link
+            href="/dashboard/ai-settings?tab=knowledge"
+            className={`flex items-center gap-2 border-b-2 pb-3 text-sm font-medium transition-colors duration-150 ${
+              activeTab === 'knowledge'
+                ? 'border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-200'
+            }`}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+            </svg>
+            Conocimiento
+            {entries.length > 0 && (
+              <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
+                {enabledCount}/{entries.length}
+              </span>
+            )}
+          </Link>
+        </nav>
       </div>
 
       {/* Tab content */}

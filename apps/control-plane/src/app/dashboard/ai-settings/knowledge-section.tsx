@@ -48,30 +48,74 @@ export function KnowledgeSection({ entries }: { entries: Entry[] }) {
   const enabledCount = entries.filter((e) => e.enabled).length;
   const totalChars = entries.reduce((sum, e) => sum + e.content.length, 0);
 
+  const categoryCounts = entries.reduce<Record<string, number>>((acc, e) => {
+    acc[e.category] = (acc[e.category] ?? 0) + 1;
+    return acc;
+  }, {});
+
   return (
-    <div>
-      {/* Stats */}
-      <div className="mb-5 grid grid-cols-3 gap-3">
-        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Entradas</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-brand-600 dark:text-brand-400">{entries.length}</p>
+    <div className="space-y-6">
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="card flex items-center gap-4">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-500/10">
+            <svg className="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-2xl font-semibold tabular-nums text-brand-600 dark:text-brand-400">{entries.length}</p>
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Entradas totales</p>
+          </div>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Activas</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">{enabledCount}</p>
+        <div className="card flex items-center gap-4">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
+            <svg className="h-5 w-5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-2xl font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">{enabledCount}</p>
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Activas</p>
+          </div>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Caracteres</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums">{totalChars.toLocaleString()}</p>
+        <div className="card flex items-center gap-4">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-purple-50 dark:bg-purple-500/10">
+            <svg className="h-5 w-5 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-2xl font-semibold tabular-nums">{totalChars.toLocaleString()}</p>
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Caracteres</p>
+          </div>
         </div>
       </div>
 
-      {/* Import */}
+      {/* Import section */}
       <KnowledgeUploadForm />
 
-      {/* Add manual button */}
-      <div className="mb-4 flex justify-end">
-        <Link href="/dashboard/knowledge/new" className="btn-primary">
+      {/* Category filter + Add button */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap gap-2">
+          {Object.keys(categoryCounts).length > 1 &&
+            Object.entries(categoryCounts).map(([cat, count]) => {
+              const cfg = CATEGORY_CONFIG[cat] ?? CATEGORY_CONFIG.general;
+              return (
+                <span
+                  key={cat}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${cfg.color}`}
+                >
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d={cfg.icon} />
+                  </svg>
+                  {cfg.label}
+                  <span className="ml-0.5 opacity-60">{count}</span>
+                </span>
+              );
+            })}
+        </div>
+        <Link href="/dashboard/knowledge/new" className="btn-primary flex-shrink-0">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
@@ -79,7 +123,7 @@ export function KnowledgeSection({ entries }: { entries: Entry[] }) {
         </Link>
       </div>
 
-      {/* Entries */}
+      {/* Entries list */}
       {entries.length === 0 ? (
         <EmptyState
           title="Sin información cargada"
