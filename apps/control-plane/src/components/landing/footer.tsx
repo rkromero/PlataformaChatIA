@@ -22,26 +22,26 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-semibold text-white">Producto</h4>
             <ul className="mt-4 space-y-3">
-              <li><a href="#features" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Características</a></li>
-              <li><a href="#precios" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Precios</a></li>
-              <li><a href="#faq" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">FAQ</a></li>
+              <li><a href="/#features" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Características</a></li>
+              <li><a href="/#precios" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Precios</a></li>
+              <li><a href="/#faq" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">FAQ</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-sm font-semibold text-white">Empresa</h4>
             <ul className="mt-4 space-y-3">
-              <li><a href="#" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Sobre nosotros</a></li>
-              <li><a href="#" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Blog</a></li>
-              <li><a href="#" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Contacto</a></li>
+              <li><Link href="/sobre-nosotros" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Sobre nosotros</Link></li>
+              <li><Link href="/blog" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Blog</Link></li>
+              <li><Link href="/contacto" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Contacto</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-sm font-semibold text-white">Legal</h4>
             <ul className="mt-4 space-y-3">
-              <li><a href="#" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Términos de servicio</a></li>
-              <li><a href="#" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Política de privacidad</a></li>
+              <li><Link href="/terminos" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Términos de servicio</Link></li>
+              <li><Link href="/privacidad" className="text-sm text-gray-400 transition-colors duration-150 hover:text-white">Política de privacidad</Link></li>
             </ul>
           </div>
         </div>

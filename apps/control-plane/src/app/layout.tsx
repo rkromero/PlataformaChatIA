@@ -1,16 +1,22 @@
 import type { Metadata } from 'next';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from '@/components/theme-provider';
+import { SEO_KEYWORDS, getSiteUrl } from '@/lib/seo';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: 'ChatPlatform — Panel de Control',
   description: 'Plataforma de atención al cliente por WhatsApp con IA',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://chatplatform.app'),
+  keywords: SEO_KEYWORDS,
+  metadataBase: new URL(getSiteUrl()),
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     title: 'ChatPlatform',
     description: 'Automatizá la atención al cliente de tu negocio por WhatsApp con IA',
     siteName: 'ChatPlatform',
+    url: '/',
     type: 'website',
   },
   twitter: {

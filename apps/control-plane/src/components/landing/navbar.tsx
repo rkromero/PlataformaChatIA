@@ -1,18 +1,13 @@
-'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
 
 const NAV_LINKS = [
-  { label: 'Cómo funciona', href: '#como-funciona' },
-  { label: 'Características', href: '#features' },
-  { label: 'Precios', href: '#precios' },
-  { label: 'FAQ', href: '#faq' },
+  { label: 'Cómo funciona', href: '/#como-funciona' },
+  { label: 'Características', href: '/#features' },
+  { label: 'Precios', href: '/#precios' },
+  { label: 'FAQ', href: '/#faq' },
 ];
 
 export function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
   return (
     <header className="fixed top-0 z-50 w-full border-b border-white/10 bg-gray-950/80 backdrop-blur-lg">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -35,6 +30,18 @@ export function Navbar() {
               {link.label}
             </a>
           ))}
+          <Link
+            href="/blog"
+            className="text-sm text-gray-400 transition-colors duration-150 hover:text-white"
+          >
+            Blog
+          </Link>
+          <Link
+            href="/contacto"
+            className="text-sm text-gray-400 transition-colors duration-150 hover:text-white"
+          >
+            Contacto
+          </Link>
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
@@ -52,47 +59,45 @@ export function Navbar() {
           </Link>
         </div>
 
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="text-gray-400 hover:text-white md:hidden"
-          aria-label="Menú"
-        >
-          {mobileOpen ? (
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <details className="group md:hidden">
+          <summary className="list-none text-gray-400 hover:text-white [&::-webkit-details-marker]:hidden">
+            <span className="sr-only">Menú</span>
+            <svg className="block h-6 w-6 group-open:hidden" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
             </svg>
-          )}
-        </button>
-      </div>
-
-      {mobileOpen && (
-        <div className="border-t border-white/10 bg-gray-950/95 backdrop-blur-lg md:hidden">
-          <div className="space-y-1 px-4 py-4">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white"
-              >
-                {link.label}
-              </a>
-            ))}
-            <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4">
-              <Link href="/login" className="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-300 hover:text-white">
-                Iniciar sesión
+            <svg className="hidden h-6 w-6 group-open:block" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </summary>
+          <div className="absolute left-0 right-0 top-16 border-t border-white/10 bg-gray-950/95 backdrop-blur-lg">
+            <div className="space-y-1 px-4 py-4">
+              {NAV_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="block rounded-lg px-3 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white"
+                >
+                  {link.label}
+                </a>
+              ))}
+              <Link href="/blog" className="block rounded-lg px-3 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
+                Blog
               </Link>
-              <Link href="/register" className="rounded-lg bg-brand-600 px-3 py-2.5 text-center text-sm font-medium text-white hover:bg-brand-500">
-                Empezar gratis
+              <Link href="/contacto" className="block rounded-lg px-3 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
+                Contacto
               </Link>
+              <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4">
+                <Link href="/login" className="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-300 hover:text-white">
+                  Iniciar sesión
+                </Link>
+                <Link href="/register" className="rounded-lg bg-brand-600 px-3 py-2.5 text-center text-sm font-medium text-white hover:bg-brand-500">
+                  Empezar gratis
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        </details>
+      </div>
     </header>
   );
 }

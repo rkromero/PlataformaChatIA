@@ -1,8 +1,4 @@
-'use client';
-
-import { useState } from 'react';
-
-const FAQS = [
+export const FAQS = [
   {
     question: '¿Cómo funciona el bot de IA?',
     answer:
@@ -41,8 +37,6 @@ const FAQS = [
 ];
 
 export function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
   return (
     <section id="faq" className="bg-white py-24 dark:bg-gray-950 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -56,37 +50,23 @@ export function FaqSection() {
         </div>
 
         <div className="mx-auto mt-16 max-w-3xl divide-y divide-gray-200 dark:divide-gray-800">
-          {FAQS.map((faq, index) => {
-            const isOpen = openIndex === index;
-            return (
-              <div key={index}>
-                <button
-                  onClick={() => setOpenIndex(isOpen ? null : index)}
-                  className="flex w-full items-center justify-between py-5 text-left"
+          {FAQS.map((faq) => (
+            <details key={faq.question} className="group py-1">
+              <summary className="flex cursor-pointer list-none items-center justify-between py-4 text-left">
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{faq.question}</span>
+                <svg
+                  className="ml-4 h-5 w-5 flex-shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
                 >
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{faq.question}</span>
-                  <svg
-                    className={`ml-4 h-5 w-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${
-                      isOpen ? 'rotate-180' : ''
-                    }`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                  </svg>
-                </button>
-                <div
-                  className={`overflow-hidden transition-all duration-200 ${
-                    isOpen ? 'max-h-96 pb-5' : 'max-h-0'
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">{faq.answer}</p>
-                </div>
-              </div>
-            );
-          })}
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+              </summary>
+              <p className="pb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{faq.answer}</p>
+            </details>
+          ))}
         </div>
       </div>
     </section>

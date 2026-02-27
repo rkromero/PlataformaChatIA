@@ -1,6 +1,19 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { prisma } from '@/lib/db';
 import { verifyToken } from '@/lib/tokens';
+
+export const metadata: Metadata = {
+  title: 'Verificar email | ChatPlatform',
+  description: 'Validación de correo electrónico.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+  alternates: {
+    canonical: '/verify-email',
+  },
+};
 
 export default async function VerifyEmailPage({
   searchParams,

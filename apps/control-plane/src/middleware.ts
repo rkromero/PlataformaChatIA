@@ -1,8 +1,19 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email', '/invite', '/api/health', '/api/bootstrap-admin', '/api/notify-usage'];
-const PUBLIC_EXACT = ['/'];
+const PUBLIC_PATHS = [
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+  '/invite',
+  '/blog',
+  '/api/health',
+  '/api/bootstrap-admin',
+  '/api/notify-usage',
+];
+const PUBLIC_EXACT = ['/', '/precios', '/contacto', '/sobre-nosotros', '/terminos', '/privacidad'];
 
 function getSecret() {
   const secret = process.env.AUTH_SECRET;

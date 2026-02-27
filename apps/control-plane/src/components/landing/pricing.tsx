@@ -48,7 +48,7 @@ const PLANS = [
       'Account manager dedicado',
     ],
     cta: 'Contactar ventas',
-    href: '#contacto',
+    href: '/contacto',
     popular: false,
   },
 ];
