@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (lead.source === 'whatsapp_qr') {
-    return sendViaWhatsAppQr(lead, message.trim(), leadId);
+    return sendViaWhatsAppQr(lead, message.trim(), leadId, session.userId);
   }
 
   return NextResponse.json({ error: 'Canal no soportado para envío directo' }, { status: 400 });
@@ -191,6 +191,7 @@ async function sendViaWhatsAppQr(
   lead: { tenantId: string; wahaChatId: string | null; phone: string | null },
   text: string,
   leadId: string,
+  agentUserId: string,
 ) {
   const chatId = lead.wahaChatId ?? (lead.phone ? `${lead.phone.replace(/[^0-9]/g, '')}@s.whatsapp.net` : null);
 
@@ -205,6 +206,7 @@ async function sendViaWhatsAppQr(
       data: {
         tenantId: lead.tenantId,
         conversationLinkId: leadId,
+        agentUserId,
         direction: 'outgoing',
         content: text,
         senderName: 'Agente',

@@ -243,6 +243,7 @@ model Message {
   id                 String           @id @default(uuid()) @db.Uuid
   tenantId           String           @map("tenant_id") @db.Uuid
   conversationLinkId String           @map("conversation_link_id") @db.Uuid
+  agentUserId        String?          @map("agent_user_id") @db.Uuid
   direction          MessageDirection
   content            String           @db.Text
   senderName         String?          @map("sender_name")
@@ -253,6 +254,7 @@ model Message {
 
   @@index([tenantId])
   @@index([conversationLinkId, timestamp])
+  @@index([tenantId, agentUserId, timestamp])
   @@map("messages")
 }
 

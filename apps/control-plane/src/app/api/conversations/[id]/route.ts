@@ -145,7 +145,7 @@ export async function POST(
   }
 
   if (conv.source !== 'chatwoot') {
-    return handleLocalAction(conv, action, message, session.tenantId);
+    return handleLocalAction(conv, action, message, session.tenantId, session.userId);
   }
 
   return handleChatwootAction(conv, action, message);
@@ -156,6 +156,7 @@ async function handleLocalAction(
   action: string | undefined,
   message: string | undefined,
   tenantId: string,
+  agentUserId: string,
 ) {
   if (action === 'take') {
     await prisma.conversationLink.update({
@@ -180,6 +181,7 @@ async function handleLocalAction(
         data: {
           tenantId,
           conversationLinkId: conv.id,
+          agentUserId,
           direction: 'outgoing',
           content: message.trim(),
           senderName: 'Agente',
