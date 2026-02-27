@@ -28,6 +28,7 @@ export function SandboxChat({ systemPromptPreview }: { systemPromptPreview: stri
 
     setInput('');
     setError(null);
+    requestAnimationFrame(() => inputRef.current?.focus());
 
     const userMsg: Message = {
       id: crypto.randomUUID(),
@@ -163,7 +164,6 @@ export function SandboxChat({ systemPromptPreview }: { systemPromptPreview: stri
             onChange={(e) => setInput(e.target.value)}
             placeholder="Escribí un mensaje como cliente..."
             className="input flex-1"
-            disabled={loading}
             autoFocus
           />
           <button
