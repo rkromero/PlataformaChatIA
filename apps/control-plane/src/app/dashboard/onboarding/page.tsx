@@ -3,6 +3,7 @@
 import { useState, useActionState } from 'react';
 import { saveOnboardingBotAction, completeOnboardingAction } from './actions';
 import { connectWhatsAppAction } from '../channels/connect-whatsapp/actions';
+import { BUSINESS_TYPE_PROMPTS } from '@/lib/default-prompts';
 
 const BUSINESS_ICONS: Record<string, React.ReactNode> = {
   restaurant: (
@@ -38,36 +39,12 @@ const BUSINESS_ICONS: Record<string, React.ReactNode> = {
 };
 
 const BUSINESS_TYPES = [
-  {
-    label: 'Restaurante',
-    iconKey: 'restaurant',
-    prompt: 'Eres el asistente virtual de {nombre}. Ayudás a los clientes con el menú, precios, horarios de atención, reservas y pedidos. Respondé de forma breve, amable y en español. Si no sabés algo, ofrecé transferir a un humano.',
-  },
-  {
-    label: 'E-commerce',
-    iconKey: 'ecommerce',
-    prompt: 'Eres el asistente virtual de {nombre}. Ayudás a los clientes con información de productos, precios, estado de pedidos, políticas de envío y devoluciones. Respondé de forma breve, amable y en español. Si no sabés algo, ofrecé transferir a un humano.',
-  },
-  {
-    label: 'Clínica / Salud',
-    iconKey: 'health',
-    prompt: 'Eres el asistente virtual de {nombre}. Ayudás a los pacientes con información de servicios, turnos, horarios y ubicación. No des diagnósticos médicos. Respondé de forma breve, amable y en español. Si no sabés algo, ofrecé transferir a un humano.',
-  },
-  {
-    label: 'Inmobiliaria',
-    iconKey: 'realestate',
-    prompt: 'Eres el asistente virtual de {nombre}. Ayudás a los clientes con información de propiedades disponibles, precios, ubicaciones y requisitos. Respondé de forma breve, amable y en español. Si no sabés algo, ofrecé transferir a un humano.',
-  },
-  {
-    label: 'Servicios',
-    iconKey: 'services',
-    prompt: 'Eres el asistente virtual de {nombre}. Ayudás a los clientes con información de servicios, precios, disponibilidad y presupuestos. Respondé de forma breve, amable y en español. Si no sabés algo, ofrecé transferir a un humano.',
-  },
-  {
-    label: 'Otro',
-    iconKey: 'other',
-    prompt: 'Eres el asistente virtual de {nombre}. Respondé las consultas de los clientes de forma breve, amable y profesional en español. Si no sabés algo, ofrecé transferir a un humano.',
-  },
+  { label: 'Restaurante', iconKey: 'restaurant', promptKey: 'restaurant' },
+  { label: 'E-commerce', iconKey: 'ecommerce', promptKey: 'ecommerce' },
+  { label: 'Clínica / Salud', iconKey: 'health', promptKey: 'health' },
+  { label: 'Inmobiliaria', iconKey: 'realestate', promptKey: 'realestate' },
+  { label: 'Servicios', iconKey: 'services', promptKey: 'services' },
+  { label: 'Otro', iconKey: 'other', promptKey: 'other' },
 ];
 
 const STEPS = ['Configurá tu bot', 'Conectá WhatsApp', 'Todo listo'];
@@ -83,7 +60,9 @@ export default function OnboardingPage() {
 
   function selectBusinessType(index: number) {
     setSelectedType(index);
-    setPrompt(BUSINESS_TYPES[index].prompt);
+    const key = BUSINESS_TYPES[index].promptKey;
+    const builder = BUSINESS_TYPE_PROMPTS[key] ?? BUSINESS_TYPE_PROMPTS.other;
+    setPrompt(builder(businessName || '{nombre}'));
   }
 
   return (

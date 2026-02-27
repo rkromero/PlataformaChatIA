@@ -12,6 +12,7 @@ import {
 } from '@/lib/chatwoot-platform';
 import { createToken } from '@/lib/tokens';
 import { sendVerificationEmail } from '@/lib/email';
+import { buildDefaultPrompt, DEFAULT_HANDOFF_RULES } from '@/lib/default-prompts';
 
 function generateSlug(name: string): string {
   return name
@@ -95,11 +96,8 @@ export async function registerAction(_prev: unknown, formData: FormData) {
       tenantId: tenant.id,
       enabled: true,
       model: 'gpt-4.1-mini',
-      systemPrompt: `Eres el asistente virtual de ${businessName}. Tu rol es atender consultas de clientes por WhatsApp de forma amable, profesional y concisa.\n\nReglas estrictas:\n- Respondé siempre en español, con tono cercano pero profesional.\n- Hacé UNA sola pregunta por mensaje para no abrumar al cliente, pero no pongas preguntas en todos los mensajes\n- Si no tenés la información para responder algo (precios, horarios, disponibilidad, direcciones, datos técnicos), NO inventes. Decí: "No tengo esa información disponible ahora, pero te puedo conectar con alguien del equipo que te ayude. ¿Querés que lo haga?"\n- Si el cliente quiere comprar, reservar, o hacer algo que requiere intervención humana, ofrecé transferirlo.\n- Si el cliente saluda, respondé con un saludo breve y preguntá en qué podés ayudarlo.\n- Nunca menciones que sos una inteligencia artificial a menos que te lo pregunten directamente.\n- Mantené las respuestas cortas (2-3 oraciones máximo).`,
-      handoffRulesJson: {
-        keywords: ['humano', 'asesor', 'agente', 'persona', 'hablar con alguien', 'queja', 'reclamo', 'encargado', 'supervisor', 'gerente'],
-        handoffTag: 'human_handoff',
-      },
+      systemPrompt: buildDefaultPrompt(businessName),
+      handoffRulesJson: DEFAULT_HANDOFF_RULES,
     },
   });
 
