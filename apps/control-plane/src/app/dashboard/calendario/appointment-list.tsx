@@ -39,7 +39,7 @@ function StatusButton({ appointmentId, status, label }: { appointmentId: string;
       <button
         type="submit"
         disabled={pending}
-        className="rounded px-2 py-1 text-xs font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+        className="rounded px-2 py-1 text-xs font-medium transition-colors hover:bg-white/5"
       >
         {label}
       </button>
@@ -57,7 +57,7 @@ function RescheduleButton({ appointmentId, currentStart }: { appointmentId: stri
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded px-2 py-1 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10"
+        className="rounded px-2 py-1 text-xs font-medium text-brand-400 transition-colors hover:bg-brand-500/10"
       >
         Reprogramar
       </button>
@@ -72,12 +72,12 @@ function RescheduleButton({ appointmentId, currentStart }: { appointmentId: stri
         name="startAt"
         step="900"
         defaultValue={defaultValue}
-        className="rounded border border-gray-300 px-1.5 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-800"
+        className="rounded border border-white/10 bg-surface-2 px-1.5 py-0.5 text-xs"
       />
       <button type="submit" disabled={pending} className="rounded bg-brand-600 px-2 py-0.5 text-xs text-white hover:bg-brand-700">
         {pending ? '...' : 'OK'}
       </button>
-      <button type="button" onClick={() => setOpen(false)} className="rounded px-1.5 py-0.5 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+      <button type="button" onClick={() => setOpen(false)} className="rounded px-1.5 py-0.5 text-xs text-gray-400 hover:bg-white/5">
         ✕
       </button>
       {state?.error && <span className="text-xs text-red-500">{state.error}</span>}
@@ -89,7 +89,7 @@ export function AppointmentList({ appointments, statusLabels }: Props) {
   if (appointments.length === 0) {
     return (
       <div className="card text-center">
-        <p className="text-sm text-gray-500 dark:text-gray-400">No hay turnos esta semana.</p>
+        <p className="text-sm text-gray-400">No hay turnos esta semana.</p>
       </div>
     );
   }
@@ -102,13 +102,13 @@ export function AppointmentList({ appointments, statusLabels }: Props) {
         const date = formatDate(apt.startAt);
         const showDate = date !== lastDate;
         lastDate = date;
-        const statusInfo = statusLabels[apt.status] ?? { label: apt.status, color: 'bg-gray-100 text-gray-600' };
+        const statusInfo = statusLabels[apt.status] ?? { label: apt.status, color: 'bg-white/5 text-gray-400' };
         const canReschedule = apt.status === 'pending' || apt.status === 'confirmed';
 
         return (
           <div key={apt.id}>
             {showDate && (
-              <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-gray-400">
                 {date}
               </p>
             )}
@@ -127,12 +127,12 @@ export function AppointmentList({ appointments, statusLabels }: Props) {
                   </span>
                 </div>
                 <p className="text-sm font-medium">{apt.clientName}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-400">
                   {apt.serviceName} · {apt.professionalName}
                   {apt.clientPhone ? ` · ${apt.clientPhone}` : ''}
                 </p>
                 {apt.notes && (
-                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{apt.notes}</p>
+                  <p className="mt-1 text-xs text-gray-400">{apt.notes}</p>
                 )}
               </div>
               <div className="flex flex-shrink-0 flex-wrap items-center gap-1">

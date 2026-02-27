@@ -42,7 +42,7 @@ export function RoutingSection({ data }: { data: RoutingData }) {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-gray-400">
             Configurá cómo se asignan los leads automáticamente a los agentes
           </p>
         </div>
@@ -56,10 +56,10 @@ export function RoutingSection({ data }: { data: RoutingData }) {
 
       {data.rules.length === 0 && (
         <div className="card py-12 text-center">
-          <svg className="mx-auto h-10 w-10 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+          <svg className="mx-auto h-10 w-10 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
           </svg>
-          <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-3 text-sm text-gray-400">
             No hay reglas configuradas. Los leads se asignarán manualmente.
           </p>
           <button onClick={handleNew} className="btn-secondary mt-4 text-sm">
@@ -76,22 +76,22 @@ export function RoutingSection({ data }: { data: RoutingData }) {
               className={`card flex items-center justify-between transition-opacity ${!rule.isActive ? 'opacity-50' : ''}`}
             >
               <div className="flex items-center gap-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-xs font-bold text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-xs font-bold text-gray-400">
                   {rule.priority}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium">{rule.name}</p>
-                    <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
+                    <span className="rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-medium text-brand-400">
                       {TYPE_LABELS[rule.type] ?? rule.type}
                     </span>
                     {!rule.isActive && (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-800">
+                      <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium text-gray-400">
                         Inactiva
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 text-xs text-gray-500">
+                  <p className="mt-0.5 text-xs text-gray-400">
                     {rule.type === 'round_robin'
                       ? `Rota entre ${((rule.conditionsJson.agent_ids as string[]) ?? []).length} agentes`
                       : rule.assignedAgentName
@@ -110,7 +110,7 @@ export function RoutingSection({ data }: { data: RoutingData }) {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleEdit(rule)}
-                  className="cursor-pointer rounded p-1.5 text-gray-400 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+                  className="cursor-pointer rounded p-1.5 text-gray-400 transition-colors duration-150 hover:bg-white/5 hover:text-gray-300"
                   title="Editar"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -119,7 +119,7 @@ export function RoutingSection({ data }: { data: RoutingData }) {
                 </button>
                 <button
                   onClick={() => handleDelete(rule.id)}
-                  className="cursor-pointer rounded p-1.5 text-gray-400 transition-colors duration-150 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
+                  className="cursor-pointer rounded p-1.5 text-gray-400 transition-colors duration-150 hover:bg-red-500/10 hover:text-red-500"
                   title="Eliminar"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -220,7 +220,7 @@ function RuleFormPanel({
   return (
     <div className="space-y-5">
       {error && (
-        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">
+        <div className="rounded-lg bg-red-500/10 p-3 text-sm text-red-400">
           {error}
         </div>
       )}
@@ -262,7 +262,7 @@ function RuleFormPanel({
               type="checkbox"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300"
+              className="h-4 w-4 rounded border-white/10"
             />
             <span className="text-sm font-medium">Regla activa</span>
           </label>
@@ -324,13 +324,13 @@ function RuleFormPanel({
             {agents.map((a) => (
               <label
                 key={a.id}
-                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm transition-colors duration-150 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-white/[0.06] px-3.5 py-2.5 text-sm transition-colors duration-150 hover:bg-white/5"
               >
                 <input
                   type="checkbox"
                   checked={roundRobinAgents.includes(a.id)}
                   onChange={() => toggleRoundRobinAgent(a.id)}
-                  className="h-4 w-4 rounded border-gray-300"
+                  className="h-4 w-4 rounded border-white/10"
                 />
                 <span>{a.name || a.email}</span>
                 <span className="text-xs text-gray-400">({a.role})</span>
@@ -344,7 +344,7 @@ function RuleFormPanel({
       )}
 
       {/* Actions */}
-      <div className="flex gap-3 border-t border-gray-200 pt-5 dark:border-gray-800">
+      <div className="flex gap-3 border-t border-white/[0.06] pt-5">
         <button onClick={onClose} className="btn-secondary flex-1">
           Cancelar
         </button>

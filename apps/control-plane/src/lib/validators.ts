@@ -19,6 +19,8 @@ export const aiSettingsSchema = z.object({
   systemPrompt: z.string().min(10, 'El prompt debe tener al menos 10 caracteres'),
   handoffKeywords: z.string().min(1, 'Agrega al menos una keyword'),
   handoffTag: z.string().min(1).default('human_handoff'),
+  removeOpeningSigns: z.boolean(),
+  splitLongMessages: z.boolean(),
 });
 
 export const channelSchema = z.object({

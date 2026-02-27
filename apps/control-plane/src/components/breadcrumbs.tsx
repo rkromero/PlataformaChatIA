@@ -8,7 +8,7 @@ interface BreadcrumbItem {
 export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav aria-label="Breadcrumb" className="mb-4">
-      <ol className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+      <ol className="flex items-center gap-1.5 text-sm text-gray-400">
         {items.map((item, i) => (
           <li key={i} className="flex items-center gap-1.5">
             {i > 0 && (
@@ -17,11 +17,11 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
               </svg>
             )}
             {item.href ? (
-              <Link href={item.href} className="transition-colors duration-150 hover:text-gray-900 dark:hover:text-gray-200">
+              <Link href={item.href} className="transition-colors duration-150 hover:text-gray-200">
                 {item.label}
               </Link>
             ) : (
-              <span className="font-medium text-gray-900 dark:text-gray-100">{item.label}</span>
+              <span className="font-medium text-gray-100">{item.label}</span>
             )}
           </li>
         ))}

@@ -31,9 +31,9 @@ export function FunnelMetrics({ stages, totalLeads, conversionRate, avgCycleTime
       >
         <div className="flex items-center gap-4">
           <h3 className="text-sm font-semibold">Embudo de ventas</h3>
-          <div className="flex items-center gap-3 text-xs text-gray-500">
+          <div className="flex items-center gap-3 text-xs text-gray-400">
             <span>{totalLeads} leads</span>
-            <span className="text-emerald-600 dark:text-emerald-400">{conversionRate.toFixed(1)}% conversión</span>
+            <span className="text-emerald-400">{conversionRate.toFixed(1)}% conversión</span>
             {avgCycleTime !== null && (
               <span>{avgCycleTime.toFixed(0)}d ciclo promedio</span>
             )}
@@ -61,7 +61,7 @@ export function FunnelMetrics({ stages, totalLeads, conversionRate, avgCycleTime
                   <div className="w-24 text-right">
                     <span className="text-xs font-medium">{stage.label}</span>
                   </div>
-                  <div className="relative flex-1 h-7 rounded-md bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                  <div className="relative flex-1 h-7 rounded-md bg-white/5 overflow-hidden">
                     <div
                       className={`absolute inset-y-0 left-0 rounded-md ${stage.color} transition-all duration-500`}
                       style={{ width: `${Math.max((stage.count / maxCount) * 100, stage.count > 0 ? 3 : 0)}%` }}
@@ -70,7 +70,7 @@ export function FunnelMetrics({ stages, totalLeads, conversionRate, avgCycleTime
                       <span className="relative z-10 text-xs font-semibold text-white mix-blend-difference">
                         {stage.count}
                       </span>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                      <span className="text-[10px] text-gray-400">
                         {pct.toFixed(0)}%
                         {i > 0 && stage.count > 0 && (
                           <span className="ml-1">
@@ -93,20 +93,20 @@ export function FunnelMetrics({ stages, totalLeads, conversionRate, avgCycleTime
           </div>
 
           {/* Summary cards */}
-          <div className="grid grid-cols-3 gap-3 border-t border-gray-100 pt-3 dark:border-gray-800">
-            <div className="rounded-lg bg-gray-50 p-3 text-center dark:bg-gray-800/50">
+          <div className="grid grid-cols-3 gap-3 border-t border-white/[0.06] pt-3">
+            <div className="rounded-lg bg-white/5 p-3 text-center">
               <p className="text-lg font-bold text-brand-600">{totalLeads}</p>
-              <p className="text-[10px] text-gray-500">Total leads</p>
+              <p className="text-[10px] text-gray-400">Total leads</p>
             </div>
-            <div className="rounded-lg bg-gray-50 p-3 text-center dark:bg-gray-800/50">
+            <div className="rounded-lg bg-white/5 p-3 text-center">
               <p className="text-lg font-bold text-emerald-600">{conversionRate.toFixed(1)}%</p>
-              <p className="text-[10px] text-gray-500">Tasa de cierre</p>
+              <p className="text-[10px] text-gray-400">Tasa de cierre</p>
             </div>
-            <div className="rounded-lg bg-gray-50 p-3 text-center dark:bg-gray-800/50">
-              <p className="text-lg font-bold text-gray-700 dark:text-gray-300">
+            <div className="rounded-lg bg-white/5 p-3 text-center">
+              <p className="text-lg font-bold text-gray-300">
                 {avgCycleTime !== null ? `${avgCycleTime.toFixed(0)}d` : '—'}
               </p>
-              <p className="text-[10px] text-gray-500">Ciclo promedio</p>
+              <p className="text-[10px] text-gray-400">Ciclo promedio</p>
             </div>
           </div>
         </div>

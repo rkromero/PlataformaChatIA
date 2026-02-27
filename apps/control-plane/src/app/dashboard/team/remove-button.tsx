@@ -10,7 +10,7 @@ export function RemoveButton({ userId }: { userId: string }) {
           removeTeamMemberAction(userId);
         }
       }}
-      className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 transition-colors duration-150 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+      className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 transition-colors duration-150 hover:bg-red-500/10 hover:text-red-400"
       aria-label="Eliminar miembro del equipo"
     >
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">

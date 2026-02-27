@@ -135,15 +135,17 @@ model DailyUsage {
 }
 
 model AiSettings {
-  tenantId          String   @id @map("tenant_id") @db.Uuid
-  enabled           Boolean  @default(true)
-  model             String   @default("gpt-4.1-mini")
-  systemPrompt      String   @default("Eres un asistente de atención al cliente. Responde de forma breve y útil en español.") @map("system_prompt") @db.Text
-  handoffRulesJson  Json     @default("{\"keywords\":[\"humano\",\"asesor\",\"agente\",\"persona\"],\"handoffTag\":\"human_handoff\"}") @map("handoff_rules_json") @db.JsonB
-  businessHoursJson Json?    @map("business_hours_json") @db.JsonB
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  tenantId             String   @id @map("tenant_id") @db.Uuid
+  enabled              Boolean  @default(true)
+  model                String   @default("gpt-4.1-mini")
+  systemPrompt         String   @default("Eres un asistente de atención al cliente. Responde de forma breve y útil en español.") @map("system_prompt") @db.Text
+  handoffRulesJson     Json     @default("{\"keywords\":[\"humano\",\"asesor\",\"agente\",\"persona\"],\"handoffTag\":\"human_handoff\"}") @map("handoff_rules_json") @db.JsonB
+  businessHoursJson    Json?    @map("business_hours_json") @db.JsonB
+  removeOpeningSigns   Boolean  @default(false) @map("remove_opening_signs")
+  splitLongMessages    Boolean  @default(false) @map("split_long_messages")
+  updatedAt            DateTime @updatedAt @map("updated_at")
 
-  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("ai_settings")
 }

@@ -21,11 +21,10 @@ export function ConversationList({
 }: Props) {
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="border-b border-gray-200 p-4 dark:border-gray-800">
-        <h1 className="text-lg font-semibold tracking-tight">Conversaciones</h1>
+      <div className="border-b border-white/[0.06] p-4">
+        <h1 className="text-lg font-semibold tracking-tight text-gray-100">Conversaciones</h1>
         <div className="relative mt-3">
-          <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
           </svg>
           <input
@@ -33,25 +32,24 @@ export function ConversationList({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Buscar por nombre o teléfono..."
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm focus:border-brand-400 focus:bg-white focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:focus:border-brand-500"
+            className="w-full rounded-lg border border-white/10 bg-white/5 py-2 pl-10 pr-3 text-sm text-gray-100 placeholder-gray-500 focus:border-brand-500 focus:outline-none"
           />
         </div>
       </div>
 
-      {/* List */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="space-y-0">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex items-start gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800/50">
-                <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-full bg-gray-200 dark:bg-gray-800" />
+              <div key={i} className="flex items-start gap-3 border-b border-white/[0.04] px-4 py-3">
+                <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-full bg-white/5" />
                 <div className="flex-1 space-y-2 pt-0.5">
                   <div className="flex items-center justify-between">
-                    <div className="h-3.5 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
-                    <div className="h-2.5 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                    <div className="h-3.5 w-28 animate-pulse rounded bg-white/5" />
+                    <div className="h-2.5 w-8 animate-pulse rounded bg-white/5" />
                   </div>
-                  <div className="h-3 w-44 animate-pulse rounded bg-gray-100 dark:bg-gray-800/60" />
-                  <div className="h-3 w-12 animate-pulse rounded bg-gray-100 dark:bg-gray-800/60" />
+                  <div className="h-3 w-44 animate-pulse rounded bg-white/[0.03]" />
+                  <div className="h-3 w-12 animate-pulse rounded bg-white/[0.03]" />
                 </div>
               </div>
             ))}
@@ -86,50 +84,48 @@ export function ConversationList({
               <button
                 key={conv.id}
                 onClick={() => onSelect(conv.id)}
-                className={`flex w-full items-start gap-3 border-b border-gray-100 px-4 py-3 text-left transition-colors dark:border-gray-800/50 ${isSelected
-                    ? 'bg-brand-50 dark:bg-brand-500/10'
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                className={`flex w-full items-start gap-3 border-b border-white/[0.04] px-4 py-3 text-left transition-colors ${isSelected
+                    ? 'bg-brand-500/10'
+                    : 'hover:bg-white/[0.03]'
                   }`}
               >
-                {/* Avatar */}
                 <div className="relative flex-shrink-0">
                   <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${isHuman
-                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400'
-                      : 'bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-400'
+                      ? 'bg-amber-500/15 text-amber-400'
+                      : 'bg-brand-500/15 text-brand-400'
                     }`}>
                     {initial}
                   </div>
-                  <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-gray-900 ${isHuman ? 'bg-amber-500' : 'bg-emerald-500'
+                  <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-surface-0 ${isHuman ? 'bg-amber-500' : 'bg-emerald-500'
                     }`} />
                 </div>
 
-                {/* Info */}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
-                    <span className="truncate text-sm font-medium">{displayName}</span>
-                    <span className="ml-2 flex-shrink-0 text-[10px] text-gray-400">
+                    <span className="truncate text-sm font-medium text-gray-100">{displayName}</span>
+                    <span className="ml-2 flex-shrink-0 text-[10px] text-gray-500">
                       {getTimeAgo(conv.updatedAt)}
                     </span>
                   </div>
                   {conv.lastMessage && (
-                    <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
+                    <p className="mt-0.5 truncate text-xs text-gray-500">
                       {conv.lastMessage}
                     </p>
                   )}
                   <div className="mt-1 flex items-center gap-1.5">
                     <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${isHuman
-                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
-                        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
+                        ? 'bg-amber-500/10 text-amber-400'
+                        : 'bg-emerald-500/10 text-emerald-400'
                       }`}>
                       {isHuman ? 'Agente' : 'Bot'}
                     </span>
                     {conv.source !== 'chatwoot' && (
-                      <span className="inline-flex items-center rounded-full bg-green-100 px-1.5 py-0.5 text-[9px] font-semibold text-green-700 dark:bg-green-500/10 dark:text-green-400">
+                      <span className="inline-flex items-center rounded-full bg-green-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-green-400">
                         {conv.source === 'whatsapp_qr' ? 'WhatsApp' : 'Manual'}
                       </span>
                     )}
                     {conv.phone && conv.contactName && (
-                      <span className="text-[10px] text-gray-400">{conv.phone}</span>
+                      <span className="text-[10px] text-gray-500">{conv.phone}</span>
                     )}
                   </div>
                 </div>

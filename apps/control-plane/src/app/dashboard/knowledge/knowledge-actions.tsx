@@ -8,7 +8,7 @@ export function KnowledgeActions({ entryId, enabled }: { entryId: string; enable
     <div className="flex flex-shrink-0 items-center gap-0.5">
       <Link
         href={`/dashboard/knowledge/${entryId}/edit`}
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition-colors duration-150 hover:bg-gray-100 hover:text-brand-600 dark:hover:bg-gray-800 dark:hover:text-brand-400"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition-colors duration-150 hover:bg-white/5 hover:text-brand-400"
         aria-label="Editar entrada"
         title="Editar"
       >
@@ -20,8 +20,8 @@ export function KnowledgeActions({ entryId, enabled }: { entryId: string; enable
         onClick={() => toggleKnowledgeEntryAction(entryId)}
         className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-150 ${
           enabled
-            ? 'text-gray-400 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-500/10 dark:hover:text-amber-400'
-            : 'text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400'
+            ? 'text-gray-400 hover:bg-amber-500/10 hover:text-amber-400'
+            : 'text-gray-400 hover:bg-emerald-500/10 hover:text-emerald-400'
         }`}
         aria-label={enabled ? 'Pausar entrada' : 'Activar entrada'}
         title={enabled ? 'Pausar' : 'Activar'}
@@ -42,7 +42,7 @@ export function KnowledgeActions({ entryId, enabled }: { entryId: string; enable
             deleteKnowledgeEntryAction(entryId);
           }
         }}
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition-colors duration-150 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition-colors duration-150 hover:bg-red-500/10 hover:text-red-400"
         aria-label="Eliminar entrada"
         title="Eliminar"
       >

@@ -14,6 +14,7 @@ import { isTrialExpired } from '@chat-platform/shared/plans';
 import type { HandoffRules } from '@chat-platform/shared/types';
 import { getCalendarContext } from './calendar-context.js';
 import { executeCalendarTool } from './calendar-tools.js';
+import { transformReply } from '../lib/message-transform.js';
 
 const MAX_TOOL_ROUNDS = 3;
 const processingLocks = new Set<string>();
@@ -169,7 +170,15 @@ async function processMessage(params: IncomingMessageParams) {
 
   const aiReply = result.text || 'Lo siento, no pude procesar la solicitud.';
 
-  await sendReply(aiReply);
+  const replyParts = transformReply(aiReply, {
+    removeOpeningSigns: settings.removeOpeningSigns,
+    splitLongMessages: settings.splitLongMessages,
+  });
+
+  for (const part of replyParts) {
+    await sendReply(part);
+  }
+
   await saveMessage(tenantId, convLink.id, 'outgoing', aiReply, 'Bot');
 
   await prisma.conversationLink.update({

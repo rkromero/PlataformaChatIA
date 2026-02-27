@@ -27,7 +27,7 @@ function DeleteButton({ serviceId }: { serviceId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+        className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
         aria-label="Eliminar servicio"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -49,14 +49,14 @@ function EditableService({ service }: { service: ServiceItem }) {
         <div className="h-8 w-2 rounded-full" style={{ backgroundColor: service.color }} />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">{service.name}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-gray-400">
             {service.durationMinutes} min
             {service.price != null ? ` · $${service.price.toLocaleString('es-AR')}` : ''}
           </p>
         </div>
         <button
           onClick={() => setEditing(true)}
-          className="rounded p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+          className="rounded p-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-gray-300"
           aria-label="Editar servicio"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -98,12 +98,12 @@ function EditableService({ service }: { service: ServiceItem }) {
           />
         ))}
       </div>
-      {state?.error && <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>}
+      {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
       <div className="flex gap-2">
         <button type="submit" disabled={pending} className="btn-primary text-sm">
           {pending ? 'Guardando...' : 'Guardar'}
         </button>
-        <button type="button" onClick={() => setEditing(false)} className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+        <button type="button" onClick={() => setEditing(false)} className="rounded-lg px-3 py-1.5 text-sm text-gray-400 hover:bg-white/5">
           Cancelar
         </button>
       </div>
@@ -113,7 +113,7 @@ function EditableService({ service }: { service: ServiceItem }) {
 
 export function ServiceList({ services }: { services: ServiceItem[] }) {
   if (services.length === 0) {
-    return <p className="text-sm text-gray-500 dark:text-gray-400">Sin servicios creados.</p>;
+    return <p className="text-sm text-gray-400">Sin servicios creados.</p>;
   }
 
   return (

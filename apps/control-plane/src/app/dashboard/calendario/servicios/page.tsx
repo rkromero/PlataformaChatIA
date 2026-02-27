@@ -86,7 +86,7 @@ export default async function CalendarioServiciosPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Configuración del Calendario</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-400">
           Servicios, profesionales, horarios y ajustes generales.
         </p>
       </div>
@@ -117,7 +117,7 @@ export default async function CalendarioServiciosPage() {
 
         <section>
           <h2 className="mb-3 text-lg font-semibold">Bloqueos de horario</h2>
-          <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mb-3 text-sm text-gray-400">
             Bloqueá horarios por vacaciones, feriados o ausencias de un profesional.
           </p>
           <BlockedTimes

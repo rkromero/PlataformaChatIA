@@ -18,17 +18,17 @@ export default async function SandboxPage() {
     <div className="flex h-[calc(100vh-7rem)] flex-col">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Sandbox</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-100">Sandbox</h1>
+          <p className="mt-1 text-sm text-gray-400">
             Probá tu bot sin usar WhatsApp. Usa tu configuración real de IA y base de conocimiento.
           </p>
         </div>
-        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-          <span className="rounded-full bg-gray-100 px-2.5 py-1 dark:bg-gray-800">
+        <div className="flex items-center gap-3 text-xs text-gray-500">
+          <span className="rounded-full bg-white/5 px-2.5 py-1 text-gray-400">
             {settings?.model ?? 'sin modelo'}
           </span>
           {knowledgeCount > 0 && (
-            <span className="rounded-full bg-brand-50 px-2.5 py-1 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
+            <span className="rounded-full bg-brand-500/10 px-2.5 py-1 text-brand-400">
               {knowledgeCount} doc{knowledgeCount !== 1 ? 's' : ''} RAG
             </span>
           )}
@@ -38,10 +38,10 @@ export default async function SandboxPage() {
       {!settings ? (
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center">
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-gray-400">
               Necesitás configurar tu bot primero.
             </p>
-            <a href="/dashboard/ai-settings" className="mt-2 inline-block text-sm font-medium text-brand-600">
+            <a href="/dashboard/ai-settings" className="mt-2 inline-block text-sm font-medium text-brand-400 hover:text-brand-300">
               Ir a configuración
             </a>
           </div>

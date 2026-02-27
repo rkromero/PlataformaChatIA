@@ -119,7 +119,7 @@ export default function OnboardingPage() {
                     ? 'bg-brand-600 text-white'
                     : i === step
                       ? 'bg-brand-600 text-white ring-4 ring-brand-600/20'
-                      : 'bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500'
+                      : 'bg-white/5 text-gray-500'
                 }`}>
                   {i < step ? (
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
@@ -132,12 +132,12 @@ export default function OnboardingPage() {
                   )}
                 </div>
                 <span className={`mt-2 text-xs font-medium transition-colors ${
-                  i <= step ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400 dark:text-gray-500'
+                  i <= step ? 'text-brand-400' : 'text-gray-500'
                 }`}>{s.label}</span>
               </div>
               {i < STEPS.length - 1 && (
                 <div className={`mx-3 h-0.5 flex-1 rounded-full transition-colors duration-300 ${
-                  i < step ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-700'
+                  i < step ? 'bg-brand-600' : 'bg-white/5'
                 }`} />
               )}
             </div>
@@ -151,14 +151,14 @@ export default function OnboardingPage() {
           {/* Header */}
           <div className="text-center">
             <h2 className="text-2xl font-semibold tracking-tight">Configurá tu bot</h2>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-2 text-sm text-gray-400">
               En 2 minutos vas a tener un asistente virtual listo para atender clientes.
             </p>
           </div>
 
           {/* Business name */}
           <div className="card">
-            <label htmlFor="businessName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="businessName" className="text-sm font-medium text-gray-300">
               ¿Cómo se llama tu negocio?
             </label>
             <input
@@ -174,7 +174,7 @@ export default function OnboardingPage() {
 
           {/* Business type */}
           <div>
-            <p className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <p className="mb-3 text-sm font-medium text-gray-300">
               ¿Qué tipo de negocio tenés?
             </p>
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
@@ -184,14 +184,14 @@ export default function OnboardingPage() {
                   onClick={() => selectBusinessType(i)}
                   className={`group cursor-pointer rounded-xl border-2 p-4 text-left transition-all duration-150 ${
                     selectedType === i
-                      ? 'border-brand-600 bg-brand-50 shadow-sm dark:border-brand-400 dark:bg-brand-500/10'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800/50'
+                      ? 'border-brand-400 bg-brand-500/10 shadow-sm'
+                      : 'border-white/[0.06] hover:border-white/10 hover:bg-white/[0.03]'
                   }`}
                 >
-                  <svg className={`h-6 w-6 transition-colors ${selectedType === i ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'}`} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <svg className={`h-6 w-6 transition-colors ${selectedType === i ? 'text-brand-400' : 'text-gray-400 group-hover:text-gray-300'}`} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d={ICONS[type.iconKey]} />
                   </svg>
-                  <span className={`mt-2 block text-sm font-medium transition-colors ${selectedType === i ? 'text-brand-700 dark:text-brand-300' : ''}`}>{type.label}</span>
+                  <span className={`mt-2 block text-sm font-medium transition-colors ${selectedType === i ? 'text-brand-300' : ''}`}>{type.label}</span>
                 </button>
               ))}
             </div>
@@ -206,13 +206,13 @@ export default function OnboardingPage() {
                 className="flex w-full cursor-pointer items-center justify-between text-left"
               >
                 <div className="flex items-center gap-2">
-                  <svg className="h-4 w-4 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <svg className="h-4 w-4 text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" />
                   </svg>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="text-sm font-medium text-gray-300">
                     Prompt del bot
                   </span>
-                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
                     Auto-generado
                   </span>
                 </div>
@@ -229,14 +229,14 @@ export default function OnboardingPage() {
                     rows={10}
                     className="input resize-y font-mono text-xs leading-relaxed"
                   />
-                  <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                  <p className="text-[11px] text-gray-400">
                     Este prompt se genera automáticamente según tu tipo de negocio. Podés editarlo ahora o después desde "Mi Bot".
                   </p>
                 </div>
               )}
 
               {!showPrompt && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-400">
                   Generamos un prompt optimizado para {BUSINESS_TYPES[selectedType].label.toLowerCase()}. Podés verlo y editarlo, o dejarlo como está.
                 </p>
               )}
@@ -245,11 +245,11 @@ export default function OnboardingPage() {
 
           {/* Error */}
           {error && (
-            <div className="flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-500/20 dark:bg-red-500/10">
+            <div className="flex items-center gap-2.5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3">
               <svg className="h-4 w-4 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
               </svg>
-              <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+              <p className="text-sm text-red-400">{error}</p>
             </div>
           )}
 
@@ -270,7 +270,7 @@ export default function OnboardingPage() {
         <div className="space-y-6">
           <div className="text-center">
             <h2 className="text-2xl font-semibold tracking-tight">Conectá tu WhatsApp</h2>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-2 text-sm text-gray-400">
               Elegí cómo querés conectar tu número para que el bot empiece a atender.
             </p>
           </div>
@@ -280,17 +280,17 @@ export default function OnboardingPage() {
             <div className="space-y-3">
               <button
                 onClick={() => setWaSubStep(1)}
-                className="group w-full cursor-pointer rounded-xl border-2 border-brand-200 bg-brand-50/50 p-5 text-left transition-all duration-150 hover:border-brand-400 hover:shadow-sm dark:border-brand-500/20 dark:bg-brand-500/5 dark:hover:border-brand-500/40"
+                className="group w-full cursor-pointer rounded-xl border-2 border-brand-500/20 bg-brand-500/5 p-5 text-left transition-all duration-150 hover:border-brand-500/40 hover:shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-100 dark:bg-brand-500/10">
-                    <svg className="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-500/10">
+                    <svg className="h-5 w-5 text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-6 18.75h6" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-medium text-brand-900 dark:text-brand-300">WhatsApp Business API</h3>
-                    <p className="mt-0.5 text-sm text-brand-700/80 dark:text-brand-400/80">
+                    <h3 className="font-medium text-brand-300">WhatsApp Business API</h3>
+                    <p className="mt-0.5 text-sm text-brand-400/80">
                       Conectá con tu Phone Number ID, WABA ID y Access Token de Meta.
                     </p>
                   </div>
@@ -300,23 +300,23 @@ export default function OnboardingPage() {
                 </div>
               </button>
 
-              <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-700">
+              <div className="rounded-xl border border-white/[0.06] p-5">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
-                    <svg className="h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/5">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
                     </svg>
                   </div>
                   <div>
                     <h3 className="font-medium">¿Necesitás ayuda?</h3>
-                    <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                    <p className="mt-0.5 text-sm text-gray-400">
                       Escribinos y te configuramos todo gratis.
                     </p>
                   </div>
                 </div>
                 <a
                   href="mailto:soporte@chatplatform.com?subject=Conectar WhatsApp&body=Hola, quiero conectar mi WhatsApp al chatbot."
-                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400"
+                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-400 hover:text-brand-300"
                 >
                   Contactar soporte
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -340,9 +340,9 @@ export default function OnboardingPage() {
           {waSubStep === 1 && !waSuccess && (
             <div>
               <div className="card mb-4">
-                <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+                <p className="mb-3 text-sm text-gray-400">
                   Abrí{' '}
-                  <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener noreferrer" className="font-medium text-brand-600 underline decoration-brand-600/30 hover:text-brand-500 dark:text-brand-400">
+                  <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener noreferrer" className="font-medium text-brand-400 underline decoration-brand-600/30 hover:text-brand-300">
                     developers.facebook.com/apps
                   </a>
                   {' '}y buscá estos datos en WhatsApp &gt; API Setup:
@@ -354,10 +354,10 @@ export default function OnboardingPage() {
                     { n: '3', label: 'Access Token', desc: 'hacé clic en "Generate" o creá uno permanente' },
                   ].map((item) => (
                     <div key={item.n} className="flex items-start gap-2.5 text-sm">
-                      <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-[10px] font-bold text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">{item.n}</span>
+                      <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-[10px] font-bold text-brand-400">{item.n}</span>
                       <span>
                         <strong>{item.label}</strong>
-                        <span className="text-gray-500 dark:text-gray-400"> — {item.desc}</span>
+                        <span className="text-gray-400"> — {item.desc}</span>
                       </span>
                     </div>
                   ))}
@@ -387,11 +387,11 @@ export default function OnboardingPage() {
                 </div>
 
                 {waError && (
-                  <div className="flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-500/20 dark:bg-red-500/10">
+                  <div className="flex items-center gap-2.5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3">
                     <svg className="h-4 w-4 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                     </svg>
-                    <p className="text-sm text-red-700 dark:text-red-400">{waError}</p>
+                    <p className="text-sm text-red-400">{waError}</p>
                   </div>
                 )}
 
@@ -411,13 +411,13 @@ export default function OnboardingPage() {
           {/* WhatsApp success */}
           {waSuccess && (
             <div className="space-y-4">
-              <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-500/20 dark:bg-emerald-500/10">
-                <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <div className="flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 <div>
-                  <p className="font-medium text-emerald-900 dark:text-emerald-300">WhatsApp conectado</p>
-                  <p className="mt-0.5 text-sm text-emerald-700 dark:text-emerald-400">Inbox ID: {waSuccess.inboxId}</p>
+                  <p className="font-medium text-emerald-300">WhatsApp conectado</p>
+                  <p className="mt-0.5 text-sm text-emerald-400">Inbox ID: {waSuccess.inboxId}</p>
                 </div>
               </div>
 
@@ -428,17 +428,17 @@ export default function OnboardingPage() {
                   </svg>
                   <p className="text-sm font-medium">Configurá el webhook en Meta</p>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-400">
                   En tu app de Meta &gt; WhatsApp &gt; Configuration &gt; Webhook, pegá esta URL:
                 </p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 break-all rounded-lg bg-gray-100 px-3 py-2 font-mono text-xs dark:bg-gray-800">
+                  <code className="flex-1 break-all rounded-lg bg-white/5 px-3 py-2 font-mono text-xs">
                     {waSuccess.webhookUrl}
                   </code>
                   <button
                     type="button"
                     onClick={() => navigator.clipboard.writeText(waSuccess.webhookUrl || '')}
-                    className="flex-shrink-0 rounded-lg border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                    className="flex-shrink-0 rounded-lg border border-white/[0.06] p-2 text-gray-400 transition-colors hover:bg-white/5"
                     title="Copiar URL"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -460,13 +460,13 @@ export default function OnboardingPage() {
       {step === 2 && (
         <div className="space-y-8 text-center">
           <div>
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/10">
-              <svg className="h-10 w-10 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10">
+              <svg className="h-10 w-10 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.746 3.746 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
               </svg>
             </div>
             <h2 className="mt-6 text-2xl font-semibold tracking-tight">¡Tu bot está listo!</h2>
-            <p className="mt-2 text-gray-500 dark:text-gray-400">
+            <p className="mt-2 text-gray-400">
               Configurado y preparado para atender a tus clientes.
             </p>
           </div>
@@ -477,15 +477,15 @@ export default function OnboardingPage() {
               { icon: 'M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25', label: 'Cargá tu base de conocimiento', desc: 'Precios, menú, horarios — todo lo que el bot necesita saber.' },
               { icon: 'M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75', label: 'Ajustá el prompt', desc: 'Personalizá cómo responde desde "Mi Bot" en el panel.' },
             ].map((item) => (
-              <div key={item.label} className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-500/10">
-                  <svg className="h-4.5 w-4.5 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <div key={item.label} className="flex items-start gap-3 rounded-xl border border-white/[0.06] bg-surface-2 p-4">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-500/10">
+                  <svg className="h-4.5 w-4.5 text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.label}</p>
-                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{item.desc}</p>
+                  <p className="text-sm font-medium text-gray-100">{item.label}</p>
+                  <p className="mt-0.5 text-xs text-gray-400">{item.desc}</p>
                 </div>
               </div>
             ))}

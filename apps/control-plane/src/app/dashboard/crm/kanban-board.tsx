@@ -121,24 +121,24 @@ export function KanbanBoard({
             key={stage.key}
             className={`flex w-72 flex-shrink-0 flex-col rounded-xl border transition-colors ${
               isDragOver
-                ? 'border-brand-400 bg-brand-50/50 dark:border-brand-500 dark:bg-brand-500/5'
-                : 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950'
+                ? 'border-brand-500 bg-brand-500/5'
+                : 'border-white/[0.06] bg-surface-2'
             }`}
             onDragOver={(e) => handleDragOver(e, stage.key)}
             onDragLeave={handleDragLeave}
             onDrop={() => handleDrop(stage.key)}
           >
-            <div className="flex items-center gap-2 border-b border-gray-200 px-3 py-2.5 dark:border-gray-800">
+            <div className="flex items-center gap-2 border-b border-white/[0.06] px-3 py-2.5">
               <div className={`h-2.5 w-2.5 rounded-full ${stage.color}`} />
               <span className="text-sm font-semibold">{stage.label}</span>
-              <span className="ml-auto rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+              <span className="ml-auto rounded-full bg-white/5 px-2 py-0.5 text-xs font-medium text-gray-400">
                 {stageLeads.length}
               </span>
             </div>
 
             <div className="flex-1 space-y-2 overflow-y-auto p-2">
               {stageLeads.length === 0 && (
-                <div className="flex h-20 items-center justify-center rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-800">
+                <div className="flex h-20 items-center justify-center rounded-lg border-2 border-dashed border-white/[0.06]">
                   <p className="text-xs text-gray-400">Arrastrá leads acá</p>
                 </div>
               )}
@@ -158,7 +158,7 @@ export function KanbanBoard({
               {stageLeads.length > getVisibleCount(stage.key) && (
                 <button
                   onClick={() => showMore(stage.key)}
-                  className="w-full rounded-lg border border-dashed border-gray-300 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:border-gray-400 hover:text-gray-700 dark:border-gray-700 dark:hover:border-gray-500 dark:hover:text-gray-300"
+                  className="w-full rounded-lg border border-dashed border-white/[0.06] py-1.5 text-xs font-medium text-gray-400 transition-colors hover:border-white/10 hover:text-gray-300"
                 >
                   Mostrar {Math.min(LOAD_MORE_STEP, stageLeads.length - getVisibleCount(stage.key))} más
                   ({stageLeads.length - getVisibleCount(stage.key)} restantes)

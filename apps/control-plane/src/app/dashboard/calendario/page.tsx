@@ -6,11 +6,11 @@ import { redirect } from 'next/navigation';
 import { AppointmentList } from './appointment-list';
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending: { label: 'Pendiente', color: 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' },
-  confirmed: { label: 'Confirmado', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' },
-  cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400' },
-  completed: { label: 'Completado', color: 'bg-brand-100 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' },
-  no_show: { label: 'No asistió', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400' },
+  pending: { label: 'Pendiente', color: 'bg-amber-500/10 text-amber-400' },
+  confirmed: { label: 'Confirmado', color: 'bg-emerald-500/10 text-emerald-400' },
+  cancelled: { label: 'Cancelado', color: 'bg-red-500/10 text-red-400' },
+  completed: { label: 'Completado', color: 'bg-brand-500/10 text-brand-400' },
+  no_show: { label: 'No asistió', color: 'bg-white/5 text-gray-400' },
 };
 
 export default async function CalendarioPage() {
@@ -73,7 +73,7 @@ export default async function CalendarioPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Calendario de Turnos</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-400">
             {todayAppointments.length} turno{todayAppointments.length !== 1 ? 's' : ''} hoy —{' '}
             {weekAppointments.length} esta semana
           </p>
@@ -109,20 +109,20 @@ export default async function CalendarioPage() {
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="card">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Turnos hoy</p>
-          <p className="mt-2 text-3xl font-semibold tabular-nums text-brand-600 dark:text-brand-400">
+          <p className="text-sm font-medium text-gray-400">Turnos hoy</p>
+          <p className="mt-2 text-3xl font-semibold tabular-nums text-brand-400">
             {todayAppointments.length}
           </p>
         </div>
         <div className="card">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Confirmados</p>
-          <p className="mt-2 text-3xl font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
+          <p className="text-sm font-medium text-gray-400">Confirmados</p>
+          <p className="mt-2 text-3xl font-semibold tabular-nums text-emerald-400">
             {confirmedToday}
           </p>
         </div>
         <div className="card">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Pendientes</p>
-          <p className="mt-2 text-3xl font-semibold tabular-nums text-amber-600 dark:text-amber-400">
+          <p className="text-sm font-medium text-gray-400">Pendientes</p>
+          <p className="mt-2 text-3xl font-semibold tabular-nums text-amber-400">
             {pendingToday}
           </p>
         </div>
@@ -130,7 +130,7 @@ export default async function CalendarioPage() {
 
       {services.length === 0 ? (
         <div className="card text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-gray-400">
             Para empezar, creá al menos un servicio.
           </p>
           <Link href="/dashboard/calendario/servicios" className="btn-primary mt-3 inline-flex">

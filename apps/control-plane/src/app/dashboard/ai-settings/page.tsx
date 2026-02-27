@@ -27,7 +27,7 @@ export default async function AiSettingsPage({
   if (!settings) {
     return (
       <div>
-        <h1 className="mb-6 text-2xl font-semibold tracking-tight">Mi Bot</h1>
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight text-gray-100">Mi Bot</h1>
         <EmptyState
           title="Sin configuración IA"
           description="No se encontró configuración de IA para tu tenant"
@@ -45,36 +45,36 @@ export default async function AiSettingsPage({
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-500/10">
-              <svg className="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/10">
+              <svg className="h-5 w-5 text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" />
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Mi Bot</h1>
-              <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+              <h1 className="text-2xl font-semibold tracking-tight text-gray-100">Mi Bot</h1>
+              <p className="mt-0.5 text-sm text-gray-400">
                 Configurá el comportamiento de tu bot y su base de conocimiento
               </p>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${settings.enabled ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20' : 'bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-500/20'}`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${settings.enabled ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${settings.enabled ? 'bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20' : 'bg-white/5 text-gray-400 ring-1 ring-inset ring-white/10'}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${settings.enabled ? 'bg-emerald-500' : 'bg-gray-500'}`} />
             {settings.enabled ? 'Activo' : 'Pausado'}
           </span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="mb-8 border-b border-gray-200 dark:border-gray-800">
+      <div className="mb-8 border-b border-white/[0.06]">
         <nav className="-mb-px flex gap-6">
           <Link
             href="/dashboard/ai-settings"
             className={`flex items-center gap-2 border-b-2 pb-3 text-sm font-medium transition-colors duration-150 ${
               activeTab === 'settings'
-                ? 'border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-200'
+                ? 'border-brand-400 text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-600 hover:text-gray-300'
             }`}
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -86,8 +86,8 @@ export default async function AiSettingsPage({
             href="/dashboard/ai-settings?tab=knowledge"
             className={`flex items-center gap-2 border-b-2 pb-3 text-sm font-medium transition-colors duration-150 ${
               activeTab === 'knowledge'
-                ? 'border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-200'
+                ? 'border-brand-400 text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-600 hover:text-gray-300'
             }`}
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -95,7 +95,7 @@ export default async function AiSettingsPage({
             </svg>
             Conocimiento
             {entries.length > 0 && (
-              <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
+              <span className="rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-brand-400">
                 {enabledCount}/{entries.length}
               </span>
             )}
@@ -103,7 +103,6 @@ export default async function AiSettingsPage({
         </nav>
       </div>
 
-      {/* Tab content */}
       {activeTab === 'settings' ? (
         <AiSettingsForm
           action={saveAiSettingsAction}
@@ -113,6 +112,8 @@ export default async function AiSettingsPage({
             systemPrompt: settings.systemPrompt,
             handoffKeywords: handoffRules.keywords.join(', '),
             handoffTag: handoffRules.handoffTag,
+            removeOpeningSigns: settings.removeOpeningSigns,
+            splitLongMessages: settings.splitLongMessages,
           }}
         />
       ) : (

@@ -20,16 +20,16 @@ export function KnowledgeUploadForm() {
   const [urlState, urlAction, urlPending] = useActionState(importKnowledgeUrlAction, null);
 
   return (
-    <div className="mb-6 overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+    <div className="mb-6 overflow-hidden rounded-xl border border-white/[0.06] bg-surface-2">
       {/* Tabs */}
-      <div className="flex border-b border-gray-200 dark:border-gray-800">
+      <div className="flex border-b border-white/[0.06]">
         <button
           type="button"
           onClick={() => setTab('url')}
           className={`flex flex-1 items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors duration-150 ${
             tab === 'url'
-              ? 'border-b-2 border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              ? 'border-b-2 border-brand-400 text-brand-400'
+              : 'text-gray-400 hover:text-gray-200'
           }`}
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -42,8 +42,8 @@ export function KnowledgeUploadForm() {
           onClick={() => setTab('file')}
           className={`flex flex-1 items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors duration-150 ${
             tab === 'file'
-              ? 'border-b-2 border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              ? 'border-b-2 border-brand-400 text-brand-400'
+              : 'text-gray-400 hover:text-gray-200'
           }`}
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -56,7 +56,7 @@ export function KnowledgeUploadForm() {
       {/* URL Tab */}
       {tab === 'url' && (
         <form action={urlAction} className="p-5">
-          <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mb-4 text-sm text-gray-400">
             Pegá la dirección de tu sitio web y el sistema extrae automáticamente toda la información relevante.
           </p>
           <div className="flex gap-2">
@@ -98,7 +98,7 @@ export function KnowledgeUploadForm() {
       {/* File Tab */}
       {tab === 'file' && (
         <form action={fileAction} className="p-5">
-          <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mb-4 text-sm text-gray-400">
             Subí un PDF, Excel o CSV con información de tu negocio (precios, catálogos, etc).
           </p>
           <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
@@ -145,7 +145,7 @@ function StatusMessage({ state }: { state: { error?: string; success?: boolean; 
 
   if (state.error) {
     return (
-      <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">
+        <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
         <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
         </svg>
@@ -156,7 +156,7 @@ function StatusMessage({ state }: { state: { error?: string; success?: boolean; 
 
   if (state.success) {
     return (
-      <div className="mt-3 flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2.5 text-sm text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+        <div className="mt-3 flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-400">
         <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>

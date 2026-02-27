@@ -79,22 +79,21 @@ export function SandboxChat({ systemPromptPreview }: { systemPromptPreview: stri
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950">
-      {/* Chat messages */}
+    <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-white/[0.06] bg-surface-0">
       <div className="flex-1 overflow-y-auto p-4">
         {messages.length === 0 && !loading && (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-100 dark:bg-brand-500/10">
-              <svg className="h-8 w-8 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-500/10">
+              <svg className="h-8 w-8 text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
               </svg>
             </div>
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Probá tu bot</p>
-            <p className="mt-1 max-w-xs text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-sm font-medium text-gray-100">Probá tu bot</p>
+            <p className="mt-1 max-w-xs text-xs text-gray-500">
               Escribí un mensaje como si fueras un cliente. El bot responderá con tu configuración actual.
             </p>
-            <div className="mt-4 rounded-lg bg-white px-3 py-2 text-left text-xs text-gray-400 shadow-sm dark:bg-gray-900">
-              <span className="font-medium text-gray-500 dark:text-gray-300">Prompt: </span>
+            <div className="mt-4 rounded-lg bg-surface-2 px-3 py-2 text-left text-xs text-gray-500">
+              <span className="font-medium text-gray-300">Prompt: </span>
               {systemPromptPreview}…
             </div>
           </div>
@@ -107,12 +106,12 @@ export function SandboxChat({ systemPromptPreview }: { systemPromptPreview: stri
                 className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   msg.role === 'user'
                     ? 'rounded-br-md bg-brand-600 text-white'
-                    : 'rounded-bl-md bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-gray-100'
+                    : 'rounded-bl-md bg-surface-3 text-gray-100'
                 }`}
               >
                 <p className="whitespace-pre-wrap">{msg.content}</p>
                 <p className={`mt-1 text-[10px] ${
-                  msg.role === 'user' ? 'text-brand-200' : 'text-gray-400'
+                  msg.role === 'user' ? 'text-brand-200' : 'text-gray-500'
                 }`}>
                   {msg.timestamp.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}
                 </p>
@@ -122,11 +121,11 @@ export function SandboxChat({ systemPromptPreview }: { systemPromptPreview: stri
 
           {loading && (
             <div className="flex justify-start">
-              <div className="rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-sm dark:bg-gray-800">
+              <div className="rounded-2xl rounded-bl-md bg-surface-3 px-4 py-3">
                 <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-gray-400" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-gray-500 [animation-delay:-0.3s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-gray-500 [animation-delay:-0.15s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-gray-500" />
                 </div>
               </div>
             </div>
@@ -137,19 +136,18 @@ export function SandboxChat({ systemPromptPreview }: { systemPromptPreview: stri
       </div>
 
       {error && (
-        <div className="border-t border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">
+        <div className="border-t border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-400">
           {error}
         </div>
       )}
 
-      {/* Input area */}
-      <div className="border-t border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
+      <div className="border-t border-white/[0.06] bg-surface-1 p-3">
         <form onSubmit={sendMessage} className="flex items-center gap-2">
           {messages.length > 0 && (
             <button
               type="button"
               onClick={clearChat}
-              className="flex-shrink-0 rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+              className="flex-shrink-0 rounded-lg p-2 text-gray-500 hover:bg-white/5 hover:text-gray-300"
               title="Limpiar conversación"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">

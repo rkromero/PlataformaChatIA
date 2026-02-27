@@ -12,7 +12,7 @@ export function InviteForm() {
     return (
       <button
         onClick={() => setExpanded(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 px-4 py-4 text-sm font-medium text-gray-500 transition-all duration-150 hover:border-brand-400 hover:bg-brand-50/50 hover:text-brand-600 dark:border-gray-600 dark:text-gray-400 dark:hover:border-brand-500 dark:hover:bg-brand-500/5 dark:hover:text-brand-400"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/[0.06] px-4 py-4 text-sm font-medium text-gray-400 transition-all duration-150 hover:border-brand-500 hover:bg-brand-500/5 hover:text-brand-400"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
@@ -23,19 +23,19 @@ export function InviteForm() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900">
+    <div className="rounded-xl border border-white/[0.06] bg-surface-2 p-5">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-500/10">
-            <svg className="h-4 w-4 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500/10">
+            <svg className="h-4 w-4 text-brand-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
             </svg>
           </div>
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Nuevo miembro</h2>
+          <h2 className="text-sm font-semibold text-gray-100">Nuevo miembro</h2>
         </div>
         <button
           onClick={() => setExpanded(false)}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors duration-150 hover:bg-white/5 hover:text-gray-300"
           aria-label="Cerrar formulario"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -47,7 +47,7 @@ export function InviteForm() {
       <form action={action}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="invite-name" className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+            <label htmlFor="invite-name" className="mb-1 block text-xs font-medium text-gray-400">
               Nombre completo
             </label>
             <input
@@ -56,11 +56,11 @@ export function InviteForm() {
               type="text"
               required
               placeholder="Juan Pérez"
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:bg-gray-800"
+              className="w-full rounded-lg border border-white/[0.06] bg-white/5 px-3 py-2.5 text-sm text-gray-100 placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
           </div>
           <div>
-            <label htmlFor="invite-email" className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+            <label htmlFor="invite-email" className="mb-1 block text-xs font-medium text-gray-400">
               Email
             </label>
             <input
@@ -69,11 +69,11 @@ export function InviteForm() {
               type="email"
               required
               placeholder="juan@empresa.com"
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:bg-gray-800"
+              className="w-full rounded-lg border border-white/[0.06] bg-white/5 px-3 py-2.5 text-sm text-gray-100 placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
           </div>
           <div>
-            <label htmlFor="invite-password" className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+            <label htmlFor="invite-password" className="mb-1 block text-xs font-medium text-gray-400">
               Contraseña
             </label>
             <div className="relative">
@@ -84,12 +84,12 @@ export function InviteForm() {
                 required
                 minLength={6}
                 placeholder="Mínimo 6 caracteres"
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:bg-gray-800"
+                className="w-full rounded-lg border border-white/[0.06] bg-white/5 px-3 py-2.5 pr-10 text-sm text-gray-100 placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-gray-400 transition-colors duration-150 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-gray-400 transition-colors duration-150 hover:text-gray-300"
                 aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
               >
                 {showPassword ? (
@@ -106,13 +106,13 @@ export function InviteForm() {
             </div>
           </div>
           <div>
-            <label htmlFor="invite-role" className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+            <label htmlFor="invite-role" className="mb-1 block text-xs font-medium text-gray-400">
               Rol
             </label>
             <select
               id="invite-role"
               name="role"
-              className="w-full cursor-pointer rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:focus:bg-gray-800"
+              className="w-full cursor-pointer rounded-lg border border-white/[0.06] bg-white/5 px-3 py-2.5 text-sm text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             >
               <option value="agent">Agente — acceso limitado</option>
               <option value="admin">Admin — acceso completo</option>
@@ -121,7 +121,7 @@ export function InviteForm() {
         </div>
 
         {state?.error && (
-          <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">
+          <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">
             <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
             </svg>
@@ -129,7 +129,7 @@ export function InviteForm() {
           </div>
         )}
         {state?.success && (
-          <div className="mt-3 flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+          <div className="mt-3 flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
             <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
             </svg>
@@ -141,7 +141,7 @@ export function InviteForm() {
           <button
             type="button"
             onClick={() => setExpanded(false)}
-            className="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+            className="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-400 transition-colors duration-150 hover:bg-white/5"
           >
             Cancelar
           </button>

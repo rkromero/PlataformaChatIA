@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" className="dark" suppressHydrationWarning>
       <body className="antialiased">
         <ThemeProvider>
           {children}
@@ -37,7 +37,7 @@ export default function RootLayout({
             position="top-right"
             toastOptions={{
               className:
-                '!bg-white !text-gray-900 dark:!bg-gray-800 dark:!text-gray-100 !shadow-lg !border !border-gray-200 dark:!border-gray-700',
+                '!bg-surface-2 !text-gray-100 !shadow-lg !border !border-white/[0.06]',
             }}
           />
         </ThemeProvider>

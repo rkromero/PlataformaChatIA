@@ -52,13 +52,13 @@ export function SettingsShell({ accountData, planData, routingData }: SettingsSh
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Configuración</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-400">
           Gestioná tu cuenta, plan y reglas de asignación
         </p>
       </div>
 
       {/* Tab navigation */}
-      <div className="mb-6 border-b border-gray-200 dark:border-gray-800">
+      <div className="mb-6 border-b border-white/[0.06]">
         <nav className="-mb-px flex gap-1" aria-label="Tabs">
           {TABS.map((tab) => (
             <button
@@ -66,8 +66,8 @@ export function SettingsShell({ accountData, planData, routingData }: SettingsSh
               onClick={() => setActiveTab(tab.id)}
               className={`flex cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors duration-150 ${
                 activeTab === tab.id
-                  ? 'border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300'
+                  ? 'border-brand-400 text-brand-400'
+                  : 'border-transparent text-gray-400 hover:border-white/10 hover:text-gray-300'
               }`}
             >
               {tab.icon}

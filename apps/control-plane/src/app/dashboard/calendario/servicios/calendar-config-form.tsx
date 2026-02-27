@@ -88,7 +88,7 @@ export function CalendarConfigForm({ config, availableChannels }: Props) {
         </div>
       </div>
 
-      <fieldset className="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+      <fieldset className="space-y-3 rounded-lg border border-white/[0.06] p-4">
         <legend className="px-2 text-sm font-semibold">Recordatorios automáticos</legend>
 
         <div>
@@ -141,16 +141,16 @@ export function CalendarConfigForm({ config, availableChannels }: Props) {
             </select>
           </div>
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-gray-400">
           Solo se muestran los canales que tenés configurados. Si el canal es &quot;Desactivado&quot;, no se envían recordatorios.
         </p>
       </fieldset>
 
       {state?.error && (
-        <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>
+        <p className="text-sm text-red-400">{state.error}</p>
       )}
       {(state as { success?: boolean } | null)?.success && (
-        <p className="text-sm text-emerald-600 dark:text-emerald-400">Configuración guardada</p>
+        <p className="text-sm text-emerald-400">Configuración guardada</p>
       )}
 
       <button type="submit" disabled={pending} className="btn-primary">

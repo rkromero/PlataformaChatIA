@@ -117,11 +117,10 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
   return (
     <div className="flex flex-1 flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
-        {/* Back button (mobile) */}
+      <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3">
         <button
           onClick={onBack}
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors duration-150 hover:bg-white/5 hover:text-white md:hidden"
           aria-label="Volver a la lista de conversaciones"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -129,37 +128,34 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
           </svg>
         </button>
 
-        {/* Avatar */}
         <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${
           isHuman
-            ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400'
-            : 'bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-400'
+            ? 'bg-amber-500/15 text-amber-400'
+            : 'bg-brand-500/15 text-brand-400'
         }`}>
           {(conversation.contactName?.[0] || conversation.phone?.[0] || '#').toUpperCase()}
         </div>
 
-        {/* Name + status */}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{displayName}</p>
+          <p className="truncate text-sm font-semibold text-gray-100">{displayName}</p>
           <div className="flex items-center gap-1.5">
             <span className={`h-1.5 w-1.5 rounded-full ${isHuman ? 'bg-amber-500' : 'bg-emerald-500'}`} />
             <span className="text-[11px] text-gray-500">
               {isHuman ? 'Atendiendo agente' : 'Bot activo'}
             </span>
             {conversation.phone && (
-              <span className="text-[11px] text-gray-400">· {conversation.phone}</span>
+              <span className="text-[11px] text-gray-500">· {conversation.phone}</span>
             )}
           </div>
         </div>
 
-        {/* Toggle button */}
         <button
           onClick={handleToggle}
           disabled={toggling}
           className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
             isHuman
-              ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20'
-              : 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20'
+              ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
+              : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
           }`}
         >
           {toggling ? (
@@ -184,7 +180,7 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
 
       {/* Status banner */}
       {isHuman && (
-        <div className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
+        <div className="flex items-center gap-2 border-b border-amber-500/20 bg-amber-500/10 px-4 py-2 text-xs text-amber-400">
           <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
           </svg>
@@ -193,7 +189,7 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 p-4 dark:bg-gray-950">
+      <div className="flex-1 overflow-y-auto bg-surface-0 p-4">
         {loading ? (
           <div className="mx-auto max-w-2xl space-y-3 pt-4">
             {[65, 45, 70, 50, 60].map((w, i) => (
@@ -201,19 +197,19 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
                 <div
                   className={`animate-pulse rounded-2xl px-4 py-3 ${
                     i % 2 === 0
-                      ? 'rounded-bl-md bg-gray-200 dark:bg-gray-800'
-                      : 'rounded-br-md bg-brand-600/20 dark:bg-brand-500/10'
+                      ? 'rounded-bl-md bg-surface-3'
+                      : 'rounded-br-md bg-brand-500/10'
                   }`}
                   style={{ width: `${w}%` }}
                 >
-                  <div className="h-3 rounded bg-gray-300/60 dark:bg-gray-700" />
-                  <div className="mt-1.5 h-3 w-3/4 rounded bg-gray-300/40 dark:bg-gray-700/60" />
+                  <div className="h-3 rounded bg-white/5" />
+                  <div className="mt-1.5 h-3 w-3/4 rounded bg-white/[0.03]" />
                 </div>
               </div>
             ))}
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex h-full items-center justify-center text-sm text-gray-400">
+          <div className="flex h-full items-center justify-center text-sm text-gray-500">
             Sin mensajes aún
           </div>
         ) : (
@@ -225,7 +221,7 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
                 <div key={msg.id}>
                   {showDateSep && (
                     <div className="my-4 flex items-center justify-center">
-                      <span className="rounded-full bg-gray-200 px-3 py-1 text-[10px] font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                      <span className="rounded-full bg-surface-3 px-3 py-1 text-[10px] font-medium text-gray-400">
                         {formatDate(msg.timestamp)}
                       </span>
                     </div>
@@ -234,18 +230,18 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
                     <div
                       className={`relative max-w-[75%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed shadow-sm ${
                         msg.type === 'incoming'
-                          ? 'rounded-bl-md bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100'
+                          ? 'rounded-bl-md bg-surface-3 text-gray-100'
                           : 'rounded-br-md bg-brand-600 text-white'
                       } ${msg.private ? 'border-2 border-dashed border-yellow-400' : ''}`}
                     >
                       {msg.type === 'incoming' && (
-                        <p className="mb-0.5 text-[10px] font-semibold text-brand-600 dark:text-brand-400">
+                        <p className="mb-0.5 text-[10px] font-semibold text-brand-400">
                           {msg.sender}
                         </p>
                       )}
                       <p className="whitespace-pre-wrap">{msg.content}</p>
                       <p className={`mt-1 text-right text-[10px] ${
-                        msg.type === 'incoming' ? 'text-gray-400' : 'text-brand-200'
+                        msg.type === 'incoming' ? 'text-gray-500' : 'text-brand-200'
                       }`}>
                         {formatTime(msg.timestamp)}
                       </p>
@@ -260,14 +256,14 @@ export function ChatPanel({ conversation, onBack, onStatusChange }: Props) {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
+      <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-white/[0.06] bg-surface-1 px-4 py-3">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={isHuman ? 'Escribir mensaje como agente...' : 'Toma la conversación para escribir...'}
           disabled={!isHuman || sending}
-          className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-brand-400 focus:bg-white focus:outline-none disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-brand-500 dark:disabled:opacity-30"
+          className="flex-1 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:border-brand-500 focus:outline-none disabled:opacity-30"
         />
         <button
           type="submit"

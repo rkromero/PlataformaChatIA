@@ -32,12 +32,12 @@ export function EmailBanner({ email }: { email: string }) {
   }
 
   return (
-    <div className="flex items-center justify-between bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-400">
+    <div className="flex items-center justify-between bg-amber-500/10 px-4 py-2 text-sm text-amber-400">
       <span>
         Tu email no está verificado. Revisá tu casilla ({email}).
       </span>
       {sent ? (
-        <span className="font-medium text-emerald-600 dark:text-emerald-400">Enviado</span>
+        <span className="font-medium text-emerald-400">Enviado</span>
       ) : (
         <button
           onClick={resend}

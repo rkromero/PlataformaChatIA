@@ -99,28 +99,28 @@ export function RuleForm({
       <h3 className="text-sm font-semibold">{isEdit ? 'Editar regla' : 'Nueva regla'}</h3>
 
       {error && (
-        <div className="rounded-lg bg-red-50 p-2 text-xs text-red-600 dark:bg-red-500/10 dark:text-red-400">
+        <div className="rounded-lg bg-red-500/10 p-2 text-xs text-red-400">
           {error}
         </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="text-xs font-medium text-gray-500">Nombre</label>
+          <label className="text-xs font-medium text-gray-400">Nombre</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+            className="input mt-1 w-full text-sm"
             placeholder="Ej: Leads Argentina"
           />
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-500">Tipo</label>
+          <label className="text-xs font-medium text-gray-400">Tipo</label>
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+            className="input mt-1 w-full text-sm"
           >
             <option value="round_robin">Round Robin</option>
             <option value="fixed">Asignación fija</option>
@@ -129,13 +129,13 @@ export function RuleForm({
         </div>
 
         <div>
-          <label className="text-xs font-medium text-gray-500">Prioridad</label>
+          <label className="text-xs font-medium text-gray-400">Prioridad</label>
           <input
             type="number"
             min={0}
             value={priority}
             onChange={(e) => setPriority(Number(e.target.value))}
-            className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+            className="input mt-1 w-full text-sm"
           />
           <p className="mt-0.5 text-[10px] text-gray-400">Menor número = mayor prioridad</p>
         </div>
@@ -156,11 +156,11 @@ export function RuleForm({
       {type === 'fixed' && (
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-medium text-gray-500">Agente asignado</label>
+            <label className="text-xs font-medium text-gray-400">Agente asignado</label>
             <select
               value={assignedAgentId}
               onChange={(e) => setAssignedAgentId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+              className="input mt-1 w-full text-sm"
             >
               <option value="">Seleccionar agente...</option>
               {agents.map((a) => (
@@ -169,11 +169,11 @@ export function RuleForm({
             </select>
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-500">Fuente (opcional)</label>
+            <label className="text-xs font-medium text-gray-400">Fuente (opcional)</label>
             <select
               value={source}
               onChange={(e) => setSource(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+              className="input mt-1 w-full text-sm"
             >
               <option value="">Todas las fuentes</option>
               <option value="whatsapp_qr">WhatsApp QR</option>
@@ -187,11 +187,11 @@ export function RuleForm({
       {type === 'geo' && (
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-medium text-gray-500">Agente asignado</label>
+            <label className="text-xs font-medium text-gray-400">Agente asignado</label>
             <select
               value={assignedAgentId}
               onChange={(e) => setAssignedAgentId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+              className="input mt-1 w-full text-sm"
             >
               <option value="">Seleccionar agente...</option>
               {agents.map((a) => (
@@ -200,11 +200,11 @@ export function RuleForm({
             </select>
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-500">Prefijos telefónicos</label>
+            <label className="text-xs font-medium text-gray-400">Prefijos telefónicos</label>
             <input
               value={phonePrefixes}
               onChange={(e) => setPhonePrefixes(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+              className="input mt-1 w-full text-sm"
               placeholder="+54, +56, +52"
             />
             <p className="mt-0.5 text-[10px] text-gray-400">Separados por coma</p>
@@ -214,18 +214,18 @@ export function RuleForm({
 
       {type === 'round_robin' && (
         <div>
-          <label className="text-xs font-medium text-gray-500">Agentes en rotación</label>
+          <label className="text-xs font-medium text-gray-400">Agentes en rotación</label>
           <div className="mt-2 space-y-1">
             {agents.map((a) => (
               <label
                 key={a.id}
-                className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                className="flex cursor-pointer items-center gap-2 rounded-lg border border-white/[0.06] px-3 py-2 text-sm hover:bg-white/5"
               >
                 <input
                   type="checkbox"
                   checked={roundRobinAgents.includes(a.id)}
                   onChange={() => toggleRoundRobinAgent(a.id)}
-                  className="h-4 w-4 rounded border-gray-300"
+                  className="h-4 w-4 rounded border-white/10"
                 />
                 {a.name || a.email}
                 <span className="text-xs text-gray-400">({a.role})</span>
@@ -238,7 +238,7 @@ export function RuleForm({
         </div>
       )}
 
-      <div className="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-800">
+      <div className="flex justify-end gap-2 border-t border-white/[0.06] pt-4">
         <button onClick={onClose} className="btn-secondary text-sm">
           Cancelar
         </button>

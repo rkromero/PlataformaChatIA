@@ -30,7 +30,7 @@ function DeleteBlockedButton({ id }: { id: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+        className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
         aria-label="Eliminar bloqueo"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -85,7 +85,7 @@ export function BlockedTimes({ professionals, blockedTimes }: Props) {
           </div>
         </div>
 
-        {state?.error && <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>}
+        {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
 
         <button type="submit" disabled={createPending} className="btn-primary text-sm">
           {createPending ? 'Guardando...' : 'Bloquear horario'}
@@ -93,18 +93,18 @@ export function BlockedTimes({ professionals, blockedTimes }: Props) {
       </form>
 
       {blockedTimes.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">Sin bloqueos registrados.</p>
+        <p className="text-sm text-gray-400">Sin bloqueos registrados.</p>
       ) : (
         <div className="space-y-2">
           {blockedTimes.map((bt) => (
             <div key={bt.id} className="card flex items-center gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">{bt.professionalName}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-400">
                   {dateFmt.format(new Date(bt.startAt))} — {dateFmt.format(new Date(bt.endAt))}
                 </p>
                 {bt.reason && (
-                  <p className="text-xs text-gray-400 dark:text-gray-500">{bt.reason}</p>
+                  <p className="text-xs text-gray-400">{bt.reason}</p>
                 )}
               </div>
               <DeleteBlockedButton id={bt.id} />

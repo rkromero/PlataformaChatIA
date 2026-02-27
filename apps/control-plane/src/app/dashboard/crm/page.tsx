@@ -99,7 +99,7 @@ export default async function CrmPage() {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">CRM</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-400">
             {totalLeads} lead{totalLeads !== 1 ? 's' : ''} — {wonLeads} ganado{wonLeads !== 1 ? 's' : ''}
             {!isAdmin(session) && ' (asignados a vos)'}
           </p>

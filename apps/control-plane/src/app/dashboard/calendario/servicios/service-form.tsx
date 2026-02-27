@@ -44,7 +44,7 @@ export function ServiceForm() {
         </button>
       </div>
       {state?.error && (
-        <p className="mt-2 text-sm text-red-600 dark:text-red-400">{state.error}</p>
+        <p className="mt-2 text-sm text-red-400">{state.error}</p>
       )}
     </form>
   );

@@ -16,10 +16,10 @@ function formatTimeInTz(date: Date, tz: string): string {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-amber-200 dark:bg-amber-500/30 border-amber-400',
-  confirmed: 'bg-emerald-200 dark:bg-emerald-500/30 border-emerald-400',
-  completed: 'bg-brand-200 dark:bg-brand-500/30 border-brand-400',
-  no_show: 'bg-gray-200 dark:bg-gray-700 border-gray-400',
+  pending: 'bg-amber-500/30 border-amber-400',
+  confirmed: 'bg-emerald-500/30 border-emerald-400',
+  completed: 'bg-brand-500/30 border-brand-400',
+  no_show: 'bg-gray-700 border-gray-400',
 };
 
 const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -109,7 +109,7 @@ export default async function AgendaPage({
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Agenda semanal</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-400">
             {formatDate(monday)} — {formatDate(new Date(sunday.getTime() - 86400000))}
           </p>
         </div>
@@ -135,18 +135,18 @@ export default async function AgendaPage({
       <div className="card overflow-x-auto">
         <div className="grid min-w-[800px]" style={{ gridTemplateColumns: '60px repeat(7, 1fr)' }}>
           {/* Header */}
-          <div className="border-b border-gray-200 p-2 dark:border-gray-700" />
+          <div className="border-b border-white/[0.06] p-2" />
           {days.map((day, i) => {
             const isToday = new Date().toDateString() === day.toDateString();
             return (
               <div
                 key={i}
-                className={`border-b border-l border-gray-200 p-2 text-center text-xs font-semibold dark:border-gray-700 ${
-                  isToday ? 'bg-brand-50 dark:bg-brand-500/10' : ''
+                className={`border-b border-l border-white/[0.06] p-2 text-center text-xs font-semibold ${
+                  isToday ? 'bg-brand-500/10' : ''
                 }`}
               >
                 <span className="block">{DAY_NAMES[i]}</span>
-                <span className={`text-lg ${isToday ? 'text-brand-600 dark:text-brand-400' : ''}`}>
+                <span className={`text-lg ${isToday ? 'text-brand-400' : ''}`}>
                   {day.getDate()}
                 </span>
               </div>
@@ -158,7 +158,7 @@ export default async function AgendaPage({
             <>
               <div
                 key={`h-${hour}`}
-                className="border-b border-gray-100 p-1 text-right text-[10px] text-gray-400 dark:border-gray-800"
+                className="border-b border-white/[0.06] p-1 text-right text-[10px] text-gray-400"
               >
                 {String(hour).padStart(2, '0')}:00
               </div>
@@ -171,7 +171,7 @@ export default async function AgendaPage({
                 return (
                   <div
                     key={`${hour}-${dayIdx}`}
-                    className="relative min-h-[48px] border-b border-l border-gray-100 dark:border-gray-800"
+                    className="relative min-h-[48px] border-b border-l border-white/[0.06]"
                   >
                     {dayAppts.map((appt) => {
                       const statusClass = STATUS_COLORS[appt.status] ?? STATUS_COLORS.pending;
@@ -199,7 +199,7 @@ export default async function AgendaPage({
       </div>
 
       <div className="mt-4 flex gap-2">
-        <Link href="/dashboard/calendario" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+        <Link href="/dashboard/calendario" className="text-sm text-gray-400 hover:text-gray-300">
           ← Volver a lista
         </Link>
       </div>

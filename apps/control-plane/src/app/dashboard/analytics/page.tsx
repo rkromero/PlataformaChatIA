@@ -53,7 +53,7 @@ export default async function AnalyticsPage() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-400">
           Rendimiento de tu bot en los últimos 30 días
         </p>
       </div>
@@ -61,20 +61,20 @@ export default async function AnalyticsPage() {
       {/* Summary cards */}
       <div className="mb-8 grid gap-4 sm:grid-cols-4">
         <div className="card">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Mensajes (30 días)</p>
+          <p className="text-sm font-medium text-gray-400">Mensajes (30 días)</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{totalMessages.toLocaleString()}</p>
         </div>
         <div className="card">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Promedio por día</p>
+          <p className="text-sm font-medium text-gray-400">Promedio por día</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{avgPerDay}</p>
         </div>
         <div className="card">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Día pico</p>
+          <p className="text-sm font-medium text-gray-400">Día pico</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{peakDay.messages}</p>
           <p className="text-xs text-gray-400">{peakDay.date}</p>
         </div>
         <div className="card">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total conversaciones</p>
+          <p className="text-sm font-medium text-gray-400">Total conversaciones</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{conversationCount}</p>
         </div>
       </div>
@@ -82,19 +82,19 @@ export default async function AnalyticsPage() {
       {/* Monthly progress */}
       <div className="card mb-8">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Uso mensual ({period})</p>
+          <p className="text-sm font-medium text-gray-400">Uso mensual ({period})</p>
           <span className="text-sm tabular-nums text-gray-500">
             {monthMessages.toLocaleString()} / {limits.messagesPerMonth.toLocaleString()}
           </span>
         </div>
-        <div className="mt-2 h-3 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+        <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/5">
           <div
             className={`h-full rounded-full transition-all ${
               monthMessages >= limits.messagesPerMonth
                 ? 'bg-red-500'
                 : monthMessages >= limits.messagesPerMonth * 0.8
                   ? 'bg-amber-500'
-                  : 'bg-brand-600'
+                  : 'bg-brand-500'
             }`}
             style={{ width: `${Math.min((monthMessages / limits.messagesPerMonth) * 100, 100)}%` }}
           />
@@ -103,7 +103,7 @@ export default async function AnalyticsPage() {
 
       {/* Chart */}
       <div className="card">
-        <h2 className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Mensajes por semana</h2>
+        <h2 className="mb-2 text-sm font-medium text-gray-400">Mensajes por semana</h2>
         <AnalyticsChart data={days} />
       </div>
     </div>

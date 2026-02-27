@@ -26,7 +26,7 @@ export function NewLeadButton() {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setOpen(false)}>
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-900" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-md rounded-xl bg-surface-2 p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="mb-4 text-lg font-semibold">Nuevo Potencial</h2>
 
             <form ref={formRef} action={formAction} className="space-y-4">
@@ -66,13 +66,13 @@ export function NewLeadButton() {
               </div>
 
               {state?.error && (
-                <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">
+                <p className="rounded-lg bg-red-500/10 p-3 text-sm text-red-400">
                   {state.error}
                 </p>
               )}
 
               <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setOpen(false)} className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800">
+                <button type="button" onClick={() => setOpen(false)} className="rounded-lg px-4 py-2 text-sm font-medium text-gray-400 hover:bg-white/[0.03]">
                   Cancelar
                 </button>
                 <button type="submit" disabled={pending} className="btn-primary">

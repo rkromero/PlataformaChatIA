@@ -26,6 +26,7 @@ import type { HandoffRules } from '@chat-platform/shared/types';
 import { getCalendarContext } from '../services/calendar-context.js';
 import { executeCalendarTool } from '../services/calendar-tools.js';
 import { prisma } from '../lib/db.js';
+import { transformReply } from '../lib/message-transform.js';
 
 const MAX_TOOL_ROUNDS = 3;
 
@@ -222,7 +223,7 @@ async function handleWebhook(body: Record<string, unknown>) {
 
 async function processAiReply(params: {
   tenant: { id: string; plan: string };
-  settings: { model: string; systemPrompt: string };
+  settings: { model: string; systemPrompt: string; removeOpeningSigns: boolean; splitLongMessages: boolean };
   log: ReturnType<typeof tenantLogger>;
   account: { id: number };
   conversation: { id: number };
@@ -304,7 +305,14 @@ async function processAiReply(params: {
 
   const aiReply = result.text || 'Lo siento, no pude procesar la solicitud.';
 
-  await sendMessage(account.id, conversation.id, aiReply);
+  const replyParts = transformReply(aiReply, {
+    removeOpeningSigns: settings.removeOpeningSigns,
+    splitLongMessages: settings.splitLongMessages,
+  });
+
+  for (const part of replyParts) {
+    await sendMessage(account.id, conversation.id, part);
+  }
 
   syncLeadInBackground({
     tenantId: tenant.id,
