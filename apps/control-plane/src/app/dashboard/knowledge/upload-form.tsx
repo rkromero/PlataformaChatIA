@@ -67,10 +67,10 @@ export function KnowledgeUploadForm() {
             ))}
           </select>
           <input
-            type="url"
+            type="text"
             name="url"
             required
-            placeholder="https://tusitio.com/pagina"
+            placeholder="www.tusitio.com o https://tusitio.com/pagina"
             className="input"
           />
           <button type="submit" disabled={urlPending} className="btn-primary w-full sm:w-auto">

@@ -171,8 +171,12 @@ const urlImportSchema = z.object({
   url: z
     .string()
     .trim()
-    .url('Ingresá una URL válida (incluí https://)')
-    .refine((value) => /^https?:\/\//i.test(value), 'La URL debe empezar con http:// o https://'),
+    .min(4, 'Ingresá una URL válida')
+    .transform((val) => {
+      if (!/^https?:\/\//i.test(val)) return `https://${val}`;
+      return val;
+    })
+    .pipe(z.string().url('La URL ingresada no es válida')),
 });
 
 export async function importKnowledgeUrlAction(_prev: unknown, formData: FormData) {
