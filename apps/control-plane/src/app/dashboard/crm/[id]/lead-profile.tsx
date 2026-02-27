@@ -81,7 +81,7 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
   const [isPending, startTransition] = useTransition();
   const [currentStage, setCurrentStage] = useState(lead.stage);
   const [lossModalOpen, setLossModalOpen] = useState(false);
-  const [lossReason, setLossReason] = useState(LOSS_REASONS[0].value);
+  const [lossReason, setLossReason] = useState<string>(LOSS_REASONS[0].value);
   const [lossReasonDetail, setLossReasonDetail] = useState('');
   const [lossError, setLossError] = useState<string | null>(null);
 
