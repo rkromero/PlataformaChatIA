@@ -38,18 +38,12 @@ interface Stage {
 interface KanbanBoardProps {
   leads: Lead[];
   stages: Stage[];
-  chatwootBaseUrl: string;
-  chatwootAccountId: number | null;
-  agents: Agent[];
   isAdmin: boolean;
 }
 
 export function KanbanBoard({
   leads: initialLeads,
   stages,
-  chatwootBaseUrl,
-  chatwootAccountId,
-  agents,
   isAdmin,
 }: KanbanBoardProps) {
   const [leads, setLeads] = useState(initialLeads);
@@ -146,12 +140,9 @@ export function KanbanBoard({
                 <LeadCard
                   key={lead.id}
                   lead={lead}
-                  chatwootBaseUrl={chatwootBaseUrl}
-                  chatwootAccountId={chatwootAccountId}
                   isDragging={draggedId === lead.id}
                   onDragStart={() => handleDragStart(lead.id)}
                   onDragEnd={handleDragEnd}
-                  agents={agents}
                   isAdmin={isAdmin}
                 />
               ))}

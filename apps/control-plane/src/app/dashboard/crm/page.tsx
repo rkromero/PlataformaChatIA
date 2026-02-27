@@ -26,7 +26,7 @@ export default async function CrmPage() {
 
   const filter = agentLeadFilter(session);
 
-  const [leads, tenant, agents] = await Promise.all([
+  const [leads] = await Promise.all([
     prisma.conversationLink.findMany({
       where: { tenantId: session.tenantId, ...filter },
       orderBy: { updatedAt: 'desc' },
@@ -46,22 +46,7 @@ export default async function CrmPage() {
         assignedAgent: { select: { id: true, name: true, email: true } },
       },
     }),
-    prisma.tenant.findUnique({
-      where: { id: session.tenantId },
-      select: { chatwootAccountId: true },
-    }),
-    isAdmin(session)
-      ? prisma.tenantUser.findMany({
-          where: { tenantId: session.tenantId, deletedAt: null },
-          select: { id: true, name: true, email: true, role: true },
-          orderBy: { email: 'asc' },
-        })
-      : ([] as { id: string; name: string; email: string; role: string }[]),
   ]);
-
-  const chatwootBaseUrl = process.env[String('CW_PLATFORM_URL')]
-    || process.env[String('CHATWOOT_BASE_URL')]
-    || '';
 
   const totalLeads = leads.length;
   const wonLeads = leads.filter((l) => l.stage === 'won').length;
@@ -148,9 +133,6 @@ export default async function CrmPage() {
             updatedAt: l.updatedAt.toISOString(),
           }))}
           stages={STAGES.map((s) => ({ ...s }))}
-          chatwootBaseUrl={chatwootBaseUrl}
-          chatwootAccountId={tenant?.chatwootAccountId ?? null}
-          agents={agents}
           isAdmin={isAdmin(session)}
         />
       )}

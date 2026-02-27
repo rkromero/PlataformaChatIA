@@ -3,28 +3,21 @@
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { deleteLeadAction } from './actions';
-import { assignAgentAction } from '../routing/actions';
-import type { Lead, Agent } from './kanban-board';
+import type { Lead } from './kanban-board';
 
 interface LeadCardProps {
   lead: Lead;
-  chatwootBaseUrl: string;
-  chatwootAccountId: number | null;
   isDragging: boolean;
   onDragStart: () => void;
   onDragEnd: () => void;
-  agents: Agent[];
   isAdmin: boolean;
 }
 
 export function LeadCard({
   lead,
-  chatwootBaseUrl,
-  chatwootAccountId,
   isDragging,
   onDragStart,
   onDragEnd,
-  agents,
   isAdmin,
 }: LeadCardProps) {
   const router = useRouter();
@@ -41,12 +34,6 @@ export function LeadCard({
     });
   }
 
-  function handleAssignAgent(agentId: string) {
-    startTransition(() => {
-      assignAgentAction(lead.id, agentId || null);
-    });
-  }
-
   function handleCardClick(e: React.MouseEvent) {
     const target = e.target as HTMLElement;
     if (target.closest('button, a, select, input, textarea')) return;
@@ -54,6 +41,7 @@ export function LeadCard({
   }
 
   const timeAgo = getTimeAgo(lead.updatedAt);
+  const assignedInitials = getInitials(lead.assignedAgentName);
 
   return (
     <div
@@ -66,29 +54,36 @@ export function LeadCard({
       }`}
     >
       {/* Header */}
-      <div className="flex items-start gap-2">
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-xs font-bold text-brand-400">
-          {initial}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <div className="flex h-5 min-w-5 items-center justify-center rounded-md bg-white/5 px-1 text-[10px] font-semibold uppercase text-gray-400">
+            {assignedInitials}
+          </div>
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-xs font-bold text-brand-400">
+            {initial}
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-gray-100">
-            {displayName}
-          </p>
-          {lead.phone && lead.contactName && (
-            <p className="truncate text-xs text-gray-400">{lead.phone}</p>
-          )}
-        </div>
+        {isAdmin && (
+          <button
+            onClick={handleDelete}
+            className="rounded-md p-1.5 text-gray-400 hover:bg-red-500/10 hover:text-red-400"
+            title="Eliminar lead"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+            </svg>
+          </button>
+        )}
       </div>
 
-      {/* Agent badge */}
-      {lead.assignedAgentName && (
-        <div className="mt-1.5 flex items-center gap-1">
-          <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-          </svg>
-          <span className="truncate text-[10px] text-gray-400">{lead.assignedAgentName}</span>
-        </div>
-      )}
+      <div className="mt-2 min-w-0">
+        <p className="truncate text-sm font-medium text-gray-100">
+          {displayName}
+        </p>
+        {lead.phone && lead.contactName && (
+          <p className="truncate text-xs text-gray-400">{lead.phone}</p>
+        )}
+      </div>
 
       {lead.lastMessage && (
         <p className="mt-2 line-clamp-2 text-xs text-gray-400">
@@ -99,22 +94,6 @@ export function LeadCard({
       <p className="mt-2 text-[10px] text-gray-400">{timeAgo}</p>
 
       <div className="mt-3 space-y-2 border-t border-white/[0.06] pt-3">
-        {isAdmin && agents.length > 0 && (
-          <div>
-            <label className="text-[10px] font-medium uppercase text-gray-400">Agente asignado</label>
-            <select
-              value={lead.assignedAgentId ?? ''}
-              onChange={(e) => handleAssignAgent(e.target.value)}
-              className="mt-0.5 w-full rounded-md border border-white/[0.06] bg-white/5 px-2 py-1 text-xs"
-            >
-              <option value="">Sin asignar</option>
-              {agents.map((a) => (
-                <option key={a.id} value={a.id}>{a.name || a.email}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
         <div className="flex items-center gap-2">
           <button
             onClick={() => router.push(`/dashboard/crm/${lead.id}`)}
@@ -122,21 +101,21 @@ export function LeadCard({
           >
             Chat
           </button>
-          {isAdmin && (
-            <button
-              onClick={handleDelete}
-              className="rounded-md p-1.5 text-gray-400 hover:bg-red-500/10 hover:text-red-400"
-              title="Eliminar lead"
-            >
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-              </svg>
-            </button>
-          )}
         </div>
       </div>
     </div>
   );
+}
+
+function getInitials(name: string | null): string {
+  if (!name) return '--';
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length === 0) return '--';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
 function getTimeAgo(dateStr: string): string {
