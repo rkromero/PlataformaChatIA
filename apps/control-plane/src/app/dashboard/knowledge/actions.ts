@@ -167,7 +167,6 @@ export async function uploadKnowledgeFileAction(_prev: unknown, formData: FormDa
 }
 
 const urlImportSchema = z.object({
-  category: z.string().min(1),
   url: z
     .string()
     .trim()
@@ -183,7 +182,6 @@ export async function importKnowledgeUrlAction(_prev: unknown, formData: FormDat
   const session = await requireSession();
 
   const parsed = urlImportSchema.safeParse({
-    category: formData.get('category'),
     url: formData.get('url'),
   });
   if (!parsed.success) {
@@ -206,7 +204,7 @@ export async function importKnowledgeUrlAction(_prev: unknown, formData: FormDat
   await prisma.knowledgeEntry.createMany({
     data: cappedEntries.map((entry) => ({
       tenantId: session.tenantId,
-      category: parsed.data.category,
+      category: 'general',
       title: entry.title.slice(0, 200),
       content: entry.content.slice(0, 5000),
       enabled: true,
@@ -214,5 +212,5 @@ export async function importKnowledgeUrlAction(_prev: unknown, formData: FormDat
   });
 
   revalidatePath('/dashboard/knowledge');
-  return { success: true, message: `Importación web completa: ${cappedEntries.length} entrada(s) creada(s)` };
+  return { success: true, message: `Sitio escaneado: ${cappedEntries.length} entrada(s) importada(s)` };
 }
