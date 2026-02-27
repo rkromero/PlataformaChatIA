@@ -7,9 +7,9 @@ import { SyncButton } from './sync-button';
 import { TemplateActions } from './template-actions';
 
 const STATUS_STYLES: Record<string, string> = {
-  APPROVED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400',
-  PENDING: 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',
-  REJECTED: 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400',
+  APPROVED: 'bg-emerald-500/10 text-emerald-400',
+  PENDING: 'bg-amber-500/10 text-amber-400',
+  REJECTED: 'bg-red-500/10 text-red-400',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -43,7 +43,7 @@ export default async function TemplatesPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Plantillas WhatsApp</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-400">
             {templates.length} plantilla{templates.length !== 1 ? 's' : ''} — {approved} aprobada{approved !== 1 ? 's' : ''}
           </p>
         </div>
@@ -59,7 +59,7 @@ export default async function TemplatesPage() {
       </div>
 
       {!hasChannel && (
-        <div className="mb-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-400">
+        <div className="mb-4 rounded-lg bg-amber-500/10 p-4 text-sm text-amber-400">
           Necesitás conectar un canal WhatsApp primero para sincronizar y enviar plantillas.
           <Link href="/dashboard/channels/connect-whatsapp" className="ml-1 font-medium underline">Conectar ahora</Link>
         </div>
@@ -87,16 +87,16 @@ export default async function TemplatesPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold">{tpl.name}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_STYLES[tpl.status] ?? 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_STYLES[tpl.status] ?? 'bg-white/5 text-gray-400'}`}>
                       {STATUS_LABELS[tpl.status] ?? tpl.status}
                     </span>
-                    <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500 dark:bg-gray-800">
+                    <span className="rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-gray-400">
                       {CATEGORY_LABELS[tpl.category] ?? tpl.category}
                     </span>
                     <span className="text-[10px] text-gray-400">{tpl.language}</span>
                   </div>
                   {body && (
-                    <p className="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{body}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-gray-400">{body}</p>
                   )}
                 </div>
                 <TemplateActions templateId={tpl.id} />
@@ -106,9 +106,9 @@ export default async function TemplatesPage() {
         </div>
       )}
 
-      <div className="mt-8 rounded-lg bg-gray-50 p-4 dark:bg-gray-900">
+      <div className="mt-8 rounded-lg bg-surface-2 p-4">
         <h3 className="text-sm font-semibold">¿Cómo funcionan las plantillas?</h3>
-        <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
+        <ul className="mt-2 space-y-1 text-xs text-gray-400">
           <li>• Si el cliente escribió en las últimas <strong>24 horas</strong>, el bot responde libre.</li>
           <li>• Después de 24h, solo podés enviar <strong>plantillas aprobadas</strong> por Meta.</li>
           <li>• Las plantillas pueden tener variables como <code>{'{{1}}'}</code>, <code>{'{{2}}'}</code> que completás al enviar.</li>

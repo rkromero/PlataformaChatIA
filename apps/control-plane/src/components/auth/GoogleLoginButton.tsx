@@ -78,7 +78,7 @@ export default function GoogleLoginButton() {
     return (
         <div className="relative w-full">
             {isLoading && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50 dark:bg-gray-900/50">
+                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-surface-2/80">
                     <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
                 </div>
             )}

@@ -69,12 +69,11 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
 
   return (
     <div>
-      {/* Week navigation */}
       <div className="mb-6 flex items-center justify-between">
         <button
           onClick={() => canPrev && setWeekIndex(weekIndex - 1)}
           disabled={!canPrev}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed dark:hover:bg-gray-800"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Semana anterior"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -83,8 +82,8 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
         </button>
 
         <div className="text-center">
-          <p className="text-sm font-semibold">{rangeLabel}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-sm font-semibold text-gray-100">{rangeLabel}</p>
+          <p className="text-xs text-gray-400">
             {weekTotal} mensaje{weekTotal !== 1 ? 's' : ''} esta semana
           </p>
         </div>
@@ -92,7 +91,7 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
         <button
           onClick={() => canNext && setWeekIndex(weekIndex + 1)}
           disabled={!canNext}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed dark:hover:bg-gray-800"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors duration-150 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Semana siguiente"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -101,7 +100,6 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
         </button>
       </div>
 
-      {/* Chart */}
       <div role="img" aria-label={`Gráfico semanal. ${rangeLabel}. Total: ${weekTotal} mensajes`}>
         <div className="flex items-end gap-3 px-2" style={{ height: CHART_HEIGHT }}>
           {weekDays.map((d, i) => {
@@ -125,32 +123,29 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
                 onMouseEnter={() => setFocusedIndex(i)}
                 onMouseLeave={() => setFocusedIndex(null)}
               >
-                {/* Tooltip */}
                 <div
-                  className={`pointer-events-none absolute -top-12 z-10 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs text-white shadow-lg dark:bg-gray-700 ${
+                  className={`pointer-events-none absolute -top-12 z-10 whitespace-nowrap rounded-lg bg-surface-3 px-3 py-1.5 text-xs text-white shadow-lg ${
                     isActive ? 'block' : 'hidden'
                   }`}
                 >
                   <span className="font-bold">{d.messages}</span> mensaje{d.messages !== 1 ? 's' : ''}
                   <br />
-                  <span className="text-gray-300">{d.date}</span>
+                  <span className="text-gray-400">{d.date}</span>
                 </div>
 
-                {/* Message count above bar */}
                 {hasMessages && (
-                  <span className="mb-1 text-xs font-semibold tabular-nums text-brand-600 dark:text-brand-400">
+                  <span className="mb-1 text-xs font-semibold tabular-nums text-brand-400">
                     {d.messages}
                   </span>
                 )}
 
-                {/* Bar */}
                 <div
                   className={`w-full rounded-t-lg transition-all duration-150 ${
                     !hasMessages
-                      ? 'bg-gray-200 dark:bg-gray-700'
+                      ? 'bg-white/5'
                       : isActive
-                        ? 'bg-brand-400 dark:bg-brand-400'
-                        : 'bg-brand-500 dark:bg-brand-500'
+                        ? 'bg-brand-400'
+                        : 'bg-brand-500'
                   }`}
                   style={{ height: barPx }}
                 />
@@ -159,18 +154,17 @@ export function AnalyticsChart({ data }: { data: DataPoint[] }) {
           })}
         </div>
 
-        {/* Day labels */}
         <div className="mt-3 flex gap-3 px-2">
           {weekDays.map((d) => {
             const dow = DAY_NAMES[new Date(d.date + 'T12:00:00').getDay()];
             const isToday = d.date === todayStr;
             return (
               <div key={d.date} className="flex-1 text-center">
-                <span className={`text-xs font-medium ${isToday ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                <span className={`text-xs font-medium ${isToday ? 'text-brand-400' : 'text-gray-500'}`}>
                   {dow}
                 </span>
                 <br />
-                <span className={`text-[10px] ${isToday ? 'font-semibold text-brand-600 dark:text-brand-400' : 'text-gray-400'}`}>
+                <span className={`text-[10px] ${isToday ? 'font-semibold text-brand-400' : 'text-gray-500'}`}>
                   {d.date.slice(8)}/{d.date.slice(5, 7)}
                 </span>
               </div>

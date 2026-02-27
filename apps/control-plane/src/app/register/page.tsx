@@ -9,9 +9,9 @@ export default function RegisterPage() {
   const [state, formAction, pending] = useActionState(registerAction, null);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-950 px-4">
+    <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-gray-800 bg-gray-900 p-8 shadow-xl">
+        <div className="rounded-2xl border border-white/[0.06] bg-surface-2 p-8 shadow-xl">
           <div className="mb-8 text-center">
             <Link href="/" className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600">
               <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -34,7 +34,7 @@ export default function RegisterPage() {
                 name="businessName"
                 type="text"
                 required
-                className="block w-full rounded-lg border border-gray-700 bg-gray-800 px-3.5 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                className="input"
                 placeholder="Ej: Pizzería Don Juan"
               />
             </div>
@@ -49,7 +49,7 @@ export default function RegisterPage() {
                 type="email"
                 required
                 autoComplete="email"
-                className="block w-full rounded-lg border border-gray-700 bg-gray-800 px-3.5 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                className="input"
                 placeholder="tu@email.com"
               />
             </div>
@@ -64,7 +64,7 @@ export default function RegisterPage() {
                 type="password"
                 required
                 autoComplete="new-password"
-                className="block w-full rounded-lg border border-gray-700 bg-gray-800 px-3.5 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                className="input"
                 placeholder="Mínimo 6 caracteres"
               />
             </div>
@@ -79,7 +79,7 @@ export default function RegisterPage() {
                 type="password"
                 required
                 autoComplete="new-password"
-                className="block w-full rounded-lg border border-gray-700 bg-gray-800 px-3.5 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                className="input"
                 placeholder="Repetí tu contraseña"
               />
             </div>
@@ -104,10 +104,10 @@ export default function RegisterPage() {
 
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-gray-800"></div>
+              <div className="w-full border-t border-white/[0.06]"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-gray-900 px-2 text-gray-400">O continuar con</span>
+              <span className="bg-surface-2 px-2 text-gray-400">O continuar con</span>
             </div>
           </div>
 

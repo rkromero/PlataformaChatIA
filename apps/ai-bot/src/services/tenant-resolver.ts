@@ -12,6 +12,8 @@ interface TenantWithSettings {
     model: string;
     systemPrompt: string;
     handoffRulesJson: unknown;
+    removeOpeningSigns: boolean;
+    splitLongMessages: boolean;
   } | null;
 }
 

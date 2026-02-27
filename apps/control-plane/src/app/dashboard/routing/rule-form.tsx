@@ -146,7 +146,7 @@ export function RuleForm({
             id="isActive"
             checked={isActive}
             onChange={(e) => setIsActive(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-white/10"
           />
           <label htmlFor="isActive" className="text-sm">Activa</label>
         </div>
