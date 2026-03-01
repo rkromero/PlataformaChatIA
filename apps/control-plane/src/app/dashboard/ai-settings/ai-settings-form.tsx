@@ -291,11 +291,11 @@ export function AiSettingsForm({ action, settings }: Props) {
         </div>
       ) : null}
 
-      <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.02] px-5 py-4">
+      <div className="flex flex-col items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-gray-500">
           Los cambios se aplican inmediatamente a las nuevas conversaciones.
         </p>
-        <button type="submit" disabled={pending} className="btn-primary min-w-[180px]">
+        <button type="submit" disabled={pending} className="btn-primary w-full sm:w-auto sm:min-w-[180px]">
           {pending ? (
             <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
           ) : (
