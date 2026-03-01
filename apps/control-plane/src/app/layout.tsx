@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SEO_KEYWORDS, getSiteUrl } from '@/lib/seo';
+import { PwaRegister } from '@/components/pwa-register';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
   description: 'Plataforma de atención al cliente por WhatsApp con IA',
   keywords: SEO_KEYWORDS,
   metadataBase: new URL(getSiteUrl()),
+  manifest: '/manifest.webmanifest',
   alternates: {
     canonical: '/',
   },
@@ -26,6 +28,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'ChatPlatform',
   },
 };
 
@@ -38,6 +46,7 @@ export default function RootLayout({
     <html lang="es" className="dark" suppressHydrationWarning>
       <body className="antialiased">
         <ThemeProvider>
+          <PwaRegister />
           {children}
           <Toaster
             position="top-right"

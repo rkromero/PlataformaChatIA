@@ -8,12 +8,13 @@ const PUBLIC_PATHS = [
   '/reset-password',
   '/verify-email',
   '/invite',
+  '/offline',
   '/blog',
   '/api/health',
   '/api/bootstrap-admin',
   '/api/notify-usage',
 ];
-const PUBLIC_EXACT = ['/', '/precios', '/contacto', '/sobre-nosotros', '/terminos', '/privacidad'];
+const PUBLIC_EXACT = ['/', '/precios', '/contacto', '/sobre-nosotros', '/terminos', '/privacidad', '/manifest.webmanifest', '/sw.js'];
 
 function getSecret() {
   const secret = process.env.AUTH_SECRET;
@@ -49,5 +50,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 };
