@@ -40,13 +40,13 @@ export function RoutingSection({ data }: { data: RoutingData }) {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <div>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <p className="text-sm text-gray-400">
             Configurá cómo se asignan los leads automáticamente a los agentes
           </p>
         </div>
-        <button onClick={handleNew} className="btn-primary text-sm">
+        <button onClick={handleNew} className="btn-primary w-full justify-center text-sm sm:w-auto">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
