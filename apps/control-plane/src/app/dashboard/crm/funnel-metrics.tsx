@@ -27,11 +27,11 @@ export function FunnelMetrics({ stages, totalLeads, conversionRate, avgCycleTime
     <div className="card mb-4">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between"
+        className="flex w-full items-start justify-between gap-3 sm:items-center"
       >
-        <div className="flex items-center gap-4">
+        <div className="min-w-0">
           <h3 className="text-sm font-semibold">Embudo de ventas</h3>
-          <div className="flex items-center gap-3 text-xs text-gray-400">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
             <span>{totalLeads} leads</span>
             <span className="text-emerald-400">{conversionRate.toFixed(1)}% conversión</span>
             {avgCycleTime !== null && (
@@ -57,11 +57,20 @@ export function FunnelMetrics({ stages, totalLeads, conversionRate, avgCycleTime
               const stageConversion = prevCount > 0 ? ((stage.count / prevCount) * 100) : 0;
 
               return (
-                <div key={stage.key} className="flex items-center gap-3">
-                  <div className="w-24 text-right">
+                <div key={stage.key} className="rounded-lg border border-white/[0.06] p-2 sm:border-0 sm:p-0">
+                  <div className="mb-1 flex items-center justify-between sm:hidden">
                     <span className="text-xs font-medium">{stage.label}</span>
+                    {stage.avgDaysInStage !== null ? (
+                      <span className="text-[10px] text-gray-400">{stage.avgDaysInStage.toFixed(0)}d prom.</span>
+                    ) : (
+                      <span className="text-[10px] text-gray-300">—</span>
+                    )}
                   </div>
-                  <div className="relative flex-1 h-7 rounded-md bg-white/5 overflow-hidden">
+                  <div className="flex items-center gap-3">
+                    <div className="hidden w-24 text-right sm:block">
+                      <span className="text-xs font-medium">{stage.label}</span>
+                    </div>
+                    <div className="relative h-7 flex-1 overflow-hidden rounded-md bg-white/5">
                     <div
                       className={`absolute inset-y-0 left-0 rounded-md ${stage.color} transition-all duration-500`}
                       style={{ width: `${Math.max((stage.count / maxCount) * 100, stage.count > 0 ? 3 : 0)}%` }}
@@ -80,12 +89,13 @@ export function FunnelMetrics({ stages, totalLeads, conversionRate, avgCycleTime
                       </span>
                     </div>
                   </div>
-                  <div className="w-16 text-right">
+                    <div className="hidden w-16 text-right sm:block">
                     {stage.avgDaysInStage !== null ? (
                       <span className="text-[10px] text-gray-400">{stage.avgDaysInStage.toFixed(0)}d prom.</span>
                     ) : (
                       <span className="text-[10px] text-gray-300">—</span>
                     )}
+                    </div>
                   </div>
                 </div>
               );
@@ -93,7 +103,7 @@ export function FunnelMetrics({ stages, totalLeads, conversionRate, avgCycleTime
           </div>
 
           {/* Summary cards */}
-          <div className="grid grid-cols-3 gap-3 border-t border-white/[0.06] pt-3">
+          <div className="grid grid-cols-1 gap-3 border-t border-white/[0.06] pt-3 sm:grid-cols-3">
             <div className="rounded-lg bg-white/5 p-3 text-center">
               <p className="text-lg font-bold text-brand-600">{totalLeads}</p>
               <p className="text-[10px] text-gray-400">Total leads</p>

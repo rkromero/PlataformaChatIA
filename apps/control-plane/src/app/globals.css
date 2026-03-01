@@ -17,6 +17,20 @@
     @apply bg-[#0d0f14] text-gray-100 leading-relaxed;
   }
 
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+
+  @media (max-width: 1023px) {
+    html,
+    body {
+      overflow-x: hidden;
+    }
+  }
+
   /* Force dark readable native select menus across browsers/OS */
   select {
     color-scheme: dark;

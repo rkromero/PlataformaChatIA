@@ -21,7 +21,7 @@ export function DashboardShell({ email, role, tenantName, ownerName, ownerEmail,
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen w-full overflow-hidden">
       <Sidebar
         role={role}
         email={email}
@@ -32,7 +32,7 @@ export function DashboardShell({ email, role, tenantName, ownerName, ownerEmail,
         open={sidebarOpen}
         onClose={closeSidebar}
       />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar
           email={email}
           role={role}

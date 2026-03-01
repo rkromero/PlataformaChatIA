@@ -152,7 +152,7 @@ export function KanbanBoard({
 
   return (
     <>
-      <div className="grid flex-1 grid-cols-6 gap-2 pb-2">
+      <div className="grid flex-1 grid-cols-1 gap-2 pb-2 sm:grid-cols-2 lg:grid-cols-6">
         {stages.map((stage) => {
         const stageLeads = leads.filter((l) => l.stage === stage.key);
         const isDragOver = dragOverStage === stage.key;

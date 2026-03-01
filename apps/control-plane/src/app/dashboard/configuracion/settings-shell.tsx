@@ -59,12 +59,12 @@ export function SettingsShell({ accountData, planData, routingData }: SettingsSh
 
       {/* Tab navigation */}
       <div className="mb-6 border-b border-white/[0.06]">
-        <nav className="-mb-px flex gap-1" aria-label="Tabs">
+        <nav className="-mb-px flex gap-1 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Tabs">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors duration-150 ${
+              className={`flex flex-shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors duration-150 ${
                 activeTab === tab.id
                   ? 'border-brand-400 text-brand-400'
                   : 'border-transparent text-gray-400 hover:border-white/10 hover:text-gray-300'

@@ -101,8 +101,8 @@ export default async function CrmPage() {
   });
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] flex-col">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="flex h-[calc(100vh-7rem)] min-w-0 flex-col">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">CRM</h1>
           <p className="mt-1 text-sm text-gray-400">
@@ -110,7 +110,7 @@ export default async function CrmPage() {
             {!isAdmin(session) && ' (asignados a vos)'}
           </p>
         </div>
-        {isAdmin(session) && <NewLeadButton />}
+        {isAdmin(session) && <div className="self-start sm:self-auto"><NewLeadButton /></div>}
       </div>
 
       <FunnelMetrics

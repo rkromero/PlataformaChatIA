@@ -273,7 +273,7 @@ export function Sidebar({ role, email, tenantName, ownerName, ownerEmail, module
             onClick={onClose}
             aria-hidden="true"
           />
-          <aside className="relative z-50 flex h-full w-72 flex-col">
+          <aside className="relative z-50 flex h-full w-[min(18rem,88vw)] flex-col">
             {navContent}
           </aside>
         </div>
