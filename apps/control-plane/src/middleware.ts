@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   '/invite',
   '/offline',
   '/blog',
+  '/api/auth/google',
   '/api/health',
   '/api/bootstrap-admin',
   '/api/notify-usage',
