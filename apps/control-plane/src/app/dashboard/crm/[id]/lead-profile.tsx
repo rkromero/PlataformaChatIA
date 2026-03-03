@@ -96,6 +96,8 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
 
   const displayName = lead.contactName || lead.phone || 'Contacto';
   const initial = (lead.contactName?.[0] || lead.phone?.[0] || '#').toUpperCase();
+  const callPhone = lead.phone ? lead.phone.replace(/[^\d+]/g, '') : '';
+  const callHref = callPhone ? `tel:${callPhone}` : null;
 
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -230,7 +232,7 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
   const completedTasks = tasks.filter((t) => t.completed);
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-5xl lg:flex lg:h-[calc(100dvh-9rem)] lg:flex-col lg:overflow-hidden">
       {/* Header */}
       <div className="mb-6 flex items-center gap-3">
         <Link
@@ -269,9 +271,9 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
         </select>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-3">
         {/* Left column: Info + Tasks */}
-        <div className="space-y-4 lg:col-span-1">
+        <div className="space-y-4 lg:col-span-1 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
           {/* Agent assignment */}
           {isAdmin && agents.length > 0 && (
             <div className="card">
@@ -286,6 +288,17 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
                   <option key={a.id} value={a.id}>{a.name || a.email}</option>
                 ))}
               </select>
+              {callHref && (
+                <a
+                  href={callHref}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 lg:hidden"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 7.318 5.932 13.25 13.25 13.25h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 0 0-1.173.417l-.97 1.293a1.125 1.125 0 0 1-1.21.38 12.035 12.035 0 0 1-7.143-7.143 1.125 1.125 0 0 1 .38-1.21l1.293-.97a1.125 1.125 0 0 0 .417-1.173L4.713 2.852A1.125 1.125 0 0 0 3.622 2H2.25A2.25 2.25 0 0 0 0 4.25v2.5Z" />
+                  </svg>
+                  Llamar
+                </a>
+              )}
             </div>
           )}
 
@@ -423,7 +436,7 @@ export function LeadProfile({ lead, tasks, messages: initialMessages, stageLabel
         </div>
 
         {/* Right column: Conversation with chat input */}
-        <div className="card flex flex-col lg:col-span-2" style={{ maxHeight: 'calc(100vh - 12rem)' }}>
+        <div className="card flex flex-col lg:col-span-2 lg:min-h-0">
           {/* Conversation header */}
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-xs font-semibold uppercase text-gray-400">

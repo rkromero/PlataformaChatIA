@@ -329,9 +329,11 @@ export default function OnboardingPage() {
                 <button onClick={() => setStep(0)} className="btn-secondary flex-1">
                   ← Volver
                 </button>
-                <button onClick={() => setStep(2)} className="btn-primary flex-1">
-                  Omitir por ahora →
-                </button>
+                <form action={completeOnboardingAction} className="flex-1">
+                  <button type="submit" className="btn-primary w-full">
+                    Omitir por ahora →
+                  </button>
+                </form>
               </div>
             </div>
           )}

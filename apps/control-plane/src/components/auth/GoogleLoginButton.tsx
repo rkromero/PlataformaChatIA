@@ -36,7 +36,7 @@ export default function GoogleLoginButton() {
 
                 if (res.ok && data.success) {
                     toast.success(data.isNewUser ? '¡Cuenta creada con éxito!' : 'Bienvenido de nuevo');
-                    router.push('/dashboard/onboarding');
+                    router.push(data.isNewUser ? '/dashboard/onboarding' : '/dashboard');
                     router.refresh();
                 } else {
                     toast.error(data.error || 'Error al iniciar sesión con Google');
