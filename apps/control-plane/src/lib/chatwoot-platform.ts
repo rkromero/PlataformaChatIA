@@ -111,7 +111,7 @@ export async function createWhatsAppInbox(
   wabaId: string,
   accessToken: string,
 ): Promise<ChatwootInbox> {
-  return platformFetch<ChatwootInbox>(`/accounts/${accountId}/inboxes`, {
+  return accountFetch<ChatwootInbox>(accountId, '/inboxes', {
     name,
     channel: {
       type: 'whatsapp',
