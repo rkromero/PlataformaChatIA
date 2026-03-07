@@ -20,7 +20,7 @@ function getEnv(name: string): string {
 
 function getConfig() {
   const url = getEnv('CW_PLATFORM_URL') || getEnv('CHATWOOT_BASE_URL');
-  const token = getEnv('CW_PLATFORM_KEY');
+  const token = getEnv('CW_PLATFORM_KEY') || getEnv('CHATWOOT_API_TOKEN');
   return { url, token };
 }
 
@@ -52,9 +52,10 @@ async function accountFetch<T>(
   path: string,
   body: Record<string, unknown>,
 ): Promise<T> {
-  const { url, token } = getConfig();
+  const url = getEnv('CHATWOOT_BASE_URL') || getEnv('CW_PLATFORM_URL');
+  const token = getEnv('CHATWOOT_API_TOKEN') || getEnv('CW_PLATFORM_KEY');
   if (!url || !token) {
-    throw new Error('CW_PLATFORM_URL and CW_PLATFORM_KEY are required');
+    throw new Error('CHATWOOT_BASE_URL and CHATWOOT_API_TOKEN are required');
   }
 
   const res = await fetch(`${url}/api/v1/accounts/${accountId}${path}`, {

@@ -73,6 +73,9 @@ export async function connectWhatsAppAction(_prev: unknown, formData: FormData) 
     if (msg.includes('422')) {
       return { error: 'Credenciales inválidas. Verificá que el Phone Number ID, WABA ID y Access Token sean correctos.' };
     }
+    if (msg.includes('401') && msg.includes('not authorized for bots')) {
+      return { error: 'Error de Chatwoot: El token es de un Bot. Asegurate de tener configurado CHATWOOT_API_TOKEN con un "User Access Token" (de tu perfil de administrador) en el archivo .env' };
+    }
     return { error: `Error al crear inbox en Chatwoot: ${msg}` };
   }
 
